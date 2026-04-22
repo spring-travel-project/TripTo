@@ -21,70 +21,66 @@
 }
 </style>
 
-<header
-	class="bg-white border-b border-slate-200 relative z-50 h-[64px]">
-	<div class="navbar max-w-6xl w-full mx-auto px-4 py-0 h-full min-h-0">
+<header class="bg-white border-b border-base-200 sticky top-0 z-50">
+    <div class="navbar max-w-6xl mx-auto h-16 min-h-0 px-4">
+        
+        <div class="flex-1">
+            <a href="${pageContext.request.contextPath}/index.do" class="btn btn-ghost text-2xl font-bold text-primary gap-2 px-2 hover:bg-transparent">
+                <img src="${pageContext.request.contextPath}/resources/img/trip_icon.png" alt="로고" class="w-8 h-8">
+                <span class="tracking-tight">trip</span>
+            </a>
+            
+            <c:if test="${not empty auth}">
+                <div class="badge ${authDto.type == 1 ? 'badge-warning' : 'badge-info'} badge-outline ml-2 gap-1">
+                    <small>${authDto.type == 1 ? 'ADMIN' : 'USER'}</small>
+                    <span class="font-bold">${auth}</span>
+                </div>
+            </c:if>
+        </div>
 
-		<div class="flex-1 items-center h-full flex">
-			<a href="/teamtwo/index.do" class="text-2xl font-bold text-brand flex items-center gap-2">
-    <img src="/teamtwo/asset/pic/logo.png" alt="deverytime 로고" class="w-8 h-8 object-contain">
-    deverytime
-</a>
-			<c:if test="${not empty auth}">
-				<span
-					class="ml-3 chip ${authDto.type == 1 ? 'chip-amber' : 'chip-blue'}">
-					${authDto.type == 1 ? '관리자' : '일반'} | ${auth} </span>
-			</c:if>
-		</div>
-
-		<div class="flex-none h-full">
-			<ul class="flex h-full text-slate-700 font-semibold items-center">
-
-				<li class="h-full"><a href="/teamtwo/plan/list.do"
-					class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors ${uri.contains('/plan/') ? 'nav-active' : ''}">학습계획</a>
+        <div class="flex-none h-full">
+            <ul class="menu menu-horizontal px-1 h-full gap-1 font-semibold text-slate-600">
+                
+                <li><a href="/teamtwo/companion/list.do" class="h-full flex items-center ${uri.contains('/companion/') ? 'active' : ''}">동행</a></li>
+                <li><a href="/teamtwo/matching/list.do" class="h-full flex items-center ${uri.contains('/matching/') ? 'active' : ''}">매칭</a></li>
+                
+                
+                <li class="dropdown dropdown-hover h-full"> <div tabindex="0" role="button" class="h-full flex items-center px-4 cursor-pointer ${uri.contains('/board/') ? 'active' : ''}">
+				        커뮤니티
+				    </div>
+				    
+				    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 top-[25px] pt-4">
+				        <li><a href="/teamtwo/board/list.do?category=free" class="whitespace-nowrap">자유 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=review" class="whitespace-nowrap">정보 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">후기 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">추천 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">가이드 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">숙소 게시판</a></li>
+				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">맛집 게시판</a></li>
+				    </ul>
 				</li>
-				<li class="h-full"><a href="/teamtwo/study/study-list.do"
-					class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors ${uri.contains('/study/') ? 'nav-active' : ''}">스터디</a>
-				</li>
 
-				<li class="dropdown dropdown-hover h-full"><a
-					href="/teamtwo/board/trendingboard/list.do"
-					class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors cursor-pointer ${uri.contains('/board/') ? 'nav-active' : ''}">게시판</a>
+                <li><a href="/teamtwo/chat/list.do" class="h-full flex items-center ${uri.contains('/chat/') ? 'active' : ''}">채팅</a></li>
+                
+                <li><a href="/teamtwo/chat/list.do" class="h-full flex items-center ${uri.contains('/user/') ? 'active' : ''}">마이페이지</a></li>
 
-					<ul tabindex="0"
-						class="dropdown-content menu bg-white rounded-xl w-48 p-2 shadow-md border border-slate-200 top-full left-1/2 -translate-x-1/2 z-[50]">
-						<li><a href="/teamtwo/board/trendingboard/list.do">인기글
-								게시판</a></li>
-						<li><a href="/teamtwo/board/list.do?board=1">자유 게시판</a></li>
-						<li><a href="/teamtwo/board/list.do?board=2">질문 게시판</a></li>
-						<li><a href="/teamtwo/board/list.do?board=3">자료
-								공유 게시판</a></li>
-						<li><a href="/teamtwo/board/list.do?board=4">학습
-								공유 게시판</a></li>
-						<li><a href="/teamtwo/board/request/list.do">문의 게시판</a></li>
-					</ul></li>
+                <div class="divider divider-horizontal mx-1"></div>
 
-				<c:choose>
-					<c:when test="${empty auth}">
-						<li class="h-full"><a href="/teamtwo/user/login.do"
-							class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors ${uri.contains('login') || uri.contains('register') || uri.contains('find') ? 'nav-active' : ''}">로그인/회원가입</a></li>
-					</c:when>
-					<c:otherwise>
-						<li class="h-full"><a href="/teamtwo/user/mypage.do"
-							class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors ${uri.contains('/user/') && !uri.contains('logout') ? 'nav-active' : ''}">
-								마이페이지 </a></li>
-						<li class="h-full"><a href="/teamtwo/user/logout.do"
-							class="relative h-full flex items-center px-4 hover:bg-slate-50 transition-colors">로그아웃</a></li>
-
-						<c:if test="${authDto.type == 1}">
-							<li class="h-full"><a href="/teamtwo/admin/admin.do"
-								class="relative h-full flex items-center px-4 text-point-500 hover:bg-slate-50 transition-colors ${uri.contains('/admin/') ? 'nav-active' : ''}">관리자
-									메뉴</a></li>
-						</c:if>
-					</c:otherwise>
-				</c:choose>
-			</ul>
-		</div>
-
-	</div>
+                <c:choose>
+                    <c:when test="${empty auth}">
+                        <li><a href="/teamtwo/user/login.do" class="btn btn-ghost btn-sm h-full flex items-center">로그인</a></li>
+                        <li><a href="/teamtwo/user/register.do" class="btn btn-primary btn-sm text-white">회원가입</a></li>
+                    </c:when>
+                    <c:otherwise>
+                        <li><a href="/teamtwo/user/mypage.do" class="${uri.contains('/user/mypage') ? 'active' : ''}">마이페이지</a></li>
+                        <li><a href="/teamtwo/user/logout.do" class="text-error">로그아웃</a></li>
+                        
+                        <c:if test="${authDto.type == 1}">
+                            <li><a href="/teamtwo/admin/main.do" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
+                        </c:if>
+                    </c:otherwise>
+                </c:choose>
+            </ul>
+        </div>
+    </div>
 </header>

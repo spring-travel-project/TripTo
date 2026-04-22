@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+    <!-- 스프링 빈 -->
+    <!-- 403 핸들러 -->
+    <!-- <bean class="com.test.java.auth.CustomAccessDeniedHandler" id="customAccessDeniedHandler"></bean> -->
+    
+    <!-- 로그인 성공 핸들러 -->
+    <!-- <bean class="com.test.java.auth.CustomLoginSuccessHandler" id="customLoginSuccessHandler"></bean> -->
+    
+    <!-- PasswordEncoder(임시) -->
+    <!-- <bean class="com.test.java.auth.CustomNoOpPasswordEncoder" id="customNoOpPasswordEncoder"></bean> -->
+    
+    <!-- 
+        13. 실제 사용할 PasswordEncoder 생성하기
+        - BCryptPasswordEncoder: blowfish 알고리즘
+    -->
+    <bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" id="bCryptPasswordEncoder"></bean>
+    
+    <!-- <bean class="com.test.java.auth.CustomUserDetailsService" id="customUserDetailsService"></bean> -->
+    
+    <!-- 4. security-context.xml 기본 설정 -->
+    <!-- 
+    <security:http>
+        <security:form-login />
+    </security:http>
+    
+    <security:authentication-manager></security:authentication-manager> 
+    -->
+    <!-- 4. security-context.xml 기본 설정 -->
+    
+    <!-- 6. 로그인/로그아웃 구현 -->
+    <security:http>
+        
+        <!-- 허가 설정 -->
+        <security:intercept-url pattern="/index.do" access="permitAll" />
+        <security:intercept-url pattern="/member.do" access="hasRole('ROLE_MEMBER')" />
+        <security:intercept-url pattern="/admin.do" access="hasRole('ROLE_ADMIN')" />
+                                
+        <!-- 8.1 403 에러 > 특정 URL 지정 -->
+        <security:access-denied-handler error-page="/accesserror.do" />
+        <!-- 8.1 403 에러 > 특정 URL 지정 -->
+        
+        <!-- 8.2 AccessDeniedHandler 구현 -->
+        <!-- <security:access-denied-handler ref="customAccessDeniedHandler" /> -->
+        <!-- 8.2 AccessDeniedHandler 구현 -->
+                                        
+        <!-- 9. 자동 생성 로그인 페이지 사용 -->
+        <security:form-login />
+        
+        <!-- 9. 커스텀 로그인 페이지 구현 -->
+        <!-- <security:form-login login-page="/customlogin.do" /> -->
+        
+        <!-- 9.1 개발 > CSRF 방지 설정 Off -->
+        <!-- <security:csrf disabled="true" /> -->
+        
+        <!-- 10. 로그아웃 구현하기 -->
+        <security:logout logout-url="/customlogout.do" invalidate-session="true" logout-success-url="/index.do" />
+        
+        <!-- 11. 로그인 성공 > 후속 동작 구현 -->
+        <!-- <security:form-login login-page="/customlogin.do" authentication-success-handler-ref="customLoginSuccessHandler" /> -->
+        
+    </security:http>
+    
+    <!-- <security:authentication-manager></security:authentication-manager> -->
+    
+    <!-- 7. 계정 만들기(단순, 테스트용). 인 메모리 방식 -->
+    <security:authentication-manager>
+        <security:authentication-provider>
+            <security:user-service>
+                <security:user name="hong" password="{noop}1111" authorities="ROLE_MEMBER"/>
+                <security:user name="test" password="{noop}1111" authorities="ROLE_ADMIN,ROLE_MEMBER"/>
+            </security:user-service>
+        </security:authentication-provider>
+    </security:authentication-manager>
+    <!-- 7. 계정 만들기(단순, 테스트용) -->
+    
+    <!-- 12.1 미리 정해진 구조의 DB 스키마 사용 -->
+    <!-- <security:authentication-manager>
+        <security:authentication-provider>
+            <security:jdbc-user-service data-source-ref="dataSource"/>
+            <security:password-encoder ref="customNoOpPasswordEncoder" />
+        </security:authentication-provider>
+    </security:authentication-manager> -->
+    <!-- 12.1 미리 정해진 구조의 DB 스키마 사용 -->
+    
+    <!-- 12.2 개발자가 직접 만든 DB 스키마 사용 -->
+    <!-- <security:authentication-manager>
+        <security:authentication-provider>
+            <security:jdbc-user-service data-source-ref="dataSource"
+                users-by-username-query="select memberid as username, memberpw as password, enabled from member where memberid = ?"
+                authorities-by-username-query="select memberid as username, auth as authority from member_auth where memberid = ?" />
+            <security:password-encoder ref="bCryptPasswordEncoder" />
+        </security:authentication-provider>
+    </security:authentication-manager> -->
+    <!-- 12.2 개발자가 직접 만든 DB 스키마 사용 -->
+    
+    <!-- 15. 14번 기본 + 로그인 처리 + 인증 정보 관리 -->
+    <!-- <security:authentication-manager>
+        <security:authentication-provider user-service-ref="customUserDetailsService">
+            <security:password-encoder ref="bCryptPasswordEncoder" />
+        </security:authentication-provider>
+    </security:authentication-manager> -->
+    <!-- 15. 14번 기본 + 로그인 처리 + 인증 정보 관리 -->
+
+</beans>
