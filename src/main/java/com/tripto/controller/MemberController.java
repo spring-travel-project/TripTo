@@ -114,11 +114,11 @@ public class MemberController {
 	@PostMapping("/join.do")
 	public String joinComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile) {
 
-		// 1. 비밀번호 암호화 (사용자가 친 1111 -> $2a$10$ 복잡한 문자열로 변환)
+		// 1) 비밀번호 암호화 (사용자가 친 1111 -> $2a$10$ 복잡한 문자열로 변환)
 		String encodedPw = passwordEncoder.encode(dto.getPw());
 		dto.setPw(encodedPw);
 
-		// 2. 프로필 사진 파일 업로드 처리
+		// 2) 프로필 사진 파일 업로드 처리
 		if (picFile.isEmpty()) {
 			// 파일이 없으면 기본 이미지 세팅
 			dto.setPic("pic.png");
@@ -149,11 +149,17 @@ public class MemberController {
 			}
 		}
 
-		// 3. 서비스로 넘겨서 DB INSERT 실행
+		// 3) 서비스로 넘겨서 DB INSERT 실행
 		memberService.joinMember(dto);
 
 		// 가입이 완료되면 로그인 페이지로 돌려보냄
 		return "redirect:/member/login.do";
+	}
+
+	// 6. 로그인 폼 화면 보여주기
+	@GetMapping("/login.do")
+	public String login() {
+		return "member/login";
 	}
 
 }
