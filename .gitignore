@@ -259,4 +259,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# 보안 파일 깃허브 업로드 제외
+/src/main/resources/config/api.properties
+/src/main/resources/config/db.properties
+
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,eclipse,windows,macos,intellij+all
