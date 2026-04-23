@@ -69,4 +69,26 @@ public class MatchingController {
 
         return "matching/list";
     }
+    
+    @GetMapping("/matching/detail")
+    public String matchingDetail(@RequestParam("seqMember") int targetSeq, HttpSession session, Model model) {
+        
+        // 1. 로그인한 내 번호 가져오기
+        Integer loginSeq = (Integer) session.getAttribute("loginSeq");
+        if (loginSeq == null) {
+            session.setAttribute("loginSeq", 1); // 테스트용 강제 로그인
+            loginSeq = 1;
+        }
+
+        // 2. 서비스로부터 내 정보와 상대방 정보를 비교 분석한 결과 가져오기
+        Map<String, Integer> map = new HashMap<>();
+        map.put("loginSeq", loginSeq);   // 나
+        map.put("targetSeq", targetSeq); // 상대방
+        
+        MatchDTO matchDetail = matchingService.getMatchDetail(map);
+
+        model.addAttribute("match", matchDetail);
+        
+        return "matching/detail";
+    }
 }

@@ -108,7 +108,7 @@
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
-											<div class="bg-orange-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-orange-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
+											<div class="bg-indigo-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-indigo-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
 										</div>
 									</div>
 								</c:if>
@@ -137,7 +137,7 @@
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
-											<div class="bg-emerald-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-emerald-600">비흡연 동행 · ${match.age}세</p></div>
+											<div class="bg-indigo-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-indigo-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
 										</div>
 									</div>
 								</c:if>
@@ -161,7 +161,7 @@
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
-											<div class="bg-slate-100 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-slate-600">흡연 가능 동행 · ${match.age}세</p></div>
+											<div class="bg-indigo-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-indigo-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
 										</div>
 									</div>
 								</c:if>
@@ -190,7 +190,7 @@
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
-											<div class="bg-sky-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-sky-600">비음주 동행 · ${match.age}세</p></div>
+											<div class="bg-indigo-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-indigo-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
 										</div>
 									</div>
 								</c:if>
@@ -214,7 +214,7 @@
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
-											<div class="bg-amber-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-amber-600">음주 선호 동행 · ${match.age}세</p></div>
+											<div class="bg-indigo-50 rounded-full py-2 px-4 inline-block w-full"><p class="text-sm font-bold text-indigo-600">${match.mbti} · ${match.age}세 · ${match.gender == 0 ? '남' : '여'}</p></div>
 										</div>
 									</div>
 								</c:if>

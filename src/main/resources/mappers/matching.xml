@@ -65,5 +65,31 @@
 	    JOIN profile p ON m.seqMember = p.seqMember
 	    WHERE m.seqMember = #{loginSeq}
 	</select>
+	
+	<select id="getMatchDetail" parameterType="map" resultType="com.tripto.dto.MatchDTO">
+    SELECT 
+        m.seqMember,
+        m.nickname,
+        m.pic,
+        m.gender,
+        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
+        p.mbti,
+        p.smoking,
+        p.drinking,
+        p.intro, -- 상세 페이지용 자기소개
+        
+        -- 메인에서 썼던 matchCount 계산식 그대로 사용
+        (
+            (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
+            (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
+            (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
+            -- ... (생략) ...
+            (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup WHERE pag1.seqMember = m.seqMember AND pag2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
+        ) AS matchCount
+    FROM member m
+    JOIN profile p ON m.seqMember = p.seqMember
+    CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
+    WHERE m.seqMember = #{targetSeq} -- 🌟 클릭한 상대방의 번호로 조회
+</select>
 
 </mapper>
