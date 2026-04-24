@@ -56,7 +56,7 @@
                         커뮤니티
                     </a>
                     
-                    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 top-[25px] pt-4">
+                    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 -left-4 top-full mt-0">
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=자유" class="whitespace-nowrap">자유 게시판</a></li>
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=정보" class="whitespace-nowrap">정보 게시판</a></li>
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=후기" class="whitespace-nowrap">후기 게시판</a></li>
