@@ -14,4 +14,7 @@ public interface MatchingDAO {
     // 2. matching.xml의 <select id="getMatchingList"> 와 연결
     List<MatchDTO> getMatchingList(Map<String, Object> params);
 
+	MatchDTO getMatchDetail(Map<String, Integer> map);
+    
+
 }
