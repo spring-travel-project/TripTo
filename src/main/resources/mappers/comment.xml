@@ -3,6 +3,76 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.tripto.dao.CommentDAO">
+<mapper namespace="boardComment">
+
+    <select id="list" parameterType="int" resultType="com.tripto.dto.BoardCommentDTO">
+        SELECT
+            bc.SEQBOARDCOMMENT AS seqBoardComment,
+            bc.SEQBOARDPOST AS seqBoardPost,
+            bc.SEQMEMBER AS seqMember,
+            bc.CONTENT AS content,
+            TO_CHAR(bc.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+            TO_CHAR(bc.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+            bc.STATUS AS status,
+            m.NAME AS writerName
+        FROM BOARD_COMMENT bc
+            INNER JOIN MEMBER m
+                ON bc.SEQMEMBER = m.SEQMEMBER
+        WHERE bc.SEQBOARDPOST = #{seqBoardPost}
+          AND bc.STATUS = 'NORMAL'
+        ORDER BY bc.SEQBOARDCOMMENT ASC
+    </select>
+
+    <insert id="add" parameterType="com.tripto.dto.BoardCommentDTO">
+        INSERT INTO BOARD_COMMENT (
+            SEQBOARDCOMMENT,
+            SEQBOARDPOST,
+            SEQMEMBER,
+            CONTENT,
+            CREATEDATE,
+            UPDATEDATE,
+            STATUS
+        ) VALUES (
+            SEQBOARDCOMMENT.NEXTVAL,
+            #{seqBoardPost},
+            #{seqMember},
+            #{content},
+            SYSDATE,
+            SYSDATE,
+            'NORMAL'
+        )
+    </insert>
+
+    <!-- 게시글 수정 -->
+	<update id="edit" parameterType="com.tripto.dto.BoardPostDTO">
+	    UPDATE BOARD_POST
+	    SET
+	        SEQCATEGORY = #{seqCategory},
+	        TITLE = #{title},
+	        CONTENT = #{content},
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQBOARDPOST = #{seqBoardPost}
+	</update>
+
+	<!-- 기존 파일 정보 삭제 -->
+	<delete id="deleteFiles" parameterType="int">
+	    DELETE FROM BOARD_POST_FILE
+	    WHERE SEQBOARDPOST = #{seqBoardPost}
+	</delete>
+
+    <update id="delete" parameterType="int">
+        UPDATE BOARD_COMMENT
+        SET STATUS = 'DELETED',
+            UPDATEDATE = SYSDATE
+        WHERE SEQBOARDCOMMENT = #{seqBoardComment}
+          AND STATUS = 'NORMAL'
+    </update>
+
+    <select id="getWriterSeq" parameterType="int" resultType="int">
+        SELECT SEQMEMBER
+        FROM BOARD_COMMENT
+        WHERE SEQBOARDCOMMENT = #{seqBoardComment}
+          AND STATUS = 'NORMAL'
+    </select>
 
 </mapper>

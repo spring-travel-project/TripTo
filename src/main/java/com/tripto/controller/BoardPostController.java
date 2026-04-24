@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
 import com.tripto.service.BoardPostService;
+import com.tripto.service.CommentService;
 
 @Controller
 public class BoardPostController {
@@ -29,15 +30,18 @@ public class BoardPostController {
     @Autowired
     private BoardPostService service;
 
-    // 목록
+    @Autowired
+    private CommentService commentService;
+
+    // 게시글 목록
     @GetMapping("/board/list.do")
     public String list(
-        @RequestParam(required = false, defaultValue = "") String category,
-        @RequestParam(required = false, defaultValue = "") String searchWord,
-        @RequestParam(required = false, defaultValue = "1") int page,
-        Model model) {
-    	
-    	System.out.println("=== list controller 실행 ===");
+            @RequestParam(required = false, defaultValue = "") String category,
+            @RequestParam(required = false, defaultValue = "") String searchWord,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            Model model) {
+
+        System.out.println("=== list controller 실행 ===");
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -52,7 +56,7 @@ public class BoardPostController {
         dto.setEnd(end);
 
         int totalCount = service.getTotalCount(dto);
-        int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+        int totalPage = (int) Math.ceil((double) totalCount / pageSize);
 
         List<BoardPostDTO> list = service.list(dto);
         List<BoardCategoryDTO> categoryList = service.categoryList();
@@ -71,7 +75,7 @@ public class BoardPostController {
     @GetMapping("/board/write.do")
     public String write(Model model, HttpSession session) {
 
-        // ❌ 로그인 체크 (임시 비활성화)
+        // 로그인 체크 (현재 비활성화)
         /*
         if (session.getAttribute("seqMember") == null) {
             return "redirect:/member/login.do";
@@ -89,7 +93,7 @@ public class BoardPostController {
                           HttpSession session,
                           RedirectAttributes rttr) {
 
-        // ❌ 로그인 체크 (임시 비활성화)
+        // 로그인 체크 (현재 비활성화)
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
@@ -100,9 +104,9 @@ public class BoardPostController {
         dto.setSeqMember(seqMember);
         */
 
-        // ✅ 임시 사용자 (테스트용)
+        // 테스트용 사용자
         dto.setSeqMember(1);
-        
+
         int result = service.add(dto, req);
 
         if (result == 1) {
@@ -126,21 +130,18 @@ public class BoardPostController {
             return "redirect:/board/list.do";
         }
 
-        // ❌ 로그인 기반 작성자 체크 (임시 비활성화)
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-        boolean isWriter = false;
-
-        if (seqMember != null) {
-            isWriter = service.isWriter(seqBoardPost, seqMember);
-        }
-        */
-
-        // ✅ 테스트용: 작성자라고 가정
+        // 테스트용
+        int currentSeqMember = 1;
+        boolean isAdmin = false;
         boolean isWriter = true;
 
         model.addAttribute("dto", dto);
         model.addAttribute("isWriter", isWriter);
+
+        // 댓글
+        model.addAttribute("commentList", commentService.list(seqBoardPost));
+        model.addAttribute("currentSeqMember", currentSeqMember);
+        model.addAttribute("isAdmin", isAdmin);
 
         return "board/detail";
     }
@@ -151,16 +152,6 @@ public class BoardPostController {
                        Model model,
                        HttpSession session,
                        RedirectAttributes rttr) {
-
-        // ❌ 로그인 + 권한 체크 비활성화
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-
-        if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
-            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
-        }
-        */
 
         BoardPostDTO dto = service.get(seqBoardPost, false);
 
@@ -175,22 +166,13 @@ public class BoardPostController {
     public String editOk(BoardPostDTO dto,
                          HttpServletRequest req,
                          HttpSession session,
-                         RedirectAttributes rttr) {
+                         RedirectAttributes rttr) throws Exception {
 
+        req.setCharacterEncoding("UTF-8");
 
-        // ❌ 로그인 + 권한 체크 비활성화
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        dto.setSeqMember(1);
 
-        if (seqMember == null || !service.isWriter(dto.getSeqBoardPost(), seqMember)) {
-            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
-            return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
-        }
-        */
-
-    	dto.setSeqMember(1);
-
-    	int result = service.edit(dto, req);
+        int result = service.edit(dto, req);
 
         if (result == 1) {
             rttr.addFlashAttribute("message", "게시글이 수정되었습니다.");
@@ -204,18 +186,7 @@ public class BoardPostController {
     // 삭제
     @PostMapping("/board/delete.do")
     public String delete(@RequestParam int seqBoardPost,
-                         HttpSession session,
                          RedirectAttributes rttr) {
-
-        // ❌ 로그인 + 권한 체크 비활성화
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-
-        if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "삭제 권한이 없습니다.");
-            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
-        }
-        */
 
         int result = service.delete(seqBoardPost);
 
@@ -227,7 +198,8 @@ public class BoardPostController {
             return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
     }
-    
+
+    // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
     public Map<String, String> imageUpload(@RequestParam("file") MultipartFile file,
@@ -236,7 +208,6 @@ public class BoardPostController {
         Map<String, String> result = new HashMap<>();
 
         try {
-            // ⭐ 핵심: 실제 배포 경로
             String uploadPath = req.getServletContext().getRealPath("/resources/upload/board");
 
             File dir = new File(uploadPath);
@@ -245,7 +216,13 @@ public class BoardPostController {
             }
 
             String originalName = file.getOriginalFilename();
-            String savedName = UUID.randomUUID() + "_" + originalName;
+
+            String ext = "";
+            if (originalName != null && originalName.lastIndexOf(".") != -1) {
+                ext = originalName.substring(originalName.lastIndexOf("."));
+            }
+
+            String savedName = UUID.randomUUID().toString() + ext;
 
             File target = new File(dir, savedName);
             file.transferTo(target);

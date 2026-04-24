@@ -16,7 +16,7 @@
                 <p class="text-slate-500">TripTo에 오신 것을 환영합니다.</p>
             </div>
 
-            <form action="/login" method="POST" id="loginForm">
+            <form action="${pageContext.request.contextPath}/login" method="POST" id="loginForm">
                 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">아이디</span></label>
@@ -40,7 +40,7 @@
             </form>
 
             <div class="text-center text-sm text-slate-500 mt-4">
-                아직 회원이 아니신가요? <a href="/member/join.do" class="text-primary font-bold hover:underline">회원가입</a>
+                아직 회원이 아니신가요? <a href="${pageContext.request.contextPath}/member/join.do" class="text-primary font-bold hover:underline">회원가입</a>
             </div>
         </div>
     </main>
