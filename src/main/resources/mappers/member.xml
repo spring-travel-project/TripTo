@@ -43,5 +43,12 @@
         FROM member 
         WHERE name = #{name} AND email = #{email} AND status != 2
     </select>
+    
+    <!-- 비밀번호 찾기에 사용될 쿼리 -->
+    <select id="checkIdAndEmail" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM member 
+        WHERE id = #{id} AND email = #{email} AND status != 2
+    </select>
 
 </mapper>
