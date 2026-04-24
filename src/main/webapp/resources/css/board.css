@@ -1124,3 +1124,68 @@ select {
     justify-content: space-between !important;
     align-items: center !important;
 }
+
+.board-write-wrap {
+    max-width: 860px;
+    margin: 44px auto;
+    padding: 0 20px;
+}
+
+.board-write-title {
+    margin-bottom: 28px;
+    font-size: 32px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.board-write-form {
+    background: transparent;
+}
+
+.form-group {
+    margin-bottom: 26px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.category-select {
+    width: 220px;
+    cursor: pointer;
+}
+
+.board-write-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.toastui-editor-defaultUI {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.toastui-editor-contents img {
+    max-width: 100%;
+    border-radius: 12px;
+}
+
+.toastui-editor-main {
+    overflow-anchor: none;
+}
+
+.toastui-editor-contents {
+    scroll-behavior: auto;
+}
+
+.toastui-editor-main {
+    overflow-anchor: none;
+}
+
+.toastui-editor-contents {
+    scroll-behavior: auto;
+}

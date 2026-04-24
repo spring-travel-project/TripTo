@@ -66,9 +66,6 @@
                         <div class="board-empty-desc">
                             아직 등록된 게시글이 없거나 검색 조건에 맞는 결과가 없습니다.
                         </div>
-                        <a href="${cp}/board/write.do" class="btn-board-outline">
-                            첫 게시글 작성하기
-                        </a>
                     </div>
                 </c:if>
 
@@ -124,6 +121,16 @@
     <c:if test="${not empty message}">
         <script>alert('${message}');</script>
     </c:if>
+    
+    <script>
+	    window.addEventListener('DOMContentLoaded', function () {
+	        const url = new URL(window.location.href);
+	
+	        if (url.searchParams.has('searchWord') || url.searchParams.has('category')) {
+	            window.history.replaceState({}, '', url.pathname);
+	        }
+	    });
+	</script>
 
 </body>
 </html>

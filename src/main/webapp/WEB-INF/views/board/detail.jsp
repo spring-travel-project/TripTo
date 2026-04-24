@@ -164,14 +164,17 @@
                         </a>
 
                         <form method="post"
-                              action="${cp}/board/delete.do"
-                              class="board-delete-form"
-                              onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
-                            <input type="hidden" name="seqBoardPost" value="${dto.seqBoardPost}">
-                            <button type="submit" class="btn-board-outline btn-board-sm btn-board-danger">
-                                삭제
-                            </button>
-                        </form>
+						      action="${cp}/board/delete.do"
+						      class="board-delete-form"
+						      onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+						
+						    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+						    <input type="hidden" name="seqBoardPost" value="${dto.seqBoardPost}">
+						
+						    <button type="submit" class="btn-board-outline btn-board-sm btn-board-danger">
+						        삭제
+						    </button>
+						</form>
                     </c:if>
                 </div>
             </div>
@@ -198,6 +201,14 @@
             content.style.display = 'block';
         }
     }
+    
+    window.addEventListener('DOMContentLoaded', function () {
+        const url = new URL(window.location.href);
+
+        if (url.searchParams.has('searchWord') || url.searchParams.has('category')) {
+            window.history.replaceState({}, '', url.pathname);
+        }
+    });
 </script>
 
 </body>
