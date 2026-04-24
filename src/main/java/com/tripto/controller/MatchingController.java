@@ -73,22 +73,27 @@ public class MatchingController {
     @GetMapping("/matching/detail")
     public String matchingDetail(@RequestParam("seqMember") int targetSeq, HttpSession session, Model model) {
         
-        // 1. 로그인한 내 번호 가져오기
+        // 1. 내 번호 세팅 (테스트용)
         Integer loginSeq = (Integer) session.getAttribute("loginSeq");
         if (loginSeq == null) {
-            session.setAttribute("loginSeq", 1); // 테스트용 강제 로그인
+            session.setAttribute("loginSeq", 1); 
             loginSeq = 1;
         }
 
-        // 2. 서비스로부터 내 정보와 상대방 정보를 비교 분석한 결과 가져오기
         Map<String, Integer> map = new HashMap<>();
-        map.put("loginSeq", loginSeq);   // 나
-        map.put("targetSeq", targetSeq); // 상대방
-        
-        MatchDTO matchDetail = matchingService.getMatchDetail(map);
+        map.put("loginSeq", loginSeq);
+        map.put("targetSeq", targetSeq);
 
-        model.addAttribute("match", matchDetail);
+        // 2. 상대방 프로필 (+ 나와의 매칭 카운트 계산 포함) 가져오기
+        MatchDTO targetProfile = matchingService.getMatchDetail(map);
         
+        // 3. 내 프로필 가져오기 (JSP에서 블라인드 처리 비교용)
+        MatchDTO myProfile = matchingService.getMyProfile(loginSeq);
+
+        // 4. JSP로 전달
+        model.addAttribute("target", targetProfile);
+        model.addAttribute("me", myProfile);
+
         return "matching/detail";
     }
 }
