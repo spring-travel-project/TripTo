@@ -34,4 +34,13 @@ public class MemberService {
 		// DAO가 찾아온 아이디(String)를 다시 컨트롤러로 반환(return)
 		return dao.findIdByNameAndEmail(map);
 	}
+
+	public int checkIdAndEmail(Map<String, String> map) {
+		return dao.checkIdAndEmail(map);
+	}
+
+	public void updatePw(Map<String, String> map) {
+		
+		dao.updatePw(map);
+	}
 }

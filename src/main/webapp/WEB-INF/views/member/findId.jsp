@@ -32,7 +32,7 @@
 
                     <div class="flex gap-2 relative">
                         <div class="relative flex-1">
-                            <input type="text" id="authCodeInput" placeholder="인증번호를 적으시오" class="input input-bordered w-full pr-16" disabled />
+                            <input type="text" id="authCodeInput" placeholder="인증번호를 입력하세요" class="input input-bordered w-full pr-16" disabled />
                             <span id="timer" class="absolute right-3 top-1/2 -translate-y-1/2 text-error font-bold text-sm"></span>
                         </div>
                         <button type="button" id="verifyBtn" class="btn btn-success text-white w-32 shrink-0" onclick="verifyAuthCode()" disabled>인증 확인</button>

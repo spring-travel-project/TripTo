@@ -34,7 +34,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 			response.sendRedirect(sr.getRedirectUrl());
 		} else {
 			// 이녀석은 처음부터 login.do 눌러서 로그인을 한 녀석
-			response.sendRedirect("/index.do");
+			response.sendRedirect(request.getContextPath() + "/index.do");
 		}
 
 	}

@@ -36,4 +36,15 @@ public class MemberDAO {
 		// 쓸 데이터는 map이라고 넘김
 		return sql.selectOne("member.findIdByNameAndEmail", map);
 	}
+	
+	// 비밀번호 찾기
+	public int checkIdAndEmail(Map<String, String> map) {
+
+		return sql.selectOne("member.checkIdAndEmail", map);
+	}
+
+	public void updatePw(Map<String, String> map) {
+
+		sql.update("member.updatePw", map);
+	}
 }

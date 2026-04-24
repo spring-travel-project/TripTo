@@ -50,5 +50,12 @@
         FROM member 
         WHERE id = #{id} AND email = #{email} AND status != 2
     </select>
+    
+    <!-- 비밀번호 재설정에 사용될 쿼리 -->
+    <update id="updatePw" parameterType="map">
+        UPDATE member 
+        SET pw = #{pw} 
+        WHERE id = #{id}
+    </update>
 
 </mapper>
