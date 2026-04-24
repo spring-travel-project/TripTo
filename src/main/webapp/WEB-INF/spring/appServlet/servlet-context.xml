@@ -25,10 +25,12 @@
         <beans:property name="suffix" value=".jsp" />
     </beans:bean>
     
+    <!-- 파일 업로드 설정 -->
     <beans:bean id="multipartResolver"
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <beans:property name="maxUploadSize" value="10485760" />
-        <beans:property name="defaultEncoding" value="utf-8" />
+        <beans:property name="defaultEncoding" value="UTF-8"/>
+		<beans:property name="maxUploadSize" value="536870912"/>
+		<beans:property name="maxInMemorySize" value="10485760"/>
     </beans:bean>
     
     <context:component-scan base-package="com.tripto" />
@@ -38,6 +40,8 @@
 		<beans:property name="prefix" value="/WEB-INF/views/" />
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
+	
+	<resources mapping="/upload/**" location="file:/C:/upload/" />
 	
 	<context:component-scan base-package="com.tripto" />
 	

@@ -54,42 +54,71 @@
 	    WHERE ROWNUM &lt;= 10
 	</select>
 	
+	<select id="getMatchDetail" parameterType="map" resultType="com.tripto.dto.MatchDTO">
+	    SELECT 
+	        m.seqMember,
+	        m.nickname,
+	        m.pic,
+	        m.gender,
+	        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
+	        p.mbti,
+	        p.smoking,
+	        p.drinking,
+	        p.travelType,
+	        p.stepCount,
+	        
+	        
+	        -- 🌟 ERD 기반: 선호 숙소 (profile_stay + stay)
+	        (SELECT LISTAGG(s.Name, ', ') WITHIN GROUP (ORDER BY s.seqStay)
+	         FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay
+	         WHERE ps.seqMember = m.seqMember) AS stayNames,
+	         
+	        -- 🌟 ERD 기반: 사용 가능 언어 (profile_language + language)
+	        (SELECT LISTAGG(l.Name, ', ') WITHIN GROUP (ORDER BY l.seqLanguage)
+	         FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage
+	         WHERE pl.seqMember = m.seqMember) AS languageNames,
+	         
+	        -- 🌟 ERD 기반: 선호 연령대 (profile_age_group + age_group)
+	        (SELECT LISTAGG(a.Name, ', ') WITHIN GROUP (ORDER BY a.seqAgeGroup)
+	         FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup
+	         WHERE pa.seqMember = m.seqMember) AS ageGroupNames,
+	
+	        -- 8가지 성향 일치 개수 계산 (matchCount)
+	        (
+	            (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
+	            (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
+	            (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
+	            (CASE WHEN p.travelType = my.travelType THEN 1 ELSE 0 END) +
+	            (CASE WHEN p.stepCount = my.stepCount THEN 1 ELSE 0 END) +
+	            (CASE WHEN EXISTS (SELECT 1 FROM profile_stay ps1 JOIN profile_stay ps2 ON ps1.seqStay = ps2.seqStay WHERE ps1.seqMember = m.seqMember AND ps2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
+	            (CASE WHEN EXISTS (SELECT 1 FROM profile_language pl1 JOIN profile_language pl2 ON pl1.seqLanguage = pl2.seqLanguage WHERE pl1.seqMember = m.seqMember AND pl2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
+	            (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup WHERE pag1.seqMember = m.seqMember AND pag2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
+	        ) AS matchCount
+	    FROM member m
+	    JOIN profile p ON m.seqMember = p.seqMember
+	    CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
+	    WHERE m.seqMember = #{targetSeq}
+	</select>
+	
 	<select id="getMyProfile" parameterType="int" resultType="com.tripto.dto.MatchDTO">
 	    SELECT 
 	        m.nickname,
 	        p.mbti,
 	        p.smoking,
 	        p.drinking,
-	        p.travelType
+	        p.travelType,
+	        p.stepCount,   
+	        
+	        -- 내 다중 선택 항목들도 가져와야 자물쇠가 풀립니다.
+	        (SELECT LISTAGG(s.seqStay, ',') WITHIN GROUP (ORDER BY s.seqStay) 
+	         FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay WHERE ps.seqMember = m.seqMember) AS stayNames,
+	        (SELECT LISTAGG(l.seqLanguage, ',') WITHIN GROUP (ORDER BY l.seqLanguage) 
+	         FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage WHERE pl.seqMember = m.seqMember) AS languageNames,
+	        (SELECT LISTAGG(a.seqAgeGroup, ',') WITHIN GROUP (ORDER BY a.seqAgeGroup) 
+	         FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup WHERE pa.seqMember = m.seqMember) AS ageGroupNames
 	    FROM member m
 	    JOIN profile p ON m.seqMember = p.seqMember
 	    WHERE m.seqMember = #{loginSeq}
 	</select>
-	
-	<select id="getMatchDetail" parameterType="map" resultType="com.tripto.dto.MatchDTO">
-    SELECT 
-        m.seqMember,
-        m.nickname,
-        m.pic,
-        m.gender,
-        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
-        p.mbti,
-        p.smoking,
-        p.drinking,
-        p.intro, -- 상세 페이지용 자기소개
-        
-        -- 메인에서 썼던 matchCount 계산식 그대로 사용
-        (
-            (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
-            (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
-            (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
-            -- ... (생략) ...
-            (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup WHERE pag1.seqMember = m.seqMember AND pag2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
-        ) AS matchCount
-    FROM member m
-    JOIN profile p ON m.seqMember = p.seqMember
-    CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
-    WHERE m.seqMember = #{targetSeq} -- 🌟 클릭한 상대방의 번호로 조회
-</select>
 
 </mapper>

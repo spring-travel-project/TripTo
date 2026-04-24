@@ -5,74 +5,146 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>${match.nickname}님의 프로필 - TripTo</title>
+    <title>${target.nickname}님의 프로필 - TripTo</title>
     <%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
-    <main class="max-w-4xl mx-auto pb-20">
-        <div class="relative h-[400px] w-full overflow-hidden sm:rounded-b-[3rem] shadow-lg">
-            <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" 
-                 class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <div class="mb-10">
+            <a href="javascript:history.back()" class="inline-flex items-center text-slate-400 hover:text-blue-600 font-bold transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                목록으로 돌아가기
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
-            <div class="absolute bottom-10 left-8 text-white">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">${match.mbti}</span>
-                    <span class="text-sm font-medium opacity-90">${match.gender == 0 ? '남성' : '여성'} · ${match.age}세</span>
-                </div>
-                <h1 class="text-4xl font-extrabold">${match.nickname}</h1>
-            </div>
-        </div>
-
-        <div class="px-6 -mt-8 relative z-10">
-            <div class="bg-white rounded-[2rem] shadow-xl p-8 mb-8 border border-slate-100">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-xl font-bold text-slate-800">나와의 여행 궁합 🧬</h2>
-                    <div class="text-blue-600 font-extrabold text-2xl">${match.matchCount} / 8</div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="p-4 rounded-2xl ${match.mbtiMatch ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'} border text-center">
-                        <span class="block text-xl mb-1">${match.mbtiMatch ? '✅' : '❓'}</span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">MBTI</span>
-                        <p class="text-sm font-bold mt-1">${match.mbti}</p>
+            <div class="lg:col-span-5 sticky top-12">
+                <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+                    
+					<div class="h-[550px] w-full bg-white flex items-center justify-center">
+                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty target.pic ? 'pic.png' : target.pic}" 
+                             class="w-4/5 h-4/5 object-contain rounded-2xl">
                     </div>
-                    <div class="p-4 rounded-2xl ${match.smokingMatch ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100'} border text-center">
-                        <span class="block text-xl mb-1">${match.smokingMatch ? '🚭' : '🚬'}</span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">흡연</span>
-                        <p class="text-sm font-bold mt-1">${match.smoking == 1 ? '비흡연' : '흡연 가능'}</p>
-                    </div>
-                    <div class="p-4 rounded-2xl ${match.drinkingMatch ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'} border text-center">
-                        <span class="block text-xl mb-1">${match.drinkingMatch ? '🍻' : '🥤'}</span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">음주</span>
-                        <p class="text-sm font-bold mt-1">${match.drinking == 2 ? '안함' : '선호'}</p>
-                    </div>
-                    <div class="p-4 rounded-2xl ${match.travelTypeMatch ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'} border text-center">
-                        <span class="block text-xl mb-1">🏨</span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">숙소타입</span>
-                        <p class="text-sm font-bold mt-1">호텔/펜션</p>
+                    
+                    <div class="p-10 text-center">
+                        <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-100 text-slate-600 font-bold text-sm mb-4">
+                            <span>${target.gender == 0 ? 'MALE' : 'FEMALE'}</span>
+                            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                            <span>${target.age} AGE</span>
+                        </div>
+                        <h1 class="text-5xl font-black text-slate-900 mb-8 tracking-tight">${target.nickname}</h1>
+                        
+                        <button class="w-full bg-blue-600 text-white py-6 rounded-2xl font-bold text-xl hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3"
+                                onclick="location.href='${pageContext.request.contextPath}/chat/start?targetSeq=${target.seqMember}'">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+                                <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.14 6.337.408 1.92.25 3.413 1.874 3.413 3.826v6.016c0 1.952-1.493 3.576-3.413 3.826-1.077.14-2.162.24-3.26.298-.318.016-.612.183-.796.45L10.5 20.59V18.11c0-.402-.34-.727-.75-.75a48.384 48.384 0 01-4.837-.527c-1.92-.25-3.413-1.874-3.413-3.826V6.484c0-1.952 1.493-3.576 3.413-3.826z" />
+                            </svg>
+                            채팅 신청하기
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-sm p-8 mb-8 border border-slate-100">
-                <h2 class="text-xl font-bold text-slate-800 mb-4">함께하고 싶은 여행 ✍️</h2>
-                <p class="text-slate-600 leading-relaxed whitespace-pre-wrap">${match.intro}</p>
-            </div>
-        </div>
+            <div class="lg:col-span-7">
+                <div class="bg-white rounded-[2.5rem] border border-slate-200 p-12 shadow-sm">
+                    <div class="flex items-end justify-between mb-12 pb-8 border-b-2 border-slate-50">
+                        <div>
+                            <h2 class="text-4xl font-black text-slate-900 mb-2">여행 성향 분석</h2>
+                            <p class="text-slate-400 font-medium text-lg">나와의 성향이 얼마나 일치하는지 확인해보세요.</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-7xl font-black text-blue-600">${target.matchCount}</span>
+                            <span class="text-2xl font-bold text-slate-300"> / 8</span>
+                        </div>
+                    </div>
 
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-lg z-50">
-            <div class="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl rounded-full p-2 flex gap-2">
-                <button class="flex-1 bg-slate-800 text-white py-4 rounded-full font-bold hover:bg-slate-900 transition-all">
-                    동행 신청하기
-                </button>
-                <button class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                    </svg>
-                </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <div class="p-8 rounded-3xl border-2 ${target.mbti == me.mbti ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white'} flex items-center justify-between transition-all">
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">MBTI</span>
+                                <c:choose>
+                                    <c:when test="${empty me.mbti}"><p class="text-xl font-bold text-slate-300">🔒 비공개</p></c:when>
+                                    <c:otherwise>
+                                        <p class="text-3xl font-black text-slate-800">${target.mbti}</p>
+                                        <p class="text-sm ${target.mbti == me.mbti ? 'text-blue-600' : 'text-slate-400'} font-bold">${target.mbti == me.mbti ? '나와 일치함' : '다름'}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-5xl opacity-80">${not empty me.mbti and target.mbti == me.mbti ? '💖' : '🧩'}</div>
+                        </div>
+
+                        <div class="p-8 rounded-3xl border-2 ${target.smoking == me.smoking ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white'} flex items-center justify-between transition-all">
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">SMOKING</span>
+                                <c:choose>
+                                    <c:when test="${empty me.smoking}"><p class="text-xl font-bold text-slate-300">🔒 비공개</p></c:when>
+                                    <c:otherwise>
+                                        <p class="text-3xl font-black text-slate-800">${target.smoking == 1 ? '비흡연' : '흡연자'}</p>
+                                        <p class="text-sm ${target.smoking == me.smoking ? 'text-blue-600' : 'text-slate-400'} font-bold">${target.smoking == me.smoking ? '나와 일치함' : '다름'}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-5xl opacity-80">${target.smoking == 1 ? '🚭' : '🚬'}</div>
+                        </div>
+
+                        <div class="p-8 rounded-3xl border-2 ${target.drinking == me.drinking ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white'} flex items-center justify-between transition-all">
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">DRINKING</span>
+                                <c:choose>
+                                    <c:when test="${empty me.drinking}"><p class="text-xl font-bold text-slate-300">🔒 비공개</p></c:when>
+                                    <c:otherwise>
+                                        <p class="text-3xl font-black text-slate-800">${target.drinking == 2 ? '안함' : (target.drinking == 1 ? '가끔' : '자주')}</p>
+                                        <p class="text-sm ${target.drinking == me.drinking ? 'text-blue-600' : 'text-slate-400'} font-bold">${target.drinking == me.drinking ? '나와 일치함' : '다름'}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-5xl opacity-80">${target.drinking == 2 ? '🥤' : '🍻'}</div>
+                        </div>
+
+                        <div class="p-8 rounded-3xl border-2 ${target.travelType == me.travelType ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white'} flex items-center justify-between transition-all">
+                            <div class="space-y-1">
+                                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">STYLE</span>
+                                <c:choose>
+                                    <c:when test="${empty me.travelType}"><p class="text-xl font-bold text-slate-300">🔒 비공개</p></c:when>
+                                    <c:otherwise>
+                                        <p class="text-3xl font-black text-slate-800">${target.travelType == 0 ? '휴양' : '관광'}</p>
+                                        <p class="text-sm ${target.travelType == me.travelType ? 'text-blue-600' : 'text-slate-400'} font-bold">${target.travelType == me.travelType ? '나와 일치함' : '다름'}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-5xl opacity-80">${target.travelType == 0 ? '🏖️' : '🏙️'}</div>
+                        </div>
+
+                        <div class="md:col-span-2 p-10 rounded-3xl border-2 ${target.stepCount == me.stepCount ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white'} flex items-center justify-between transition-all">
+                            <div class="space-y-2">
+                                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">WALKING</span>
+                                <c:choose>
+                                    <c:when test="${empty me.stepCount}"><p class="text-xl font-bold text-slate-300">🔒 비공개</p></c:when>
+                                    <c:otherwise>
+                                        <p class="text-4xl font-black text-slate-800">${target.stepCount == 0 ? '5천보 이하' : (target.stepCount == 1 ? '5천 ~ 1만보' : '1만보 이상')}</p>
+                                        <p class="text-lg ${target.stepCount == me.stepCount ? 'text-blue-600' : 'text-slate-400'} font-bold">나와 선호도가 ${target.stepCount == me.stepCount ? '일치합니다' : '다릅니다'}</p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-7xl opacity-20">👟</div>
+                        </div>
+
+                        <div class="p-8 rounded-3xl border border-slate-100 bg-slate-50/50 space-y-3">
+                            <span class="text-xs font-black text-slate-300 uppercase tracking-widest">선호 숙소</span>
+                            <p class="text-xl font-bold text-slate-700">${empty me.stayNames ? '🔒' : target.stayNames}</p>
+                        </div>
+                        <div class="p-8 rounded-3xl border border-slate-100 bg-slate-50/50 space-y-3">
+                            <span class="text-xs font-black text-slate-300 uppercase tracking-widest">사용 언어</span>
+                            <p class="text-xl font-bold text-slate-700">${empty me.languageNames ? '🔒' : target.languageNames}</p>
+                        </div>
+
+                    </div>                   
+                </div>
             </div>
         </div>
     </main>
