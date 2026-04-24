@@ -1,22 +1,34 @@
 package com.tripto.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tripto.dao.AdminDAO;
+import com.tripto.dto.MemberDTO;
 
-// AdminDAO.java (»ı·« °¡´É - ÀÎÁ§¼ÇÇØ¼­ ¹Ù·Î È£Ãâ)
-	// AdminService.java
-	@Service
-	public class AdminService {
-	    @Autowired
-	    private AdminDAO dao;
-	
-	    public Map<String, Object> getDashboardStats() {
-	        return dao.getStats();
-	    }
-	}
+@Service
+public class AdminService {
+
+    @Autowired
+    private AdminDAO dao;
+
+    // ëŒ€ì‹œë³´ë“œ ë°ì´í„° (ê¸°ì¡´)
+    public Map<String, Object> getDashboardStats() {
+        return dao.getStats();
+    }
+
+    // ğŸ‘¤ íšŒì› ê´€ë¦¬ ëª©ë¡ ê°€ì ¸ì˜¤ê¸°
+    public List<MemberDTO> getMemberList(Map<String, Object> map) {
+        return dao.memberList(map);
+    }
+
+    // ğŸ‘¤ í˜ì´ì§• ì²˜ë¦¬ë¥¼ ìœ„í•œ ì´ íšŒì› ìˆ˜
+    public int getMemberCount(Map<String, Object> map) {
+        return dao.memberCount(map);
+    }
+}
 	
 

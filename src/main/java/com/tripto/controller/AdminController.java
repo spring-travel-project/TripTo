@@ -1,12 +1,17 @@
 package com.tripto.controller;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.tripto.dto.MemberDTO;
 import com.tripto.service.AdminService;
 
 @Controller
@@ -18,13 +23,43 @@ public class AdminController {
 
     @GetMapping("/main")
     public String main(Model model) {
-        // DB¿¡¼­ ½Ç½Ã°£ µ¥ÀÌÅÍ ¼ö½Å
+        // DBï¿½ï¿½ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Map<String, Object> stats = adminService.getDashboardStats();
         
-        // µ¥ÀÌÅÍ°¡ Àß ¿Ô´ÂÁö ÄÜ¼Ö¿¡¼­ È®ÀÎ (¼ıÀÚ°¡ 0ÀÌ¸é DB¿¡ µ¥ÀÌÅÍ°¡ ¾ø´Â °Í!)
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ ï¿½Ô´ï¿½ï¿½ï¿½ ï¿½Ü¼Ö¿ï¿½ï¿½ï¿½ È®ï¿½ï¿½ (ï¿½ï¿½ï¿½Ú°ï¿½ 0ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!)
         System.out.println("DEBUG: DB Stats Data -> " + stats);
         
         model.addAttribute("stats", stats);
         return "admin/main";
+    }
+    
+    @GetMapping("/memberList")
+    public String memberList(Model model, 
+                             @RequestParam(defaultValue = "1") int page,
+                             @RequestParam(required = false) String searchType,
+                             @RequestParam(required = false) String searchKeyword) {
+        
+        int pageSize = 10;
+        int start = (page - 1) * pageSize + 1;
+        int end = page * pageSize;
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("start", start);
+        map.put("end", end);
+        map.put("searchType", searchType);
+        map.put("searchKeyword", searchKeyword);
+
+        List<MemberDTO> list = adminService.getMemberList(map);
+        int totalCount = adminService.getMemberCount(map);
+        int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+
+        // ê²€ìƒ‰ ìƒíƒœ ìœ ì§€ë¥¼ ìœ„í•´ ë‹¤ì‹œ ëª¨ë¸ì— ì „ì†¡
+        model.addAttribute("list", list);
+        model.addAttribute("totalPage", totalPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchKeyword", searchKeyword);
+
+        return "admin/memberList";
     }
 }

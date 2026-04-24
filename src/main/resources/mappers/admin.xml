@@ -11,5 +11,39 @@
             (SELECT COUNT(*) FROM report WHERE targetType = 'POST') as "reportBoardTotal"
         FROM dual
     </select>
+    
+    <select id="memberList" resultType="com.tripto.dto.MemberDTO" parameterType="map">
+	    SELECT * FROM (
+	        SELECT a.*, rownum as rnum FROM (
+	            SELECT 
+	                m.*,
+	                (SELECT COUNT(*) FROM report r WHERE r.targetType = 'USER' AND r.seqTarget = m.seqMember) as reportCount
+	            FROM member m
+	            WHERE 1=1
+	            <if test="searchKeyword != null and searchKeyword != ''">
+	                <choose>
+	                    <when test="searchType == 'name'"> AND m.name LIKE '%' || #{searchKeyword} || '%' </when>
+	                    <when test="searchType == 'id'"> AND m.id LIKE '%' || #{searchKeyword} || '%' </when>
+	                    <when test="searchType == 'nickname'"> AND m.nickname LIKE '%' || #{searchKeyword} || '%' </when>
+	                </choose>
+	            </if>
+	            
+	            ORDER BY reportCount DESC, m.regDate DESC
+	            
+	        ) a
+	    ) WHERE rnum BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="memberCount" resultType="int" parameterType="map">
+	    SELECT COUNT(*) FROM member
+	    WHERE 1=1
+	    <if test="searchKeyword != null and searchKeyword != ''">
+	        <choose>
+	            <when test="searchType == 'name'"> AND name LIKE '%' || #{searchKeyword} || '%' </when>
+	            <when test="searchType == 'id'"> AND id LIKE '%' || #{searchKeyword} || '%' </when>
+	            <when test="searchType == 'nickname'"> AND nickname LIKE '%' || #{searchKeyword} || '%' </when>
+	        </choose>
+	    </if>
+	</select>
 
 </mapper>
