@@ -43,13 +43,22 @@
         )
     </insert>
 
-    <update id="edit" parameterType="com.tripto.dto.BoardCommentDTO">
-        UPDATE BOARD_COMMENT
-        SET CONTENT = #{content},
-            UPDATEDATE = SYSDATE
-        WHERE SEQBOARDCOMMENT = #{seqBoardComment}
-          AND STATUS = 'NORMAL'
-    </update>
+    <!-- 게시글 수정 -->
+	<update id="edit" parameterType="com.tripto.dto.BoardPostDTO">
+	    UPDATE BOARD_POST
+	    SET
+	        SEQCATEGORY = #{seqCategory},
+	        TITLE = #{title},
+	        CONTENT = #{content},
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQBOARDPOST = #{seqBoardPost}
+	</update>
+
+	<!-- 기존 파일 정보 삭제 -->
+	<delete id="deleteFiles" parameterType="int">
+	    DELETE FROM BOARD_POST_FILE
+	    WHERE SEQBOARDPOST = #{seqBoardPost}
+	</delete>
 
     <update id="delete" parameterType="int">
         UPDATE BOARD_COMMENT

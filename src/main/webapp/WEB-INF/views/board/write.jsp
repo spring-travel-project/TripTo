@@ -53,7 +53,7 @@
 		
 		    <h1 class="text-3xl font-bold mb-6">게시글 작성</h1>
 		
-		    <form method="post" action="${cp}/board/write.do" enctype="multipart/form-data">
+		    <form method="post" action="${cp}/board/write.do" enctype="multipart/form-data" class="board-write-form">
 	
 			    <div class="form-group">
 				    <label class="form-label">카테고리</label>
@@ -93,30 +93,40 @@
 	</div>
 
 	<script>
+	    const csrfToken = '${_csrf.token}';
+	
 	    const editor = new toastui.Editor({
 	        el: document.querySelector('#editor'),
-	        height: '400px',
+	        height: '700px',
 	        initialEditType: 'wysiwyg',
 	        previewStyle: 'vertical',
+	        initialValue: '', // 🔥 write는 빈값
+	
 	        hooks: {
 	            addImageBlobHook: async (blob, callback) => {
+	
 	                const formData = new FormData();
 	                formData.append('file', blob);
 	
 	                const response = await fetch('${cp}/board/imageUpload.do', {
 	                    method: 'POST',
+	                    headers: {
+	                        'X-CSRF-TOKEN': csrfToken
+	                    },
 	                    body: formData
 	                });
 	
-	                const result = await response.json();
+	                if (!response.ok) {
+	                    alert('이미지 업로드 실패');
+	                    return;
+	                }
 	
-	                // 서버에서 반환한 이미지 URL을 본문에 삽입
+	                const result = await response.json();
 	                callback(result.url, '이미지');
 	            }
 	        }
 	    });
 	
-	    // 등록 버튼 클릭 시 HTML 내용 넣기
 	    document.querySelector('form').addEventListener('submit', function () {
 	        document.getElementById('content').value = editor.getHTML();
 	    });

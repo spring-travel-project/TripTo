@@ -5,204 +5,223 @@
 
 <mapper namespace="boardPost">
 
+    <!-- 카테고리 목록 -->
     <select id="categoryList" resultType="com.tripto.dto.BoardCategoryDTO">
-	    SELECT
-	        SEQCATEGORY AS seqCategory,
-	        CATEGORYNAME AS categoryName,
-	        SORTORDER AS sortOrder,
-	        USEYN AS useYn
-	    FROM BOARD_CATEGORY
-	    WHERE USEYN = 'Y'
-	    ORDER BY SORTORDER ASC, SEQCATEGORY ASC
-	</select>
+        SELECT
+            SEQCATEGORY AS seqCategory,
+            CATEGORYNAME AS categoryName,
+            SORTORDER AS sortOrder,
+            USEYN AS useYn
+        FROM BOARD_CATEGORY
+        WHERE USEYN = 'Y'
+        ORDER BY SORTORDER ASC, SEQCATEGORY ASC
+    </select>
 
+    <!-- 게시글 개수 -->
     <select id="getTotalCount" parameterType="com.tripto.dto.BoardPostDTO" resultType="int">
         SELECT COUNT(*)
-        FROM board_post bp
-            INNER JOIN board_category bc
-                ON bp.seqCategory = bc.seqCategory
-            INNER JOIN member m
-                ON bp.seqMember = m.seqMember
-        WHERE bp.status = 'NORMAL'
-        <if test="category != null and category != '' and category != '전체'">
-            AND bc.categoryName = #{category}
+        FROM BOARD_POST bp
+            INNER JOIN BOARD_CATEGORY bc
+                ON bp.SEQCATEGORY = bc.SEQCATEGORY
+            INNER JOIN MEMBER m
+                ON bp.SEQMEMBER = m.SEQMEMBER
+        WHERE bp.STATUS = 'NORMAL'
+
+        <!-- 카테고리 -->
+        <if test="category != null and category.trim() != '' and category != '전체'">
+            AND bc.CATEGORYNAME = #{category}
         </if>
-        <if test="searchWord != null and searchWord != ''">
-            AND (
-                LOWER(bp.title) LIKE '%' || LOWER(#{searchWord}) || '%'
-                OR LOWER(bp.content) LIKE '%' || LOWER(#{searchWord}) || '%'
-            )
-        </if>
+
+        <!-- 검색 -->
+        <if test="searchWord != null and searchWord.trim() != ''">
+		    AND (
+		        bp.TITLE LIKE '%' || #{searchWord} || '%'
+		        OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
+		    )
+		</if>
     </select>
 
+    <!-- 게시글 목록 -->
     <select id="list" parameterType="com.tripto.dto.BoardPostDTO" resultType="com.tripto.dto.BoardPostDTO">
-	    SELECT *
-	    FROM (
-	        SELECT
-	            ROW_NUMBER() OVER (ORDER BY bp.SEQBOARDPOST DESC) AS rnum,
-	            bp.SEQBOARDPOST,
-	            bp.SEQCATEGORY,
-	            bp.SEQMEMBER,
-	            bp.TITLE,
-	            bp.CONTENT,
-	            bp.VIEWCOUNT,
-	            bp.STATUS,
-	            TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD') AS createDate,
-	            TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD') AS updateDate,
-	            bc.CATEGORYNAME AS categoryName,
-	            m.NAME AS writerName,
-	            f.SAVEDNAME AS savedName
-	        FROM BOARD_POST bp
-	            INNER JOIN BOARD_CATEGORY bc
-	                ON bp.SEQCATEGORY = bc.SEQCATEGORY
-	            INNER JOIN MEMBER m
-	                ON bp.SEQMEMBER = m.SEQMEMBER
-	            LEFT JOIN (
-	                SELECT
-	                    SEQBOARDPOST,
-	                    SAVEDNAME,
-	                    ROW_NUMBER() OVER (PARTITION BY SEQBOARDPOST ORDER BY SEQBOARDPOSTFILE ASC) AS file_rnum
-	                FROM BOARD_POST_FILE
-	            ) f
-	                ON bp.SEQBOARDPOST = f.SEQBOARDPOST
-	               AND f.file_rnum = 1
-	        WHERE bp.STATUS = 'NORMAL'
-	        <if test="category != null and category != '' and category != '전체'">
-	            AND bc.CATEGORYNAME = #{category}
-	        </if>
-	        <if test="searchWord != null and searchWord != ''">
-	            AND (
-	                LOWER(bp.TITLE) LIKE '%' || LOWER(#{searchWord}) || '%'
-	                OR LOWER(bp.CONTENT) LIKE '%' || LOWER(#{searchWord}) || '%'
-	            )
-	        </if>
-	    )
-	    WHERE rnum BETWEEN #{begin} AND #{end}
-	</select>
+        SELECT *
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY bp.SEQBOARDPOST DESC) AS rnum,
+                bp.SEQBOARDPOST AS seqBoardPost,
+                bp.SEQCATEGORY AS seqCategory,
+                bp.SEQMEMBER AS seqMember,
+                bp.TITLE AS title,
+                bp.CONTENT AS content,
+                bp.VIEWCOUNT AS viewCount,
+                bp.STATUS AS status,
+                TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD') AS createDate,
+                TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD') AS updateDate,
+                bc.CATEGORYNAME AS categoryName,
+                m.NAME AS writerName,
+                f.SAVEDNAME AS savedName
+            FROM BOARD_POST bp
+                INNER JOIN BOARD_CATEGORY bc
+                    ON bp.SEQCATEGORY = bc.SEQCATEGORY
+                INNER JOIN MEMBER m
+                    ON bp.SEQMEMBER = m.SEQMEMBER
+                LEFT JOIN (
+                    SELECT
+                        SEQBOARDPOST,
+                        SAVEDNAME,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY SEQBOARDPOST
+                            ORDER BY SEQBOARDPOSTFILE ASC
+                        ) AS file_rnum
+                    FROM BOARD_POST_FILE
+                ) f
+                    ON bp.SEQBOARDPOST = f.SEQBOARDPOST
+                   AND f.file_rnum = 1
+            WHERE bp.STATUS = 'NORMAL'
 
+            <!-- 카테고리 -->
+            <if test="category != null and category.trim() != '' and category != '전체'">
+                AND bc.CATEGORYNAME = #{category}
+            </if>
+
+            <!-- 검색 -->
+            <if test="searchWord != null and searchWord.trim() != ''">
+			    AND (
+			        bp.TITLE LIKE '%' || #{searchWord} || '%'
+			        OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
+			    )
+			</if>
+        )
+        WHERE rnum BETWEEN #{begin} AND #{end}
+    </select>
+
+    <!-- 게시글 등록 -->
     <insert id="add" parameterType="com.tripto.dto.BoardPostDTO">
-	
-	    <selectKey keyProperty="seqBoardPost" resultType="int" order="BEFORE">
-	        SELECT SEQBOARDPOST.NEXTVAL FROM DUAL
-	    </selectKey>
-	
-	    INSERT INTO BOARD_POST (
-	        SEQBOARDPOST,
-	        SEQCATEGORY,
-	        SEQMEMBER,
-	        TITLE,
-	        CONTENT,
-	        VIEWCOUNT,
-	        STATUS,
-	        CREATEDATE
-	    ) VALUES (
-	        #{seqBoardPost},
-	        #{seqCategory},
-	        #{seqMember},
-	        #{title},
-	        #{content},
-	        0,
-	        'NORMAL',
-	        SYSDATE
-	    )
-	
-	</insert>
 
-    <!-- <select id="getCurrentSeq" resultType="int">
-        SELECT seq_board_post.CURRVAL FROM dual
-    </select> -->
+        <selectKey keyProperty="seqBoardPost" resultType="int" order="BEFORE">
+            SELECT SEQBOARDPOST.NEXTVAL FROM DUAL
+        </selectKey>
 
+        INSERT INTO BOARD_POST (
+            SEQBOARDPOST,
+            SEQCATEGORY,
+            SEQMEMBER,
+            TITLE,
+            CONTENT,
+            VIEWCOUNT,
+            STATUS,
+            CREATEDATE
+        ) VALUES (
+            #{seqBoardPost},
+            #{seqCategory},
+            #{seqMember},
+            #{title},
+            #{content},
+            0,
+            'NORMAL',
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- 파일 등록 -->
     <insert id="addFile" parameterType="com.tripto.dto.BoardPostFileDTO">
-	    INSERT INTO board_post_file (
-	        seqBoardPostFile,
-	        seqBoardPost,
-	        originalName,
-	        savedName,
-	        filePath,
-	        fileSize,
-	        fileType,
-	        createDate
-	    ) VALUES (
-	        SEQBOARDPOSTFILE.NEXTVAL,
-	        #{seqBoardPost},
-	        #{originalName},
-	        #{savedName},
-	        #{filePath},
-	        #{fileSize},
-	        #{fileType},
-	        SYSDATE
-	    )
-	</insert>
+        INSERT INTO BOARD_POST_FILE (
+            SEQBOARDPOSTFILE,
+            SEQBOARDPOST,
+            ORIGINALNAME,
+            SAVEDNAME,
+            FILEPATH,
+            FILESIZE,
+            FILETYPE,
+            CREATEDATE
+        ) VALUES (
+            SEQBOARDPOSTFILE.NEXTVAL,
+            #{seqBoardPost},
+            #{originalName},
+            #{savedName},
+            #{filePath},
+            #{fileSize},
+            #{fileType},
+            SYSDATE
+        )
+    </insert>
 
+    <!-- 게시글 상세 -->
     <select id="get" parameterType="int" resultType="com.tripto.dto.BoardPostDTO">
         SELECT
-            bp.seqBoardPost,
-            bp.seqCategory AS seqCategory,
-            bp.seqMember,
-            bp.title,
-            bp.content,
-            bp.viewCount,
-            bp.status,
-            TO_CHAR(bp.createDate, 'YYYY-MM-DD HH24:MI') AS createDate,
-            TO_CHAR(bp.updateDate, 'YYYY-MM-DD HH24:MI') AS updateDate,
-            bc.categoryName,
-            m.nickname AS writerNickname,
-            m.name AS writerName
-        FROM board_post bp
-            INNER JOIN board_category bc
-                ON bp.seqCategory = bc.seqCategory
-            INNER JOIN member m
-                ON bp.seqMember = m.seqMember
-        WHERE bp.seqBoardPost = #{seqBoardPost}
-          AND bp.status = 'NORMAL'
+            bp.SEQBOARDPOST AS seqBoardPost,
+            bp.SEQCATEGORY AS seqCategory,
+            bp.SEQMEMBER AS seqMember,
+            bp.TITLE AS title,
+            bp.CONTENT AS content,
+            bp.VIEWCOUNT AS viewCount,
+            bp.STATUS AS status,
+            TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+            TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+            bc.CATEGORYNAME AS categoryName,
+            m.NICKNAME AS writerNickname,
+            m.NAME AS writerName
+        FROM BOARD_POST bp
+            INNER JOIN BOARD_CATEGORY bc
+                ON bp.SEQCATEGORY = bc.SEQCATEGORY
+            INNER JOIN MEMBER m
+                ON bp.SEQMEMBER = m.SEQMEMBER
+        WHERE bp.SEQBOARDPOST = #{seqBoardPost}
+          AND bp.STATUS = 'NORMAL'
     </select>
 
+    <!-- 파일 목록 -->
     <select id="fileList" parameterType="int" resultType="com.tripto.dto.BoardPostFileDTO">
         SELECT
-            seqBoardPostFile,
-            seqBoardPost,
-            originalName,
-            savedName,
-            fileSize,
-            fileType,
-            TO_CHAR(createDate, 'YYYY-MM-DD HH24:MI') AS createDate
-        FROM board_post_file
-        WHERE seqBoardPost = #{seqBoardPost}
-        ORDER BY seqBoardPostFile ASC
+            SEQBOARDPOSTFILE AS seqBoardPostFile,
+            SEQBOARDPOST AS seqBoardPost,
+            ORIGINALNAME AS originalName,
+            SAVEDNAME AS savedName,
+            FILESIZE AS fileSize,
+            FILETYPE AS fileType,
+            TO_CHAR(CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate
+        FROM BOARD_POST_FILE
+        WHERE SEQBOARDPOST = #{seqBoardPost}
+        ORDER BY SEQBOARDPOSTFILE ASC
     </select>
 
+    <!-- 조회수 증가 -->
     <update id="increaseViewCount" parameterType="int">
-        UPDATE board_post
-        SET viewCount = viewCount + 1
-        WHERE seqBoardPost = #{seqBoardPost}
+        UPDATE BOARD_POST
+        SET VIEWCOUNT = VIEWCOUNT + 1
+        WHERE SEQBOARDPOST = #{seqBoardPost}
     </update>
 
+    <!-- 수정 -->
     <update id="edit" parameterType="com.tripto.dto.BoardPostDTO">
-        UPDATE board_post
+        UPDATE BOARD_POST
         SET
-            seqCategory = #{seqCategory},
-            title = #{title},
-            content = #{content},
-            updateDate = SYSDATE
-        WHERE seqBoardPost = #{seqBoardPost}
+            SEQCATEGORY = #{seqCategory},
+            TITLE = #{title},
+            CONTENT = #{content},
+            UPDATEDATE = SYSDATE
+        WHERE SEQBOARDPOST = #{seqBoardPost}
     </update>
 
+    <!-- 파일 삭제 -->
     <delete id="deleteFiles" parameterType="int">
-        DELETE FROM board_post_file
-        WHERE seqBoardPost = #{seqBoardPost}
+        DELETE FROM BOARD_POST_FILE
+        WHERE SEQBOARDPOST = #{seqBoardPost}
     </delete>
 
+    <!-- 게시글 삭제 -->
     <update id="deletePost" parameterType="int">
-        UPDATE board_post
-        SET status = 'DELETED',
-            updateDate = SYSDATE
-        WHERE seqBoardPost = #{seqBoardPost}
+        UPDATE BOARD_POST
+        SET STATUS = 'DELETED',
+            UPDATEDATE = SYSDATE
+        WHERE SEQBOARDPOST = #{seqBoardPost}
     </update>
 
+    <!-- 작성자 체크 -->
     <select id="getWriterSeq" parameterType="int" resultType="int">
-        SELECT seqMember
-        FROM board_post
-        WHERE seqBoardPost = #{seqBoardPost}
+        SELECT SEQMEMBER
+        FROM BOARD_POST
+        WHERE SEQBOARDPOST = #{seqBoardPost}
     </select>
 
 </mapper>

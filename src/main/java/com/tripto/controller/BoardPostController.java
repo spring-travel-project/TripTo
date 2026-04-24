@@ -29,19 +29,19 @@ public class BoardPostController {
 
     @Autowired
     private BoardPostService service;
-    
+
     @Autowired
     private CommentService commentService;
 
-    // 紐⑸줉
+    // 게시글 목록
     @GetMapping("/board/list.do")
     public String list(
-        @RequestParam(required = false, defaultValue = "") String category,
-        @RequestParam(required = false, defaultValue = "") String searchWord,
-        @RequestParam(required = false, defaultValue = "1") int page,
-        Model model) {
-    	
-    	System.out.println("=== list controller �떎�뻾 ===");
+            @RequestParam(required = false, defaultValue = "") String category,
+            @RequestParam(required = false, defaultValue = "") String searchWord,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            Model model) {
+
+        System.out.println("=== list controller 실행 ===");
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -56,7 +56,7 @@ public class BoardPostController {
         dto.setEnd(end);
 
         int totalCount = service.getTotalCount(dto);
-        int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+        int totalPage = (int) Math.ceil((double) totalCount / pageSize);
 
         List<BoardPostDTO> list = service.list(dto);
         List<BoardCategoryDTO> categoryList = service.categoryList();
@@ -71,11 +71,11 @@ public class BoardPostController {
         return "board/list";
     }
 
-    // 湲��벐湲� �솕硫�
+    // 글쓰기 화면
     @GetMapping("/board/write.do")
     public String write(Model model, HttpSession session) {
 
-        // �쓬 濡쒓렇�씤 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
+        // 로그인 체크 (현재 비활성화)
         /*
         if (session.getAttribute("seqMember") == null) {
             return "redirect:/member/login.do";
@@ -86,14 +86,14 @@ public class BoardPostController {
         return "board/write";
     }
 
-    // 湲��벐湲� 泥섎━
+    // 글쓰기 처리
     @PostMapping("/board/write.do")
     public String writeOk(BoardPostDTO dto,
                           HttpServletRequest req,
                           HttpSession session,
                           RedirectAttributes rttr) {
 
-        // �쓬 濡쒓렇�씤 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
+        // 로그인 체크 (현재 비활성화)
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
@@ -104,23 +104,23 @@ public class BoardPostController {
         dto.setSeqMember(seqMember);
         */
 
-        // �쐟 �엫�떆 �궗�슜�옄 (�뀒�뒪�듃�슜)
+        // 테스트용 사용자
         dto.setSeqMember(1);
-        
+
         int result = service.add(dto, req);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �벑濡앸릺�뿀�뒿�땲�떎.");
+            rttr.addFlashAttribute("message", "게시글이 등록되었습니다.");
             return "redirect:/board/list.do";
         } else {
-            rttr.addFlashAttribute("message", "寃뚯떆湲� �벑濡� �떎�뙣");
+            rttr.addFlashAttribute("message", "게시글 등록 실패");
             return "redirect:/board/write.do";
         }
     }
 
-    // �긽�꽭蹂닿린
+    // 상세보기
     @GetMapping("/board/detail.do")
-    public String detail(@RequestParam(value = "seqBoardPost") int seqBoardPost,
+    public String detail(@RequestParam int seqBoardPost,
                          Model model,
                          HttpSession session) {
 
@@ -130,17 +130,7 @@ public class BoardPostController {
             return "redirect:/board/list.do";
         }
 
-        // �쓬 濡쒓렇�씤 湲곕컲 �옉�꽦�옄 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-        boolean isWriter = false;
-
-        if (seqMember != null) {
-            isWriter = service.isWriter(seqBoardPost, seqMember);
-        }
-        */
-
-        // �쐟 �뀒�뒪�듃�슜: �옉�꽦�옄�씪怨� 媛��젙
+        // 테스트용
         int currentSeqMember = 1;
         boolean isAdmin = false;
         boolean isWriter = true;
@@ -148,30 +138,20 @@ public class BoardPostController {
         model.addAttribute("dto", dto);
         model.addAttribute("isWriter", isWriter);
 
-        // 댓글 관련
+        // 댓글
         model.addAttribute("commentList", commentService.list(seqBoardPost));
-        model.addAttribute("currentSeqMember", 1);
-        model.addAttribute("isAdmin", false);
+        model.addAttribute("currentSeqMember", currentSeqMember);
+        model.addAttribute("isAdmin", isAdmin);
 
         return "board/detail";
     }
 
-    // �닔�젙 �솕硫�
+    // 수정 화면
     @GetMapping("/board/edit.do")
     public String edit(@RequestParam int seqBoardPost,
                        Model model,
                        HttpSession session,
                        RedirectAttributes rttr) {
-
-        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-
-        if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "�닔�젙 沅뚰븳�씠 �뾾�뒿�땲�떎.");
-            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
-        }
-        */
 
         BoardPostDTO dto = service.get(seqBoardPost, false);
 
@@ -181,64 +161,45 @@ public class BoardPostController {
         return "board/edit";
     }
 
-    // �닔�젙 泥섎━
+    // 수정 처리
     @PostMapping("/board/edit.do")
     public String editOk(BoardPostDTO dto,
                          HttpServletRequest req,
                          HttpSession session,
-                         RedirectAttributes rttr) {
+                         RedirectAttributes rttr) throws Exception {
 
+        req.setCharacterEncoding("UTF-8");
 
-        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        dto.setSeqMember(1);
 
-        if (seqMember == null || !service.isWriter(dto.getSeqBoardPost(), seqMember)) {
-            rttr.addFlashAttribute("message", "�닔�젙 沅뚰븳�씠 �뾾�뒿�땲�떎.");
-            return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
-        }
-        */
-
-    	dto.setSeqMember(1);
-
-    	int result = service.edit(dto, req);
+        int result = service.edit(dto, req);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �닔�젙�릺�뿀�뒿�땲�떎.");
+            rttr.addFlashAttribute("message", "게시글이 수정되었습니다.");
         } else {
-            rttr.addFlashAttribute("message", "寃뚯떆湲� �닔�젙 �떎�뙣");
+            rttr.addFlashAttribute("message", "게시글 수정 실패");
         }
 
         return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
     }
 
-    // �궘�젣
+    // 삭제
     @PostMapping("/board/delete.do")
     public String delete(@RequestParam int seqBoardPost,
-                         HttpSession session,
                          RedirectAttributes rttr) {
-
-        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-
-        if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "�궘�젣 沅뚰븳�씠 �뾾�뒿�땲�떎.");
-            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
-        }
-        */
 
         int result = service.delete(seqBoardPost);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �궘�젣�릺�뿀�뒿�땲�떎.");
+            rttr.addFlashAttribute("message", "게시글이 삭제되었습니다.");
             return "redirect:/board/list.do";
         } else {
-            rttr.addFlashAttribute("message", "寃뚯떆湲� �궘�젣 �떎�뙣");
+            rttr.addFlashAttribute("message", "게시글 삭제 실패");
             return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
     }
-    
+
+    // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
     public Map<String, String> imageUpload(@RequestParam("file") MultipartFile file,
@@ -247,7 +208,6 @@ public class BoardPostController {
         Map<String, String> result = new HashMap<>();
 
         try {
-            // 狩� �빑�떖: �떎�젣 諛고룷 寃쎈줈
             String uploadPath = req.getServletContext().getRealPath("/resources/upload/board");
 
             File dir = new File(uploadPath);
@@ -256,7 +216,13 @@ public class BoardPostController {
             }
 
             String originalName = file.getOriginalFilename();
-            String savedName = UUID.randomUUID() + "_" + originalName;
+
+            String ext = "";
+            if (originalName != null && originalName.lastIndexOf(".") != -1) {
+                ext = originalName.substring(originalName.lastIndexOf("."));
+            }
+
+            String savedName = UUID.randomUUID().toString() + ext;
 
             File target = new File(dir, savedName);
             file.transferTo(target);
