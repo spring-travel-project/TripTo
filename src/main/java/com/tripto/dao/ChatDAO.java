@@ -97,4 +97,12 @@ public class ChatDAO {
         return template.delete("chat.deletePoll", pollId);
     }
     
+    public int getTravelPostSeqByRoomId(int roomId) {
+        return template.selectOne("chat.getTravelPostSeqByRoomId", roomId);
+    }
+
+    public int insertRoutine(RoutineDTO dto) {
+        return template.insert("chat.insertRoutine", dto);
+    }
+    
 }

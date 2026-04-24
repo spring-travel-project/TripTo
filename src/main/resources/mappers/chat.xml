@@ -314,5 +314,39 @@
 	    WHERE seq = #{pollId}
 	</delete>
 	
+	<select id="getTravelPostSeqByRoomId" parameterType="int" resultType="int">
+	    SELECT seqTravelPost
+	    FROM chattingroom
+	    WHERE seq = #{roomId}
+	</select>
+	
+	<insert id="insertRoutine" parameterType="com.tripto.dto.RoutineDTO">
+	    <selectKey keyProperty="seq" resultType="int" order="BEFORE">
+	        SELECT seqRoutine.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO routine (
+	        seq,
+	        seqMember,
+	        seqChattingroom,
+	        seqTravelPost,
+	        seqLocation,
+	        title,
+	        detail,
+	        regdate,
+	        dDay
+	    ) VALUES (
+	        #{seq},
+	        #{seqMember},
+	        #{seqChattingroom},
+	        #{seqTravelPost},
+	        #{seqLocation},
+	        #{title},
+	        #{detail},
+	        SYSDATE,
+	        NULL
+	    )
+	</insert>
+	
 	
 </mapper>

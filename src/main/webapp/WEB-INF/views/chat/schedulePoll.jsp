@@ -35,10 +35,10 @@
 							<p class="text-sm text-slate-500 mt-1">채팅방에 등록된 여행 일정을 확인할 수 있습니다.</p>
 						</div>
 
-						<button type="button"
-							class="px-4 py-2 rounded-xl bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600 transition">
+						<a href="${pageContext.request.contextPath}/chat/routine/write?roomId=${roomId}"
+						   class="px-4 py-2 rounded-xl bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600 transition">
 							일정 등록
-						</button>
+						</a>
 					</div>
 
 					<div class="p-5 space-y-4 h-[640px] overflow-y-auto">

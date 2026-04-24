@@ -177,4 +177,44 @@ public class ChatController {
         return "redirect:/chat/schedulePoll?roomId=" + roomId;
     }
     
+    @GetMapping("/chat/routine/write")
+    public String routineWrite(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        model.addAttribute("roomId", roomId);
+
+        return "chat/routineWrite";
+    }
+
+	/*
+	 * @PostMapping("/chat/routine/write") public String routineWriteOk(RoutineDTO
+	 * dto) {
+	 * 
+	 * int loginUserId = 1;
+	 * 
+	 * dto.setSeqMember(loginUserId);
+	 * 
+	 * chatService.insertRoutine(dto);
+	 * 
+	 * return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom(); }
+	 */
+    
+    @PostMapping("/chat/routine/write")
+    public String routineWriteOk(RoutineDTO dto) {
+
+        int loginUserId = 1; // 임시 로그인 사용자
+
+        dto.setSeqMember(loginUserId);
+
+        boolean result = chatService.insertRoutine(dto);
+
+        System.out.println("routine insert result = " + result);
+        System.out.println("seqChattingroom = " + dto.getSeqChattingroom());
+        System.out.println("title = " + dto.getTitle());
+        System.out.println("detail = " + dto.getDetail());
+
+        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
+    }
+    
 }

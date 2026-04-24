@@ -167,16 +167,16 @@ public class ChatService {
     
     public boolean votePoll(int pollId, int pollContentId, int seqMember) {
 
-        // ±âÁ¸ ÅõÇ¥ ³»¿ª »èÁ¦
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         chatDAO.deletePreviousVote(pollId, seqMember);
 
-        // »õ Ç×¸ñÀ¸·Î ÅõÇ¥
+        // ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥
         return chatDAO.votePoll(pollContentId, seqMember) == 1;
     }
     
     public boolean deletePoll(int pollId, int loginUserId) {
 
-        // ÀÛ¼ºÀÚ¸¸ »èÁ¦ °¡´ÉÇÏ°Ô ÇÏ°í ½ÍÀ¸¸é DAO¿¡¼­ ÀÛ¼ºÀÚ È®ÀÎ
+        // ï¿½Û¼ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DAOï¿½ï¿½ï¿½ï¿½ ï¿½Û¼ï¿½ï¿½ï¿½ È®ï¿½ï¿½
         PollDTO poll = chatDAO.getPollDetail(pollId);
 
         if (poll == null) {
@@ -190,6 +190,26 @@ public class ChatService {
         chatDAO.deletePollResultByPollId(pollId);
         chatDAO.deletePollContentByPollId(pollId);
         return chatDAO.deletePoll(pollId) == 1;
+    }
+    
+    public boolean insertRoutine(RoutineDTO dto) {
+
+        if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
+            return false;
+        }
+
+        if (dto.getDetail() == null || dto.getDetail().trim().isEmpty()) {
+            return false;
+        }
+
+        int seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
+
+        dto.setSeqTravelPost(seqTravelPost);
+        dto.setSeqLocation(1); // ìž„ì‹œ ìž¥ì†Œê°’
+        dto.setTitle(dto.getTitle().trim());
+        dto.setDetail(dto.getDetail().trim());
+
+        return chatDAO.insertRoutine(dto) == 1;
     }
     
 }
