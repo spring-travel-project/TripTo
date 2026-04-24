@@ -88,7 +88,7 @@
                     </li>
                     
                     <sec:authorize access="hasRole('ROLE_ADMIN')">
-                        <li><a href="${pageContext.request.contextPath}/admin/main.do" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
+                        <li><a href="${pageContext.request.contextPath}/admin/main" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
                     </sec:authorize>
                 </sec:authorize>
             </ul>
