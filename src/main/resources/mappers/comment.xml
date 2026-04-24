@@ -5,6 +5,7 @@
 
 <mapper namespace="boardComment">
 
+	<!-- Board 댓글 -->
     <select id="list" parameterType="int" resultType="com.tripto.dto.BoardCommentDTO">
         SELECT
             bc.SEQBOARDCOMMENT AS seqBoardComment,
@@ -43,23 +44,6 @@
         )
     </insert>
 
-    <!-- 게시글 수정 -->
-	<update id="edit" parameterType="com.tripto.dto.BoardPostDTO">
-	    UPDATE BOARD_POST
-	    SET
-	        SEQCATEGORY = #{seqCategory},
-	        TITLE = #{title},
-	        CONTENT = #{content},
-	        UPDATEDATE = SYSDATE
-	    WHERE SEQBOARDPOST = #{seqBoardPost}
-	</update>
-
-	<!-- 기존 파일 정보 삭제 -->
-	<delete id="deleteFiles" parameterType="int">
-	    DELETE FROM BOARD_POST_FILE
-	    WHERE SEQBOARDPOST = #{seqBoardPost}
-	</delete>
-
     <update id="delete" parameterType="int">
         UPDATE BOARD_COMMENT
         SET STATUS = 'DELETED',
@@ -74,5 +58,71 @@
         WHERE SEQBOARDCOMMENT = #{seqBoardComment}
           AND STATUS = 'NORMAL'
     </select>
+    
+    <!-- Travel 댓글 목록 -->
+	<select id="travelList" parameterType="int" resultType="com.tripto.dto.TravelCommentDTO">
+	    SELECT
+	        tc.SEQTRAVELCOMMENT AS seqTravelComment,
+	        tc.SEQTRAVELPOST AS seqTravelPost,
+	        tc.SEQMEMBER AS seqMember,
+	        tc.CONTENT AS content,
+	        TO_CHAR(tc.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+	        TO_CHAR(tc.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+	        tc.STATUS AS status,
+	        m.NAME AS writerName
+	    FROM TRAVEL_COMMENT tc
+	        INNER JOIN MEMBER m
+	            ON tc.SEQMEMBER = m.SEQMEMBER
+	    WHERE tc.SEQTRAVELPOST = #{seqTravelPost}
+	      AND tc.STATUS = 'NORMAL'
+	    ORDER BY tc.SEQTRAVELCOMMENT ASC
+	</select>
+	
+	<!-- Travel 댓글 등록 -->
+	<insert id="travelAdd" parameterType="com.tripto.dto.TravelCommentDTO">
+	    INSERT INTO TRAVEL_COMMENT (
+	        SEQTRAVELCOMMENT,
+	        SEQTRAVELPOST,
+	        SEQMEMBER,
+	        CONTENT,
+	        CREATEDATE,
+	        UPDATEDATE,
+	        STATUS
+	    ) VALUES (
+	        SEQTRAVELCOMMENT.NEXTVAL,
+	        #{seqTravelPost},
+	        #{seqMember},
+	        #{content},
+	        SYSDATE,
+	        SYSDATE,
+	        'NORMAL'
+	    )
+	</insert>
+	
+	<!-- Travel 댓글 수정 -->
+	<update id="travelEdit" parameterType="com.tripto.dto.TravelCommentDTO">
+	    UPDATE TRAVEL_COMMENT
+	    SET CONTENT = #{content},
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</update>
+	
+	<!-- Travel 댓글 삭제 -->
+	<update id="travelDelete" parameterType="int">
+	    UPDATE TRAVEL_COMMENT
+	    SET STATUS = 'DELETED',
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</update>
+	
+	<!-- Travel 댓글 작성자 번호 조회 -->
+	<select id="getTravelWriterSeq" parameterType="int" resultType="int">
+	    SELECT SEQMEMBER
+	    FROM TRAVEL_COMMENT
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</select>
 
 </mapper>

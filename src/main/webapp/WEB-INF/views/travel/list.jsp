@@ -7,90 +7,70 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>커뮤니티</title>
+    <title>동행</title>
     <%@ include file="/WEB-INF/views/inc/asset.jsp" %>
-    <link rel="stylesheet" href="${cp}/resources/css/board.css">
+    <link rel="stylesheet" href="${cp}/resources/css/travel.css">
 </head>
 <body>
 
     <%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
-    <div class="board-page">
-        <div class="board-wrap">
+    <div class="travel-page">
+        <div class="travel-wrap">
 
-            <div class="board-top">
-                <h1 class="board-title">커뮤니티</h1>
+            <div class="travel-top">
+                <h1 class="travel-title">동행</h1>
 
-                <a href="${cp}/board/write.do" class="btn-board-outline btn-board-sm">
+                <a href="${cp}/travel/write.do" class="btn-travel-outline btn-travel-sm">
                     글쓰기
                 </a>
             </div>
 
-            <!-- 카테고리 -->
-            <div class="board-category-box">
-                <a href="${cp}/board/list.do"
-                   class="board-category ${empty category ? 'board-category-active' : ''}">
-                    전체
-                </a>
-
-                <c:forEach items="${categoryList}" var="c">
-                    <a href="${cp}/board/list.do?category=${c.categoryName}"
-                       class="board-category ${category == c.categoryName ? 'board-category-active' : ''}">
-                        ${c.categoryName}
-                    </a>
-                </c:forEach>
-            </div>
-
             <!-- 검색 -->
-            <form method="get" action="${cp}/board/list.do" class="board-search-form">
-                <input type="hidden" name="category" value="${category}">
+            <form method="get" action="${cp}/travel/list.do" class="travel-search-form">
 
                 <input type="text"
                        name="searchWord"
                        value="${searchWord}"
                        placeholder="제목 또는 내용으로 검색해보세요."
-                       class="board-search-input">
+                       class="travel-search-input">
 
-                <button type="submit" class="btn-board-outline btn-board-sm">
+                <button type="submit" class="btn-travel-outline btn-travel-sm">
 				    검색
 				</button>
             </form>
 
             <!-- 목록 -->
-            <div class="board-list-card-wrap">
+            <div class="travel-list-card-wrap">
 
                 <c:if test="${empty list}">
-                    <div class="board-empty-box">
-                        <div class="board-empty-icon">📝</div>
-                        <div class="board-empty-title">게시글이 없습니다.</div>
-                        <div class="board-empty-desc">
+                    <div class="travel-empty-box">
+                        <div class="travel-empty-icon">📝</div>
+                        <div class="travel-empty-title">게시글이 없습니다.</div>
+                        <div class="travel-empty-desc">
                             아직 등록된 게시글이 없거나 검색 조건에 맞는 결과가 없습니다.
                         </div>
-                        <a href="${cp}/board/write.do" class="btn-board-outline">
-                            첫 게시글 작성하기
-                        </a>
                     </div>
                 </c:if>
 
                 <c:forEach items="${list}" var="dto">
-                    <a href="${cp}/board/detail.do?seqBoardPost=${dto.seqBoardPost}" class="board-list-card">
+                    <a href="${cp}/travel/detail.do?seqTravelPost=${dto.seqTravelPost}" class="travel-list-card">
 
-                        <div class="board-list-thumb">
+                        <div class="travel-list-thumb">
                             <c:choose>
                                 <c:when test="${not empty dto.savedName}">
-								    <img src="${cp}/resources/upload/board/${dto.savedName}" alt="대표 이미지">
+								    <img src="${cp}/resources/upload/travel/${dto.savedName}" alt="대표 이미지">
 								</c:when>
                                 <c:otherwise>
-                                    <div class="board-list-noimg">이미지 없음</div>
+                                    <div class="travel-list-noimg">이미지 없음</div>
                                 </c:otherwise>
                             </c:choose>
                         </div>
 
-                        <div class="board-list-content">
-                            <div class="board-list-category">${dto.categoryName}</div>
-                            <div class="board-list-title">${dto.title}</div>
+                        <div class="travel-list-content">
+                            <div class="travel-list-title">${dto.title}</div>
 
-                            <div class="board-list-meta">
+                            <div class="travel-list-meta">
                                 <span>${dto.writerName}</span>
                                 <span>${dto.createDate}</span>
                                 <span>조회 ${dto.viewCount}</span>
@@ -102,18 +82,12 @@
             </div>
 
             <!-- 페이지네이션 -->
-            <div class="board-pagination">
+            <div class="travel-pagination">
                 <c:forEach begin="1" end="${totalPage}" var="p">
                     <c:choose>
                         <c:when test="${p == page}">
-                            <span class="board-page-btn board-page-btn-active">${p}</span>
+                            <span class="travel-page-btn travel-page-btn-active">${p}</span>
                         </c:when>
-                        <c:otherwise>
-                            <a href="${cp}/board/list.do?page=${p}&category=${category}&searchWord=${searchWord}"
-                               class="board-page-btn">
-                                ${p}
-                            </a>
-                        </c:otherwise>
                     </c:choose>
                 </c:forEach>
             </div>
@@ -124,6 +98,6 @@
     <c:if test="${not empty message}">
         <script>alert('${message}');</script>
     </c:if>
-
+    
 </body>
 </html>

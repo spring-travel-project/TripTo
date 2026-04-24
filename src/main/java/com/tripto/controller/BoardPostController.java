@@ -41,8 +41,6 @@ public class BoardPostController {
             @RequestParam(required = false, defaultValue = "1") int page,
             Model model) {
 
-        System.out.println("=== list controller 실행 ===");
-
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
         dto.setSearchWord(searchWord);

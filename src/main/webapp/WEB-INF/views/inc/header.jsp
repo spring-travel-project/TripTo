@@ -47,7 +47,7 @@
         <div class="flex-none h-full">
             <ul class="menu menu-horizontal px-1 h-full gap-1 font-semibold text-slate-600">
                 
-                <li><a href="${pageContext.request.contextPath}/companion/list.do" class="h-full flex items-center ${uri.contains('/companion/') ? 'active' : ''}">동행</a></li>
+                <li><a href="${pageContext.request.contextPath}/travel/list.do" class="h-full flex items-center ${uri.contains('/travel/') ? 'active' : ''}">동행</a></li>
                 <li><a href="${pageContext.request.contextPath}/matching/list.do" class="h-full flex items-center ${uri.contains('/matching/') ? 'active' : ''}">매칭</a></li>
                 
                 <li class="dropdown dropdown-hover h-full"> 

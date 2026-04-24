@@ -1,11 +1,14 @@
 package com.tripto.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.tripto.dto.BoardCommentDTO;
+import com.tripto.dto.TravelCommentDTO;
 import com.tripto.service.CommentService;
 
 @Controller
@@ -15,51 +18,41 @@ public class CommentController {
     private CommentService service;
 
     @PostMapping("/comment/add.do")
-    public String add(BoardCommentDTO dto, RedirectAttributes rttr) {
-
-        /*
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
-        boolean isWriter = false;
-
-        if (seqMember != null) {
-            isWriter = service.isWriter(seqBoardPost, seqMember);
-        }
-        */
-
-        // ÀÓ½Ã ·Î±×ÀÎ »ç¿ëÀÚ
-        dto.setSeqMember(1);
-
-        int result = service.add(dto);
-
-        if (result == 1) {
-            rttr.addFlashAttribute("message", "´ñ±ÛÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.");
-        } else {
-            rttr.addFlashAttribute("message", "´ñ±Û µî·Ï ½ÇÆĞ");
-        }
-
-        return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
-    }
+    public String add(BoardCommentDTO dto,
+            HttpServletRequest request,
+            RedirectAttributes rttr) throws Exception {
+		
+		request.setCharacterEncoding("UTF-8");
+		
+		// ì„ì‹œ ë¡œê·¸ì¸ ì‚¬ìš©ì
+		dto.setSeqMember(1);
+		
+		int result = service.add(dto);
+		
+		if (result == 1) {
+		  rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.");
+		} else {
+		  rttr.addFlashAttribute("message", "ëŒ“ê¸€ ë“±ë¡ ì‹¤íŒ¨");
+		}
+		
+		return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
+	}
 
     @PostMapping("/comment/edit.do")
-    public String edit(BoardCommentDTO dto, RedirectAttributes rttr) {
+    public String edit(BoardCommentDTO dto,
+                       HttpServletRequest request,
+                       RedirectAttributes rttr) throws Exception {
 
-    	/*
-        Integer currentSeqMember = (Integer) session.getAttribute("currentSeqMember");
-        boolean isWriter = false;
+        request.setCharacterEncoding("UTF-8");
 
-        if (currentSeqMember != null) {
-            isWriter = service.isWriter(seqBoardPost, currentSeqMember);
-        }
-        */
-    	
         int currentSeqMember = 1;
 
         int result = service.edit(dto, currentSeqMember);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "´ñ±ÛÀÌ ¼öÁ¤µÇ¾ú½À´Ï´Ù.");
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤.");
         } else {
-            rttr.addFlashAttribute("message", "´ñ±Û ¼öÁ¤ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.");
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ ìˆ˜ì • ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.");
         }
 
         return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
@@ -76,11 +69,76 @@ public class CommentController {
         int result = service.delete(seqBoardComment, currentSeqMember, isAdmin);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "´ñ±ÛÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù.");
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.");
         } else {
-            rttr.addFlashAttribute("message", "´ñ±Û »èÁ¦ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.");
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ ì‚­ì œ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.");
         }
 
         return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
+    }
+
+    @PostMapping("/travel/comment/add.do")
+    public String travelAdd(TravelCommentDTO dto,
+                            HttpServletRequest request,
+                            RedirectAttributes rttr) throws Exception {
+
+    	request.setCharacterEncoding("UTF-8");
+    	
+        dto.setSeqMember(1);
+
+        int result = service.travelAdd(dto);
+
+        if (result == 1) {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.");
+        } else {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ ë“±ë¡ ì‹¤íŒ¨");
+        }
+
+        String referer = request.getHeader("Referer");
+
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+
+        return "redirect:/travel/detail.do?seqTravelPost=" + dto.getSeqTravelPost();
+    }
+
+    @PostMapping("/travel/comment/edit.do")
+    public String travelEdit(TravelCommentDTO dto,
+                             HttpServletRequest request,
+                             RedirectAttributes rttr) throws Exception {
+
+        request.setCharacterEncoding("UTF-8");
+
+        int currentSeqMember = 1;
+
+        int result = service.travelEdit(dto, currentSeqMember);
+
+        if (result == 1) {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤.");
+        } else {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ ìˆ˜ì • ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.");
+        }
+
+        return "redirect:/travel/detail.do?seqTravelPost=" + dto.getSeqTravelPost();
+    }
+
+    @PostMapping("/travel/comment/delete.do")
+    public String travelDelete(int seqTravelComment,
+                               int seqTravelPost,
+                               RedirectAttributes rttr) {
+
+        int currentSeqMember = 1;
+        boolean isAdmin = false;
+
+        int result = service.travelDelete(seqTravelComment, currentSeqMember, isAdmin);
+
+        if (result == 1) {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.");
+        } else {
+            rttr.addFlashAttribute("message", "ëŒ“ê¸€ ì‚­ì œ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.");
+        }
+
+        return "redirect:/travel/detail.do?seqTravelPost=" + seqTravelPost;
     }
 }

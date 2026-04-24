@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="location">
+
+    <insert id="add" parameterType="com.tripto.dto.LocationDTO">
+        <selectKey keyProperty="seqLocation" resultType="int" order="BEFORE">
+            SELECT SEQLOCATION.NEXTVAL FROM DUAL
+        </selectKey>
+
+        INSERT INTO LOCATION (
+            SEQLOCATION,
+            PLACENAME,
+            ADDRESS,
+            LATITUDE,
+            LONGITUDE,
+            MAPPROVIDERID
+        ) VALUES (
+            #{seqLocation},
+            #{placeName},
+            #{address},
+            #{latitude},
+            #{longitude},
+            #{mapProviderId}
+        )
+    </insert>
+
+    <select id="get" parameterType="int" resultType="com.tripto.dto.LocationDTO">
+        SELECT
+            SEQLOCATION AS seqLocation,
+            PLACENAME AS placeName,
+            ADDRESS AS address,
+            LATITUDE AS latitude,
+            LONGITUDE AS longitude,
+            MAPPROVIDERID AS mapProviderId
+        FROM LOCATION
+        WHERE SEQLOCATION = #{seqLocation}
+    </select>
+
+</mapper>
