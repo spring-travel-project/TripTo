@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member">
+    
+    <!-- 회원가입 시 입력받은 아이디가 테이블에 몇 개 있는지 세어보는 쿼리 -->
+    <!-- 아이디 중복 확인용 -->
+    <select id="checkId" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM member 
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 이메일 중복 확인 -->
+    <select id="checkEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM member 
+        WHERE email = #{email}
+    </select>
+    
+    <!-- 회원가입 폼 제출용 INSERT 쿼리문 -->
+    <insert id="joinMember" parameterType="com.tripto.dto.MemberDTO">
+        INSERT INTO member (
+            seqMember, name, id, pw, pic, nickname, email, gender, birth, region
+        ) VALUES (
+            seqmember.nextval, #{name}, 
+            #{id}, 
+            #{pw}, 
+            #{pic}, 
+            #{nickname}, 
+            #{email}, 
+            #{gender}, 
+            TO_DATE(#{birth}, 'YYYY-MM-DD'), 
+            #{region}
+        )
+    </insert>
+
+</mapper>
