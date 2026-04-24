@@ -98,7 +98,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/member/sendAuthEmailForFindId.do",
+            url: "${pageContext.request.contextPath}/member/sendAuthEmailForFindId.do",
             data: { 
                 name: name,   // 이름도 같이 보냄
                 email: email, 
@@ -162,7 +162,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/member/verifyAuthCode.do",
+            url: "${pageContext.request.contextPath}/member/verifyAuthCode.do",
             // AJAX가 서버로 갈 때 CSRF 토큰도 같이 챙겨 보냄
             data: { inputCode: inputCode, _csrf: csrfToken },
             success: function(response) {
@@ -205,7 +205,7 @@
         // 페이지 이동(submit) 대신 서버에 요청(AJAX)을 보냄
         $.ajax({
             type: "POST",
-            url: "/member/findIdResult.do",
+            url: "${pageContext.request.contextPath}/member/findIdResult.do",
             data: { 
                 name: name,
                 email: email,
