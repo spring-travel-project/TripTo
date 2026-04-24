@@ -12,6 +12,7 @@ import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.RoutineDTO;
 import com.tripto.dto.PollDTO;
+import com.tripto.dto.PollContentDTO;
 
 @Service
 public class ChatService {
@@ -155,4 +156,40 @@ public class ChatService {
 
         return true;
     }
+    
+    public PollDTO getPollDetail(int pollId) {
+        return chatDAO.getPollDetail(pollId);
+    }
+
+    public List<PollContentDTO> getPollContentList(int pollId) {
+        return chatDAO.getPollContentList(pollId);
+    }
+    
+    public boolean votePoll(int pollId, int pollContentId, int seqMember) {
+
+        // 기존 투표 내역 삭제
+        chatDAO.deletePreviousVote(pollId, seqMember);
+
+        // 새 항목으로 투표
+        return chatDAO.votePoll(pollContentId, seqMember) == 1;
+    }
+    
+    public boolean deletePoll(int pollId, int loginUserId) {
+
+        // 작성자만 삭제 가능하게 하고 싶으면 DAO에서 작성자 확인
+        PollDTO poll = chatDAO.getPollDetail(pollId);
+
+        if (poll == null) {
+            return false;
+        }
+
+        if (poll.getSeqMember() != loginUserId) {
+            return false;
+        }
+
+        chatDAO.deletePollResultByPollId(pollId);
+        chatDAO.deletePollContentByPollId(pollId);
+        return chatDAO.deletePoll(pollId) == 1;
+    }
+    
 }

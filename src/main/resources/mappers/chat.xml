@@ -229,4 +229,90 @@
 	    )
 	</insert>
 	
+	<select id="getPollDetail" parameterType="int" resultType="com.tripto.dto.PollDTO">
+	    SELECT
+	        p.seq,
+	        p.seqChattingroom,
+	        p.seqMember,
+	        p.pollTitle,
+	        p.pollEnddate,
+	        p.polldetail,
+	        m.nickname AS writerNickname,
+	        TO_CHAR(p.pollEnddate, 'YYYY-MM-DD HH24:MI') AS enddateText,
+	        NVL(pr.totalParticipantCount, 0) AS totalParticipantCount
+	    FROM poll p
+	        INNER JOIN member m
+	            ON p.seqMember = m.seqMember
+	        LEFT JOIN (
+	            SELECT
+	                pc.seqPoll,
+	                COUNT(DISTINCT pr.seqMember) AS totalParticipantCount
+	            FROM poll_content pc
+	                LEFT JOIN poll_result pr
+	                    ON pc.seq = pr.seqPollContent
+	            GROUP BY pc.seqPoll
+	        ) pr
+	            ON p.seq = pr.seqPoll
+	    WHERE p.seq = #{pollId}
+	</select>
+	
+	<select id="getPollContentList" parameterType="int" resultType="com.tripto.dto.PollContentDTO">
+	    SELECT
+	        pc.seq,
+	        pc.seqPoll,
+	        pc.pollContent,
+	        COUNT(pr.seq) AS voteCount
+	    FROM poll_content pc
+	        LEFT JOIN poll_result pr
+	            ON pc.seq = pr.seqPollContent
+	    WHERE pc.seqPoll = #{pollId}
+	    GROUP BY
+	        pc.seq,
+	        pc.seqPoll,
+	        pc.pollContent
+	    ORDER BY pc.seq ASC
+	</select>
+	
+	<insert id="votePoll" parameterType="map">
+	    INSERT INTO poll_result (
+	        seq,
+	        seqPollContent,
+	        seqMember
+	    ) VALUES (
+	        seqPollResult.NEXTVAL,
+	        #{pollContentId},
+	        #{seqMember}
+	    )
+	</insert>
+	
+	<delete id="deletePreviousVote" parameterType="map">
+	    DELETE FROM poll_result
+	    WHERE seqMember = #{seqMember}
+	      AND seqPollContent IN (
+	          SELECT seq
+	          FROM poll_content
+	          WHERE seqPoll = #{pollId}
+	      )
+	</delete>
+	
+	<delete id="deletePollResultByPollId" parameterType="int">
+	    DELETE FROM poll_result
+	    WHERE seqPollContent IN (
+	        SELECT seq
+	        FROM poll_content
+	        WHERE seqPoll = #{pollId}
+	    )
+	</delete>
+	
+	<delete id="deletePollContentByPollId" parameterType="int">
+	    DELETE FROM poll_content
+	    WHERE seqPoll = #{pollId}
+	</delete>
+	
+	<delete id="deletePoll" parameterType="int">
+	    DELETE FROM poll
+	    WHERE seq = #{pollId}
+	</delete>
+	
+	
 </mapper>

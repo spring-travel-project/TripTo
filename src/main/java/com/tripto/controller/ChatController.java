@@ -18,6 +18,7 @@ import com.tripto.dto.ChatRoomDTO;
 import com.tripto.service.ChatService;
 import com.tripto.dto.RoutineDTO;
 import com.tripto.dto.PollDTO;
+import com.tripto.dto.PollContentDTO;
 
 @Controller
 public class ChatController {
@@ -134,4 +135,46 @@ public class ChatController {
 
         return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
     }
+    
+    @GetMapping("/chat/poll/detail")
+    public String pollDetail(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId,
+            Model model) {
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+        List<PollContentDTO> pollContentList = chatService.getPollContentList(pollId);
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("poll", poll);
+        model.addAttribute("pollContentList", pollContentList);
+
+        return "chat/pollDetail";
+    }
+    
+    @PostMapping("/chat/poll/vote")
+    public String votePoll(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId,
+            @RequestParam("pollContentId") int pollContentId) {
+
+        int loginUserId = 1; // 임시 로그인 사용자
+
+        chatService.votePoll(pollId, pollContentId, loginUserId);
+
+        return "redirect:/chat/poll/detail?roomId=" + roomId + "&pollId=" + pollId;
+    }
+    
+    @PostMapping("/chat/poll/delete")
+    public String deletePoll(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId) {
+
+        int loginUserId = 1; // 임시 로그인 사용자
+
+        chatService.deletePoll(pollId, loginUserId);
+
+        return "redirect:/chat/schedulePoll?roomId=" + roomId;
+    }
+    
 }

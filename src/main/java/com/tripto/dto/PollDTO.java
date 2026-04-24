@@ -16,6 +16,8 @@ public class PollDTO {
     private int seqMember;
 
     private String pollEnddateInput;
+    
+    private int totalParticipantCount;
 
     public int getSeq() {
         return seq;
@@ -96,5 +98,14 @@ public class PollDTO {
     public void setPollEnddateInput(String pollEnddateInput) {
         this.pollEnddateInput = pollEnddateInput;
     }
+    
+    public int getTotalParticipantCount() {
+        return totalParticipantCount;
+    }
+
+    public void setTotalParticipantCount(int totalParticipantCount) {
+        this.totalParticipantCount = totalParticipantCount;
+    }
+
     
 }

@@ -110,7 +110,8 @@
 						<c:choose>
 							<c:when test="${not empty pollList}">
 								<c:forEach items="${pollList}" var="poll">
-									<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+									<a href="${pageContext.request.contextPath}/chat/poll/detail?roomId=${roomId}&pollId=${poll.seq}"
+									   class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
 										<div class="flex items-start justify-between gap-3 mb-4">
 											<div class="min-w-0">
 												<div class="flex items-center gap-2 mb-2 flex-wrap">
@@ -148,7 +149,7 @@
 												<c:out value="${poll.participantCount}" />명
 											</button>
 										</div>
-									</div>
+									</a>
 								</c:forEach>
 							</c:when>
 
