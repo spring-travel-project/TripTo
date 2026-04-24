@@ -43,7 +43,9 @@ public class MailService {
 			// (true는 멀티파트 활성화, "utf-8"은 한글 깨짐 방지 인코딩)
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
 
-			helper.setFrom("TripTo관리자<no-reply@tripto.com>"); // 사용자에게 보여질 발신자 이름 (실제 발송은 properties 계정으로 됨)
+			// javax.mail.internet.InternetAddress 객체를 사용해서 인코딩을 강제
+			// 사용자에게 보여질 발신자 이름 (실제 발송은 properties 계정으로 됨)
+			helper.setFrom(new javax.mail.internet.InternetAddress("no-reply@tripto.com", "TripTo관리자", "UTF-8"));
 			helper.setTo(toEmail);
 			helper.setSubject(subject);
 			helper.setText(content, true); // 두 번째 인자를 true로 줘야 HTML 태그가 적용됨
@@ -75,7 +77,8 @@ public class MailService {
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
 			
 			// 사용자에게 보여질 발신자 이름
-			helper.setFrom("TripTo관리자<no-reply@tripto.com>");
+			// javax.mail.internet.InternetAddress 객체를 사용해서 인코딩을 강제
+			helper.setFrom(new javax.mail.internet.InternetAddress("no-reply@tripto.com", "TripTo관리자", "UTF-8"));
 			helper.setTo(email);
 			helper.setSubject(subject);
 			helper.setText(content, true);
