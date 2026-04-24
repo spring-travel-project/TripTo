@@ -39,4 +39,20 @@ public class AdminDAO {
     public void memberDelete(String seqMember) {
         sql.update("admin.memberDelete", seqMember);
     }
+    
+    // 일반 게시판 목록
+    public List<Map<String, Object>> boardList(Map<String, Object> map) {
+        return sql.selectList("admin.boardList", map);
+    }
+
+    // 일반 게시판 총 개수
+    public int boardCount(Map<String, Object> map) {
+        return sql.selectOne("admin.boardCount", map);
+    }
+
+	public int boardDelete(String seqBoardPost) {
+		
+		return sql.update("admin.boardDelete",seqBoardPost);
+	}
+
 }

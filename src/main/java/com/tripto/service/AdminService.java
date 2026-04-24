@@ -39,6 +39,19 @@ public class AdminService {
     public void deleteMember(String seqMember) {
         dao.memberDelete(seqMember);
     }
+    
+    public List<Map<String, Object>> getBoardList(Map<String, Object> map) {
+        return dao.boardList(map);
+    }
+
+    public int getBoardCount(Map<String, Object> map) {
+        return dao.boardCount(map);
+    }
+
+    // 몇 개의 행이 수정됐는지 숫자로 받고 싶을 때
+    public int deleteBoard(String seqBoardPost) {
+        return dao.boardDelete(seqBoardPost); // 이때는 return을 쓰는 게 맞아요!
+    }
 }
 	
 

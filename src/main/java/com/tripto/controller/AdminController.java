@@ -91,4 +91,42 @@ public class AdminController {
         // 삭제 완료 후 다시 회원 목록 페이지로 이동
         return "redirect:/admin/memberList";
     }
+    
+    @GetMapping("/boardList")
+    public String boardList(Model model, 
+                            @RequestParam(defaultValue = "1") int page,
+                            @RequestParam(required = false) String searchType,
+                            @RequestParam(required = false) String searchKeyword,
+                            @RequestParam(required = false) String showDeleted) { // 🌟 파라미터 추가
+
+        int pageSize = 10;
+        int start = (page - 1) * pageSize + 1;
+        int end = page * pageSize;
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("start", start);
+        map.put("end", end);
+        map.put("searchType", searchType);
+        map.put("searchKeyword", searchKeyword);
+        map.put("showDeleted", showDeleted); // 🌟 맵에 담기
+
+        List<Map<String, Object>> list = adminService.getBoardList(map);
+        int totalCount = adminService.getBoardCount(map);
+        int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+
+        model.addAttribute("list", list);
+        model.addAttribute("totalPage", totalPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchKeyword", searchKeyword);
+        model.addAttribute("showDeleted", showDeleted); // 🌟 상태 유지를 위해 JSP로 전송
+
+        return "admin/boardList";
+    }
+    
+    @GetMapping("/boardDelete")
+    public String boardDelete(@RequestParam String seqBoardPost) {
+        adminService.deleteBoard(seqBoardPost); // 서비스/DAO에 해당 메서드 추가 필요
+        return "redirect:/admin/boardList";
+    }
 }
