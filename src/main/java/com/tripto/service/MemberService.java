@@ -28,19 +28,28 @@ public class MemberService {
 	public void joinMember(MemberDTO dto) {
 		dao.joinMember(dto);
 	}
-
+	
+	// 아이디 찾기
 	public String findIdByNameAndEmail(Map<String, String> map) {
 		// 컨트롤러에서 넘어온 map(이름, 이메일)을 그대로 DAO에게 넘겨주고,
 		// DAO가 찾아온 아이디(String)를 다시 컨트롤러로 반환(return)
 		return dao.findIdByNameAndEmail(map);
 	}
-
+	
+	// 비밀번호 찾기
 	public int checkIdAndEmail(Map<String, String> map) {
 		return dao.checkIdAndEmail(map);
 	}
-
+	
+	// 비밀번호 재설정
 	public void updatePw(Map<String, String> map) {
 		
 		dao.updatePw(map);
+	}
+	
+	// 마이페이지에 현재 로그인한 회원의 정보를 출력
+	public MemberDTO getMemberById(String id) {
+		
+		return dao.getMemberById(id);
 	}
 }

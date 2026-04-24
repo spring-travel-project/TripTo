@@ -47,4 +47,10 @@ public class MemberDAO {
 
 		sql.update("member.updatePw", map);
 	}
+	
+	// 현재 로그인한 회원의 정보를 마이페이지에 출력하기
+	public MemberDTO getMemberById(String id) {
+
+		return sql.selectOne("member.getMemberById", id);
+	}
 }
