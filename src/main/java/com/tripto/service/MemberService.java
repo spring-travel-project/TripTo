@@ -1,5 +1,7 @@
 package com.tripto.service;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +27,11 @@ public class MemberService {
 	// 회원가입 폼 제출
 	public void joinMember(MemberDTO dto) {
 		dao.joinMember(dto);
+	}
+
+	public String findIdByNameAndEmail(Map<String, String> map) {
+		// 컨트롤러에서 넘어온 map(이름, 이메일)을 그대로 DAO에게 넘겨주고,
+		// DAO가 찾아온 아이디(String)를 다시 컨트롤러로 반환(return)
+		return dao.findIdByNameAndEmail(map);
 	}
 }

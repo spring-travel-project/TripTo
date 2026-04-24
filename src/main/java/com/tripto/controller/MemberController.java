@@ -1,6 +1,8 @@
 package com.tripto.controller;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -160,6 +163,62 @@ public class MemberController {
 	@GetMapping("/login.do")
 	public String login() {
 		return "member/login";
+	}
+
+	// 7. 아이디 찾기 화면 보여주기
+	@GetMapping("/findId.do")
+	public String findId() {
+		return "member/findId";
+	}
+
+	// 8. 아이디 찾기 실제 액션 (AJAX)
+	@PostMapping("/findIdResult.do")
+	@ResponseBody
+	public String findIdResult(@RequestParam String name, @RequestParam String email) {
+
+		Map<String, String> map = new HashMap<>();
+		map.put("name", name);
+		map.put("email", email);
+
+		String foundId = memberService.findIdByNameAndEmail(map);
+
+		if (foundId != null) {
+			// 찾은 아이디를 이메일로 발송
+			mailService.sendIdEmail(email, foundId);
+			return "SUCCESS";
+		} else {
+			return "FAIL";
+		}
+	}
+
+	// 8-1. 아이디 찾기 전용 인증 이메일 발송 로직
+	@PostMapping("/sendAuthEmailForFindId.do")
+	@ResponseBody // AJAX 요청이므로 필요
+	public String sendAuthEmailForFindId(@RequestParam String name, @RequestParam String email, HttpSession session) {
+
+		// 1. DB에 해당 이름과 이메일을 가진 회원이 있는지 먼저 검사
+		Map<String, String> map = new HashMap<>();
+		map.put("name", name);
+		map.put("email", email);
+
+		String foundId = memberService.findIdByNameAndEmail(map);
+
+		// 2. 만약 일치하는 회원이 없다면 더 이상 진행 불가
+		if (foundId == null) {
+			return "NOT_FOUND";
+		}
+
+		// 3. 일치하는 회원이 있다면? -> 기존 이메일 발송 로직 실행
+		String authCode = mailService.sendAuthEmail(email);
+
+		if ("FAIL".equals(authCode)) {
+			return "FAIL";
+		}
+
+		session.setAttribute("authCode", authCode);
+		session.setAttribute("authCodeTime", System.currentTimeMillis());
+
+		return "SUCCESS";
 	}
 
 }
