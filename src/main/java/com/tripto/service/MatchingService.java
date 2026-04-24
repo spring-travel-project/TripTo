@@ -25,4 +25,10 @@ public class MatchingService {
     public List<MatchDTO> getMatchingList(Map<String, Object> params) {
         return matchingDAO.getMatchingList(params);
     }
+    
+ // 3. 상세 프로필 가져오기 (단일 클래스 메서드)
+    public MatchDTO getMatchDetail(Map<String, Integer> map) {
+    return matchingDAO.getMatchDetail(map);
+    }
+    
 }
