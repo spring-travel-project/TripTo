@@ -161,7 +161,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/member/sendAuthEmail.do",
+            url: "${pageContext.request.contextPath}/member/sendAuthEmail.do",
             // 데이터 보낼 때 스프링 시큐리티의 CSRF 토큰 지참하기
             data: { email: email, _csrf: csrfToken },
             success: function(response) {
@@ -231,7 +231,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/member/verifyAuthCode.do",
+            url: "${pageContext.request.contextPath}/member/verifyAuthCode.do",
             data: { inputCode: inputCode, _csrf: csrfToken },
             success: function(response) {
                 if(response === "MATCH") {
@@ -281,7 +281,7 @@
 
         $.ajax({
             type: "POST",
-            url: "/member/checkId.do",
+            url: "${pageContext.request.contextPath}/member/checkId.do",
             data: { id: id, _csrf: csrfToken },
             success: function(response) {
                 if(response === "AVAILABLE") {
