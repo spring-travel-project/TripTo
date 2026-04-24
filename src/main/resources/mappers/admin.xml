@@ -15,11 +15,15 @@
     <select id="memberList" resultType="com.tripto.dto.MemberDTO" parameterType="map">
 	    SELECT * FROM (
 	        SELECT a.*, rownum as rnum FROM (
-	            SELECT 
-	                m.*,
-	                (SELECT COUNT(*) FROM report r WHERE r.targetType = 'USER' AND r.seqTarget = m.seqMember) as reportCount
+	            SELECT m.*, 
+	                   (SELECT COUNT(*) FROM report r WHERE r.targetType = 'USER' AND r.seqTarget = m.seqMember) as reportCount
 	            FROM member m
 	            WHERE 1=1
+	            
+	            <if test='showDeleted == null or showDeleted != "Y"'>
+				    AND m.status != 2
+				</if>
+	
 	            <if test="searchKeyword != null and searchKeyword != ''">
 	                <choose>
 	                    <when test="searchType == 'name'"> AND m.name LIKE '%' || #{searchKeyword} || '%' </when>
@@ -27,9 +31,7 @@
 	                    <when test="searchType == 'nickname'"> AND m.nickname LIKE '%' || #{searchKeyword} || '%' </when>
 	                </choose>
 	            </if>
-	            
 	            ORDER BY reportCount DESC, m.regDate DESC
-	            
 	        ) a
 	    ) WHERE rnum BETWEEN #{start} AND #{end}
 	</select>
@@ -37,6 +39,11 @@
 	<select id="memberCount" resultType="int" parameterType="map">
 	    SELECT COUNT(*) FROM member
 	    WHERE 1=1
+	    
+	    <if test='showDeleted == null or showDeleted != "Y"'>
+	        AND status != 2
+	    </if>
+	
 	    <if test="searchKeyword != null and searchKeyword != ''">
 	        <choose>
 	            <when test="searchType == 'name'"> AND name LIKE '%' || #{searchKeyword} || '%' </when>
@@ -46,4 +53,30 @@
 	    </if>
 	</select>
 
+	<select id="memberDetail" resultType="com.tripto.dto.MemberDTO" parameterType="String">
+	    SELECT 
+	        m.seqMember, 
+	        m.id, 
+	        m.pw, 
+	        m.name, 
+	        m.nickname, 
+	        m.email, 
+	        m.regDate, 
+	        m.type,  (SELECT COUNT(*) 
+	         FROM report r 
+	         WHERE r.targetType = 'USER' 
+	         AND r.seqTarget = m.seqMember) as reportCount 
+	    FROM member m
+	    WHERE m.seqMember = #{seqMember} 
+	</select>
+	
+	<update id="memberDelete" parameterType="String">
+	    UPDATE member 
+	    SET status = 2
+	    WHERE seqMember = #{seqMember}
+	</update>
+	
+	
+	
+	
 </mapper>

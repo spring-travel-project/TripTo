@@ -29,4 +29,14 @@ public class AdminDAO {
     public int memberCount(Map<String, Object> map) {
         return sql.selectOne("admin.memberCount", map);
     }
+
+    // 특정 회원 상세 정보
+    public MemberDTO memberDetail(String seqMember) {
+        return sql.selectOne("admin.memberDetail", seqMember);
+    }
+    
+    //  회원 강제 탈퇴 (DELETE -> UPDATE 로 변경 완료)
+    public void memberDelete(String seqMember) {
+        sql.update("admin.memberDelete", seqMember);
+    }
 }

@@ -29,6 +29,16 @@ public class AdminService {
     public int getMemberCount(Map<String, Object> map) {
         return dao.memberCount(map);
     }
+
+	// 특정 회원 상세 정보
+	public MemberDTO getMemberDetail(String seqMember) {
+	    return dao.memberDetail(seqMember);
+	}
+	
+	// 🌟 회원 강제 탈퇴 (상태값 변경)
+    public void deleteMember(String seqMember) {
+        dao.memberDelete(seqMember);
+    }
 }
 	
 
