@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.PollDTO;
 
 @Repository
 public class ChatDAO {
@@ -40,6 +42,22 @@ public class ChatDAO {
         map.put("userId", userId);
 
         return template.update("chat.exitRoom", map);
+    }
+    
+    public List<RoutineDTO> getRoutineList(int roomId) {
+        return template.selectList("chat.getRoutineList", roomId);
+    }
+
+    public List<PollDTO> getPollList(int roomId) {
+        return template.selectList("chat.getPollList", roomId);
+    }
+    
+    public int insertPoll(PollDTO dto) {
+        return template.insert("chat.insertPoll", dto);
+    }
+    
+    public int insertPollContent(Map<String, Object> map) {
+        return template.insert("chat.insertPollContent", map);
     }
     
 }

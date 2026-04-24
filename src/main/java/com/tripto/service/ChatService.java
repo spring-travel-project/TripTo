@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.PollDTO;
 
 @Service
 public class ChatService {
@@ -104,5 +106,53 @@ public class ChatService {
     
     public boolean exitRoom(int roomId, int userId) {
         return chatDAO.exitRoom(roomId, userId) == 1;
+    }
+    
+    public List<RoutineDTO> getRoutineList(int roomId) {
+        return chatDAO.getRoutineList(roomId);
+    }
+
+    public List<PollDTO> getPollList(int roomId) {
+        return chatDAO.getPollList(roomId);
+    }
+    
+    public boolean insertPoll(PollDTO dto, List<String> pollContents) {
+
+        if (dto.getPollTitle() == null || dto.getPollTitle().trim().isEmpty()) {
+            return false;
+        }
+
+        if (dto.getPollEnddateInput() == null || dto.getPollEnddateInput().trim().isEmpty()) {
+            return false;
+        }
+
+        if (dto.getPolldetail() == null || dto.getPolldetail().trim().isEmpty()) {
+            return false;
+        }
+
+        if (pollContents == null || pollContents.size() < 2) {
+            return false;
+        }
+
+        dto.setPollTitle(dto.getPollTitle().trim());
+        dto.setPolldetail(dto.getPolldetail().trim());
+
+        int result = chatDAO.insertPoll(dto);
+
+        if (result != 1) {
+            return false;
+        }
+
+        for (String content : pollContents) {
+            if (content != null && !content.trim().isEmpty()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("seqPoll", dto.getSeq());
+                map.put("pollContent", content.trim());
+
+                chatDAO.insertPollContent(map);
+            }
+        }
+
+        return true;
     }
 }

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.service.ChatService;
+import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.PollDTO;
 
 @Controller
 public class ChatController {
@@ -29,7 +31,7 @@ public class ChatController {
             @RequestParam(value = "category", required = false) Integer category,
             Model model) {
 
-        int loginUserId = 1; // 임시 로그인 사용자
+        int loginUserId = 1; // �엫�떆 濡쒓렇�씤 �궗�슜�옄
 
         List<ChatRoomDTO> roomList = chatService.getRoomList(loginUserId, roomId, category);
 
@@ -68,7 +70,7 @@ public class ChatController {
             @RequestParam("message") String message,
             @RequestParam(value = "category", required = false) Integer category) {
 
-        int loginUserId = 1; // 임시 로그인 사용자
+        int loginUserId = 1; // �엫�떆 濡쒓렇�씤 �궗�슜�옄
 
         chatService.insertMessage(roomId, loginUserId, message);
 
@@ -84,7 +86,7 @@ public class ChatController {
     public Map<String, Object> exitRoom(
             @RequestParam("roomId") int roomId) {
 
-        int loginUserId = 1; // 임시 로그인
+        int loginUserId = 1; // �엫�떆 濡쒓렇�씤
 
         boolean result = chatService.exitRoom(roomId, loginUserId);
 
@@ -92,5 +94,44 @@ public class ChatController {
         response.put("success", result);
 
         return response;
+    }
+    
+    @GetMapping("/chat/schedulePoll")
+    public String schedulePoll(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
+        List<PollDTO> pollList = chatService.getPollList(roomId);
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("routineList", routineList);
+        model.addAttribute("pollList", pollList);
+
+        return "chat/schedulePoll";
+    }
+    
+    @GetMapping("/chat/poll/write")
+    public String pollWrite(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        model.addAttribute("roomId", roomId);
+
+        return "chat/pollWrite";
+    }
+
+    @PostMapping("/chat/poll/write")
+    public String pollWriteOk(
+            PollDTO dto,
+            @RequestParam("pollContents") List<String> pollContents) {
+
+        int loginUserId = 1; // 임시 로그인 사용자
+
+        dto.setSeqMember(loginUserId);
+
+        chatService.insertPoll(dto, pollContents);
+
+        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
     }
 }
