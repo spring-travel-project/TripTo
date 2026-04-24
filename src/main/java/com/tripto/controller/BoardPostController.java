@@ -22,14 +22,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
 import com.tripto.service.BoardPostService;
+import com.tripto.service.CommentService;
 
 @Controller
 public class BoardPostController {
 
     @Autowired
     private BoardPostService service;
+    
+    @Autowired
+    private CommentService commentService;
 
-    // 목록
+    // 紐⑸줉
     @GetMapping("/board/list.do")
     public String list(
         @RequestParam(required = false, defaultValue = "") String category,
@@ -37,7 +41,7 @@ public class BoardPostController {
         @RequestParam(required = false, defaultValue = "1") int page,
         Model model) {
     	
-    	System.out.println("=== list controller 실행 ===");
+    	System.out.println("=== list controller �떎�뻾 ===");
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -67,11 +71,11 @@ public class BoardPostController {
         return "board/list";
     }
 
-    // 글쓰기 화면
+    // 湲��벐湲� �솕硫�
     @GetMapping("/board/write.do")
     public String write(Model model, HttpSession session) {
 
-        // ❌ 로그인 체크 (임시 비활성화)
+        // �쓬 濡쒓렇�씤 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
         /*
         if (session.getAttribute("seqMember") == null) {
             return "redirect:/member/login.do";
@@ -82,14 +86,14 @@ public class BoardPostController {
         return "board/write";
     }
 
-    // 글쓰기 처리
+    // 湲��벐湲� 泥섎━
     @PostMapping("/board/write.do")
     public String writeOk(BoardPostDTO dto,
                           HttpServletRequest req,
                           HttpSession session,
                           RedirectAttributes rttr) {
 
-        // ❌ 로그인 체크 (임시 비활성화)
+        // �쓬 濡쒓렇�씤 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
@@ -100,23 +104,23 @@ public class BoardPostController {
         dto.setSeqMember(seqMember);
         */
 
-        // ✅ 임시 사용자 (테스트용)
+        // �쐟 �엫�떆 �궗�슜�옄 (�뀒�뒪�듃�슜)
         dto.setSeqMember(1);
         
         int result = service.add(dto, req);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "게시글이 등록되었습니다.");
+            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �벑濡앸릺�뿀�뒿�땲�떎.");
             return "redirect:/board/list.do";
         } else {
-            rttr.addFlashAttribute("message", "게시글 등록 실패");
+            rttr.addFlashAttribute("message", "寃뚯떆湲� �벑濡� �떎�뙣");
             return "redirect:/board/write.do";
         }
     }
 
-    // 상세보기
+    // �긽�꽭蹂닿린
     @GetMapping("/board/detail.do")
-    public String detail(@RequestParam int seqBoardPost,
+    public String detail(@RequestParam(value = "seqBoardPost") int seqBoardPost,
                          Model model,
                          HttpSession session) {
 
@@ -126,7 +130,7 @@ public class BoardPostController {
             return "redirect:/board/list.do";
         }
 
-        // ❌ 로그인 기반 작성자 체크 (임시 비활성화)
+        // �쓬 濡쒓렇�씤 湲곕컲 �옉�꽦�옄 泥댄겕 (�엫�떆 鍮꾪솢�꽦�솕)
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
         boolean isWriter = false;
@@ -136,28 +140,35 @@ public class BoardPostController {
         }
         */
 
-        // ✅ 테스트용: 작성자라고 가정
+        // �쐟 �뀒�뒪�듃�슜: �옉�꽦�옄�씪怨� 媛��젙
+        int currentSeqMember = 1;
+        boolean isAdmin = false;
         boolean isWriter = true;
 
         model.addAttribute("dto", dto);
         model.addAttribute("isWriter", isWriter);
 
+        // 댓글 관련
+        model.addAttribute("commentList", commentService.list(seqBoardPost));
+        model.addAttribute("currentSeqMember", 1);
+        model.addAttribute("isAdmin", false);
+
         return "board/detail";
     }
 
-    // 수정 화면
+    // �닔�젙 �솕硫�
     @GetMapping("/board/edit.do")
     public String edit(@RequestParam int seqBoardPost,
                        Model model,
                        HttpSession session,
                        RedirectAttributes rttr) {
 
-        // ❌ 로그인 + 권한 체크 비활성화
+        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
         if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            rttr.addFlashAttribute("message", "�닔�젙 沅뚰븳�씠 �뾾�뒿�땲�떎.");
             return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
         */
@@ -170,7 +181,7 @@ public class BoardPostController {
         return "board/edit";
     }
 
-    // 수정 처리
+    // �닔�젙 泥섎━
     @PostMapping("/board/edit.do")
     public String editOk(BoardPostDTO dto,
                          HttpServletRequest req,
@@ -178,12 +189,12 @@ public class BoardPostController {
                          RedirectAttributes rttr) {
 
 
-        // ❌ 로그인 + 권한 체크 비활성화
+        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
         if (seqMember == null || !service.isWriter(dto.getSeqBoardPost(), seqMember)) {
-            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            rttr.addFlashAttribute("message", "�닔�젙 沅뚰븳�씠 �뾾�뒿�땲�떎.");
             return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
         }
         */
@@ -193,26 +204,26 @@ public class BoardPostController {
     	int result = service.edit(dto, req);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "게시글이 수정되었습니다.");
+            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �닔�젙�릺�뿀�뒿�땲�떎.");
         } else {
-            rttr.addFlashAttribute("message", "게시글 수정 실패");
+            rttr.addFlashAttribute("message", "寃뚯떆湲� �닔�젙 �떎�뙣");
         }
 
         return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
     }
 
-    // 삭제
+    // �궘�젣
     @PostMapping("/board/delete.do")
     public String delete(@RequestParam int seqBoardPost,
                          HttpSession session,
                          RedirectAttributes rttr) {
 
-        // ❌ 로그인 + 권한 체크 비활성화
+        // �쓬 濡쒓렇�씤 + 沅뚰븳 泥댄겕 鍮꾪솢�꽦�솕
         /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
         if (seqMember == null || !service.isWriter(seqBoardPost, seqMember)) {
-            rttr.addFlashAttribute("message", "삭제 권한이 없습니다.");
+            rttr.addFlashAttribute("message", "�궘�젣 沅뚰븳�씠 �뾾�뒿�땲�떎.");
             return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
         */
@@ -220,10 +231,10 @@ public class BoardPostController {
         int result = service.delete(seqBoardPost);
 
         if (result == 1) {
-            rttr.addFlashAttribute("message", "게시글이 삭제되었습니다.");
+            rttr.addFlashAttribute("message", "寃뚯떆湲��씠 �궘�젣�릺�뿀�뒿�땲�떎.");
             return "redirect:/board/list.do";
         } else {
-            rttr.addFlashAttribute("message", "게시글 삭제 실패");
+            rttr.addFlashAttribute("message", "寃뚯떆湲� �궘�젣 �떎�뙣");
             return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
     }
@@ -236,7 +247,7 @@ public class BoardPostController {
         Map<String, String> result = new HashMap<>();
 
         try {
-            // ⭐ 핵심: 실제 배포 경로
+            // 狩� �빑�떖: �떎�젣 諛고룷 寃쎈줈
             String uploadPath = req.getServletContext().getRealPath("/resources/upload/board");
 
             File dir = new File(uploadPath);
