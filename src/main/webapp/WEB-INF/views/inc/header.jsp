@@ -51,19 +51,21 @@
                 <li><a href="/teamtwo/matching/list.do" class="h-full flex items-center ${uri.contains('/matching/') ? 'active' : ''}">매칭</a></li>
                 
                 
-                <li class="dropdown dropdown-hover h-full"> <div tabindex="0" role="button" class="h-full flex items-center px-4 cursor-pointer ${uri.contains('/board/') ? 'active' : ''}">
-				        커뮤니티
-				    </div>
+                <li class="dropdown dropdown-hover h-full">
+                	<a href="${cp}/board/list.do" 
+					   class="h-full flex items-center px-4 cursor-pointer ${uri.contains('/board/') ? 'active' : ''}">
+					    커뮤니티
+					</a>
 				    
 				    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 top-[25px] pt-4">
-				        <li><a href="/teamtwo/board/list.do?category=free" class="whitespace-nowrap">자유 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=review" class="whitespace-nowrap">정보 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">후기 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">추천 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">가이드 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">숙소 게시판</a></li>
-				        <li><a href="/teamtwo/board/list.do?category=qna" class="whitespace-nowrap">맛집 게시판</a></li>
-				    </ul>
+					    <li><a href="${cp}/board/list.do?category=정보" class="whitespace-nowrap">정보 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=후기" class="whitespace-nowrap">후기 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=추천" class="whitespace-nowrap">추천 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=가이드" class="whitespace-nowrap">가이드 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=숙소" class="whitespace-nowrap">숙소 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=맛집" class="whitespace-nowrap">맛집 게시판</a></li>
+					    <li><a href="${cp}/board/list.do?category=자유" class="whitespace-nowrap">자유 게시판</a></li>
+					</ul>
 				</li>
 
                 <li><a href="/teamtwo/chat/list.do" class="h-full flex items-center ${uri.contains('/chat/') ? 'active' : ''}">채팅</a></li>
