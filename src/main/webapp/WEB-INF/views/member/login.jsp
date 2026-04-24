@@ -9,7 +9,7 @@
 <body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
     <%@ include file="/WEB-INF/views/inc/header.jsp" %>
     
-    <main class="flex-grow flex items-center justify-center py-10 px-4">
+    <main class="flex-grow flex items-start justify-center pt-24 pb-10 px-4">
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 w-full max-w-md">
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-primary mb-2">TripTo</h1>
@@ -39,7 +39,13 @@
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             </form>
 
-            <div class="text-center text-sm text-slate-500 mt-4">
+            <div class="flex justify-center gap-4 text-sm text-slate-500 mt-2 mb-6">
+                <a href="${pageContext.request.contextPath}/member/findId.do" class="hover:text-primary font-medium hover:underline">아이디 찾기</a>
+                <span class="text-slate-300">|</span>
+                <a href="${pageContext.request.contextPath}/member/findPw.do" class="hover:text-primary font-medium hover:underline">비밀번호 찾기</a>
+            </div>
+
+            <div class="text-center text-sm text-slate-500 border-t border-slate-100 pt-6">
                 아직 회원이 아니신가요? <a href="${pageContext.request.contextPath}/member/join.do" class="text-primary font-bold hover:underline">회원가입</a>
             </div>
         </div>

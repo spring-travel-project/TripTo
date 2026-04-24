@@ -56,7 +56,7 @@
                         커뮤니티
                     </a>
                     
-                    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 top-[25px] pt-4">
+                    <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 -left-4 top-full mt-0">
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=자유" class="whitespace-nowrap">자유 게시판</a></li>
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=정보" class="whitespace-nowrap">정보 게시판</a></li>
                         <li><a href="${pageContext.request.contextPath}/board/list.do?category=후기" class="whitespace-nowrap">후기 게시판</a></li>
@@ -80,14 +80,15 @@
                     <li><a href="${pageContext.request.contextPath}/member/mypage.do" class="${uri.contains('/member/mypage') ? 'active' : ''}">마이페이지</a></li>
                     
                     <li>
-                        <form action="${pageContext.request.contextPath}/logout" method="POST" class="p-0 m-0 w-full h-full">
-                            <button type="submit" class="text-error w-full h-full text-left px-4 hover:bg-base-200 bg-transparent border-none cursor-pointer">로그아웃</button>
+                        <a href="#" onclick="document.getElementById('logoutForm').submit(); return false;" class="text-error">로그아웃</a>
+                        
+                        <form id="logoutForm" action="${pageContext.request.contextPath}/logout" method="POST" class="hidden">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                         </form>
                     </li>
                     
                     <sec:authorize access="hasRole('ROLE_ADMIN')">
-                        <li><a href="${pageContext.request.contextPath}/admin/main.do" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
+                        <li><a href="${pageContext.request.contextPath}/admin/main" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
                     </sec:authorize>
                 </sec:authorize>
             </ul>

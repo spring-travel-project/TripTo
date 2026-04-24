@@ -1,6 +1,8 @@
 package com.tripto.controller;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -160,6 +163,135 @@ public class MemberController {
 	@GetMapping("/login.do")
 	public String login() {
 		return "member/login";
+	}
+
+	// 7. 아이디 찾기 화면 보여주기
+	@GetMapping("/findId.do")
+	public String findId() {
+		return "member/findId";
+	}
+
+	// 8. 아이디 찾기 실제 액션 (AJAX)
+	@PostMapping("/findIdResult.do")
+	@ResponseBody
+	public String findIdResult(@RequestParam String name, @RequestParam String email) {
+
+		Map<String, String> map = new HashMap<>();
+		map.put("name", name);
+		map.put("email", email);
+
+		String foundId = memberService.findIdByNameAndEmail(map);
+
+		if (foundId != null) {
+			// 찾은 아이디를 이메일로 발송
+			mailService.sendIdEmail(email, foundId);
+			return "SUCCESS";
+		} else {
+			return "FAIL";
+		}
+	}
+
+	// 8-1. 아이디 찾기 전용 인증 이메일 발송 로직
+	@PostMapping("/sendAuthEmailForFindId.do")
+	@ResponseBody // AJAX 요청이므로 필요
+	public String sendAuthEmailForFindId(@RequestParam String name, @RequestParam String email, HttpSession session) {
+
+		// 1. DB에 해당 이름과 이메일을 가진 회원이 있는지 먼저 검사
+		Map<String, String> map = new HashMap<>();
+		map.put("name", name);
+		map.put("email", email);
+
+		String foundId = memberService.findIdByNameAndEmail(map);
+
+		// 2. 만약 일치하는 회원이 없다면 더 이상 진행 불가
+		if (foundId == null) {
+			return "NOT_FOUND";
+		}
+
+		// 3. 일치하는 회원이 있다면? -> 기존 이메일 발송 로직 실행
+		String authCode = mailService.sendAuthEmail(email);
+
+		if ("FAIL".equals(authCode)) {
+			return "FAIL";
+		}
+
+		session.setAttribute("authCode", authCode);
+		session.setAttribute("authCodeTime", System.currentTimeMillis());
+
+		return "SUCCESS";
+	}
+
+	// 9. 비밀번호 찾기 화면 보여주기
+	@GetMapping("/findPw.do")
+	public String findPw() {
+		return "member/findPw";
+	}
+
+	// 9-1. 비밀번호 찾기 전용 인증 이메일 발송 로직
+	@PostMapping("/sendAuthEmailForFindPw.do")
+	@ResponseBody
+	public String sendAuthEmailForFindPw(@RequestParam String id, @RequestParam String email, HttpSession session) {
+
+		// 1. DB에 해당 아이디와 이메일을 가진 회원이 있는지 검사
+		Map<String, String> map = new HashMap<>();
+		map.put("id", id);
+		map.put("email", email);
+
+		// 서비스 호출
+		int count = memberService.checkIdAndEmail(map);
+
+		// 2. 일치하는 정보가 없으면 더 이상 진행 불가
+		if (count == 0) {
+			return "NOT_FOUND";
+		}
+
+		// 3. 정보가 일치하면 기존 이메일 발송 로직 재활용
+		String authCode = mailService.sendAuthEmail(email);
+
+		if ("FAIL".equals(authCode)) {
+			return "FAIL";
+		}
+
+		session.setAttribute("authCode", authCode);
+		session.setAttribute("authCodeTime", System.currentTimeMillis());
+
+		return "SUCCESS";
+	}
+
+	// 10. 비밀번호 재설정 화면 띄우기 (findPw.jsp에서 인증 성공 후 넘어옴)
+	@PostMapping("/resetPw.do")
+	public String resetPw(@RequestParam("id") String id, Model model) {
+		// 누구의 비밀번호를 바꿀지 알아야 하므로 id를 모델에 담아서 jsp로 넘김 (targetId)
+		model.addAttribute("targetId", id);
+		return "member/resetPw";
+	}
+
+	// 11. 비밀번호 변경(DB 업데이트)
+	@PostMapping("/updatePw.do")
+	public String updatePw(@RequestParam("id") String id, @RequestParam("pw") String pw, HttpSession session) {
+
+		// [보안 체크] 세션에 '이메일 인증 완료' 티켓이 있는지 검사
+		Boolean isVerified = (Boolean) session.getAttribute("isEmailVerified");
+
+		if (isVerified == null || !isVerified) {
+			// 티켓이 없거나 false면 불법 접근이므로 쫓아냄
+			return "redirect:/member/login.do?error=unauthorized";
+		}
+
+		// 1. 사용자가 입력한 새 비밀번호를 시큐리티를 이용해 안전하게 암호화
+		String encodedPw = passwordEncoder.encode(pw);
+
+		// 2. 서비스로 넘겨서 DB 업데이트
+		Map<String, String> map = new HashMap<>();
+		map.put("id", id);
+		map.put("pw", encodedPw);
+
+		memberService.updatePw(map);
+
+		// 3. 비밀번호 변경이 완료되면 티켓을 회수(삭제)하고 로그인 페이지로 이동
+		session.removeAttribute("isEmailVerified");
+
+		return "redirect:/member/login.do";
 	}
 
 }

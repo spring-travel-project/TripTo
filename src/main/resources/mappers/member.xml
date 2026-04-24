@@ -34,5 +34,60 @@
             #{region}
         )
     </insert>
+    
+    <!-- 아이디 찾기에 사용될 쿼리 -->
+    <!-- 이름과 이메일이 일치하는 회원의 아이디를 가져옴 -->
+    <!-- 탈퇴한 회원(2)의 아이디는 가져오지 않음 -->
+    <select id="findIdByNameAndEmail" parameterType="map" resultType="String">
+        SELECT id 
+        FROM member 
+        WHERE name = #{name} AND email = #{email} AND status != 2
+    </select>
+    
+    <!-- 비밀번호 찾기에 사용될 쿼리 -->
+    <select id="checkIdAndEmail" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM member 
+        WHERE id = #{id} AND email = #{email} AND status != 2
+    </select>
+    
+    <!-- 비밀번호 재설정에 사용될 쿼리 -->
+    <update id="updatePw" parameterType="map">
+        UPDATE member 
+        SET pw = #{pw} 
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 마이페이지에 현재 로그인한 사용자의 정보를 출력하기 위한 쿼리 -->
+    <select id="getMemberById" parameterType="String" resultType="com.tripto.dto.MemberDTO">
+        SELECT 
+            seqMember, name, id, pw, pic, nickname, email, 
+            status, type, failCount, 
+            TO_CHAR(regDate, 'YYYY.MM.DD') AS regDate, 
+            gender, TO_CHAR(birth, 'YYYY-MM-DD') AS birth, 
+            region, intro
+        FROM member
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 현재 비밀번호 조회용 쿼리 -->
+    <select id="getCurrentPw" parameterType="String" resultType="String">
+        SELECT pw FROM member WHERE id = #{id}
+    </select>
+    
+    <!-- 계정 탈퇴 시 회원 정보 비식별화를 위한 쿼리 -->
+    <update id="deactivateMember" parameterType="String">
+        UPDATE member
+        SET status = 2,
+            pw = 'DELETED',
+            name = '탈퇴사용자',
+            nickname = '알수없음',
+            email = 'del_' || seqMember || '@tripto.com',
+            intro = '탈퇴한 사용자의 프로필입니다.',
+            birth = SYSDATE,
+            region = 'None',
+            pic = 'pic.png'
+        WHERE id = #{id}
+    </update>
 
 </mapper>
