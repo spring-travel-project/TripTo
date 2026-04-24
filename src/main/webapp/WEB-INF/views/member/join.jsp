@@ -114,7 +114,9 @@
                         <span class="label-text-alt text-slate-500">※ 10MB 이하의 이미지 파일만 업로드 가능합니다. (미첨부 시 기본 프로필 적용)</span>
                     </label>
                 </div>
-
+                
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                
                 <button type="submit" class="btn btn-primary w-full text-white text-lg">회원가입</button>
             </form>
         </div>
@@ -145,6 +147,8 @@
     // 1. 이메일 인증번호 전송 (또는 재발송)
     function sendAuthCode() {
         const email = $('#emailInput').val();
+        // 스프링 시큐리티의 CSRF 토큰 지참하기
+        const csrfToken = $("input[name='_csrf']").val();
         
         if(!email) {
         	showAlert("이메일을 입력해주세요!");
@@ -158,7 +162,8 @@
         $.ajax({
             type: "POST",
             url: "/member/sendAuthEmail.do",
-            data: { email: email },
+            // 데이터 보낼 때 스프링 시큐리티의 CSRF 토큰 지참하기
+            data: { email: email, _csrf: csrfToken },
             success: function(response) {
                 if(response === "SUCCESS") {
                 	showAlert("인증번호가 발송되었습니다. 10분 안에 입력해주세요.");
@@ -217,6 +222,7 @@
     // 2. 인증번호 확인 기능 (AJAX)
     function verifyAuthCode() {
         const inputCode = $('#authCodeInput').val();
+        const csrfToken = $("input[name='_csrf']").val();
         
         if(!inputCode) {
         	showAlert("인증번호를 입력해주세요!");
@@ -226,7 +232,7 @@
         $.ajax({
             type: "POST",
             url: "/member/verifyAuthCode.do",
-            data: { inputCode: inputCode },
+            data: { inputCode: inputCode, _csrf: csrfToken },
             success: function(response) {
                 if(response === "MATCH") {
                 	showAlert("이메일 인증이 완료되었습니다!");
@@ -257,6 +263,7 @@
     function checkId() { 
         const id = $('#userId').val();
         const $msg = $('#idCheckMsg');
+        const csrfToken = $("input[name='_csrf']").val();
         
         if(!id) {
         	showAlert("아이디를 입력해주세요.");
@@ -275,7 +282,7 @@
         $.ajax({
             type: "POST",
             url: "/member/checkId.do",
-            data: { id: id },
+            data: { id: id, _csrf: csrfToken },
             success: function(response) {
                 if(response === "AVAILABLE") {
                     // 글자색을 초록색(text-success)으로 바꾸고 메시지 출력

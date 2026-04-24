@@ -79,8 +79,9 @@
                     <li><a href="/member/mypage.do" class="${uri.contains('/member/mypage') ? 'active' : ''}">마이페이지</a></li>
                     
                     <li>
-                        <form action="/logout" method="POST" class="p-0 m-0 w-full h-full">
-                            <button type="submit" class="text-error w-full h-full text-left px-4 hover:bg-base-200 bg-transparent border-none cursor-pointer">로그아웃</button>
+                        <a href="#" onclick="document.getElementById('logoutForm').submit(); return false;" class="text-error">로그아웃</a>
+                        
+                        <form id="logoutForm" action="/logout" method="POST" class="hidden">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                         </form>
                     </li>
