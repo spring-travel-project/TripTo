@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="admin">
+
+    <select id="stats" resultType="map">
+        SELECT 
+            (SELECT COUNT(*) FROM member) as "totalMember",
+            (SELECT COUNT(*) FROM travel_post) as "totalTravel",
+            (SELECT COUNT(*) FROM board_post) as "totalBoard",
+            (SELECT COUNT(*) FROM report WHERE targetType = 'USER') as "reportMemberTotal",
+            (SELECT COUNT(*) FROM report WHERE targetType = 'POST') as "reportBoardTotal"
+        FROM dual
+    </select>
+
+</mapper>
