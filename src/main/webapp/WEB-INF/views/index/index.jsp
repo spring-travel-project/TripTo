@@ -19,9 +19,6 @@
             <div class="lg:col-span-4 flex flex-col justify-between">
                 
                 <div class="space-y-8">
-                    <div class="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-xs tracking-widest border border-blue-100">
-                        AI MATCHING SERVICE
-                    </div>
                     <h1 class="text-6xl font-black text-slate-900 leading-[1.1] tracking-tighter">
                         나와 딱 맞는<br>
                         <span class="text-[#1D63FF]">여행 동행</span><br>
@@ -45,9 +42,10 @@
                 <c:choose>
                     <c:when test="${not empty featuredPost}">
                         <div class="w-full h-full rounded-[3.5rem] overflow-hidden relative shadow-2xl group cursor-pointer"
-                             onclick="location.href='${pageContext.request.contextPath}/community/detail?seq=${featuredPost.seqPost}';">
+                             onclick="location.href='${pageContext.request.contextPath}/community/detail?seq=${featuredPost.seqBoardPost}';">
                             
-                            <img src="${pageContext.request.contextPath}/resources/upload/post/${featuredPost.pic}" 
+                            <img src="${pageContext.request.contextPath}/resources/upload/board/${mainImage}" 
+     onerror="this.src='https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2020&auto=format&fit=crop'" 
                                  onerror="this.src='https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2020&auto=format&fit=crop'"
                                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                             
