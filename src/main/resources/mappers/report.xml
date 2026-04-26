@@ -3,6 +3,32 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.tripto.dao.ReportDAO">
+<mapper namespace="report">
+
+    <insert id="add" parameterType="com.tripto.dto.ReportDTO">
+        INSERT INTO REPORT (
+            SEQREPORT,
+            SEQMEMBER,
+            TARGETTYPE,
+            SEQTARGET,
+            CREATEDATE
+        ) VALUES (
+            SEQREPORT.NEXTVAL,
+            #{seqMember},
+            #{targetType},
+            #{seqTarget},
+            SYSDATE
+        )
+    </insert>
+
+    <select id="checkDuplicate"
+            parameterType="com.tripto.dto.ReportDTO"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM REPORT
+        WHERE SEQMEMBER = #{seqMember}
+          AND TARGETTYPE = #{targetType}
+          AND SEQTARGET = #{seqTarget}
+    </select>
 
 </mapper>

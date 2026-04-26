@@ -39,7 +39,7 @@
                 <c:out value="${dto.content}" escapeXml="false" />
             </div>
 
-            <!-- 🔥 지도 (텍스트 제거, 지도만) -->
+            <!-- 🔥 지도 -->
             <div id="detailMapBox" style="display:none; margin-top:24px;">
                 <div id="detailMap" style="width:100%; height:360px; border-radius:14px;"></div>
             </div>
@@ -81,6 +81,49 @@
                         </div>
                     </c:forEach>
                 </div>
+                <!-- 하단 버튼 -->
+				<div class="travel-detail-actions">
+				    <div>
+				        <a href="${cp}/travel/list.do" class="btn-travel-outline btn-travel-sm">
+				            목록으로
+				        </a>
+				    </div>
+				
+				    <div class="travel-detail-action-right">
+				        <form method="post"
+				              action="${cp}/report/add.do"
+				              onsubmit="return confirm('이 동행 게시글을 신고하시겠습니까?');">
+				
+				            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+				            <input type="hidden" name="targetType" value="TRAVEL">
+				            <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
+				
+				            <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-report">
+				                신고
+				            </button>
+				        </form>
+				
+				        <c:if test="${isWriter}">
+				            <a href="${cp}/travel/edit.do?seqTravelPost=${dto.seqTravelPost}"
+				               class="btn-travel-outline btn-travel-sm">
+				                수정
+				            </a>
+				
+				            <form method="post"
+				                  action="${cp}/travel/delete.do"
+				                  class="travel-delete-form"
+				                  onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+				
+				                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+				                <input type="hidden" name="seqTravelPost" value="${dto.seqTravelPost}">
+				
+				                <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-danger">
+				                    삭제
+				                </button>
+				            </form>
+				        </c:if>
+				    </div>
+	            </div>
             </section>
 
         </article>

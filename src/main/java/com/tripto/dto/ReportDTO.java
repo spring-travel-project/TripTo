@@ -16,8 +16,5 @@ public class ReportDTO {
     // 신고 대상 번호
     private int seqTarget;
 
-    // 신고 사유
-    private String reason;
-
     private String createDate;
 }

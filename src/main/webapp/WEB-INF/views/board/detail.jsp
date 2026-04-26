@@ -152,10 +152,18 @@
                 </div>
 
                 <div class="board-detail-action-right">
-                    <a href="${cp}/report/popup.do?targetType=BOARD&targetSeq=${dto.seqBoardPost}"
-                       class="btn-board-outline btn-board-sm btn-board-report">
-                        신고
-                    </a>
+                    <form method="post"
+					      action="${cp}/report/add.do"
+					      onsubmit="return confirm('이 게시글을 신고하시겠습니까?');">
+					
+					    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+					    <input type="hidden" name="targetType" value="BOARD">
+					    <input type="hidden" name="seqTarget" value="${dto.seqBoardPost}">
+					
+					    <button type="submit" class="btn-board-outline btn-board-sm btn-board-report">
+					        신고
+					    </button>
+					</form>
 
                     <c:if test="${isWriter}">
                         <a href="${cp}/board/edit.do?seqBoardPost=${dto.seqBoardPost}"
