@@ -44,4 +44,6 @@ public class TravelPostDTO {
     private Double latitude;
     private Double longitude;
     private String mapProviderId;
+    
+    private String thumbnailUrl;
 }

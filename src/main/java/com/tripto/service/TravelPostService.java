@@ -17,18 +17,47 @@ import com.tripto.dto.LocationDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.dto.TravelPostFileDTO;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Service
 public class TravelPostService {
 
     @Autowired
     private TravelPostDAO dao;
 
+    @Autowired
+    private LocationDAO locationDAO;
+
     public int getTotalCount(TravelPostDTO dto) {
         return dao.getTotalCount(dto);
     }
 
     public List<TravelPostDTO> list(TravelPostDTO dto) {
-        return dao.list(dto);
+
+        List<TravelPostDTO> list = dao.list(dto);
+
+        for (TravelPostDTO post : list) {
+            post.setThumbnailUrl(extractFirstImageSrc(post.getContent()));
+        }
+
+        return list;
+    }
+
+    private String extractFirstImageSrc(String content) {
+
+        if (content == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(content);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
     private String getUploadPath(HttpServletRequest req) {
@@ -39,8 +68,10 @@ public class TravelPostService {
 
         int result = dao.add(dto);
 
+        // 위치 등록
         if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()
                 && dto.getLatitude() != null && dto.getLongitude() != null) {
+
             LocationDTO location = new LocationDTO();
 
             location.setSeqTravelPost(dto.getSeqTravelPost());
@@ -53,9 +84,17 @@ public class TravelPostService {
             locationDAO.add(location);
         }
 
+        // 파일 등록
+        if (dto.getFileList() != null && !dto.getFileList().isEmpty()) {
+
+            for (TravelPostFileDTO fileDto : dto.getFileList()) {
+                fileDto.setSeqTravelPost(dto.getSeqTravelPost());
+                dao.addFile(fileDto);
+            }
+        }
+
         return result;
     }
-
 
     public TravelPostDTO get(int seqTravelPost, boolean increaseViewCount) {
 
@@ -100,7 +139,7 @@ public class TravelPostService {
                     fileDto.setSeqTravelPost(dto.getSeqTravelPost());
                     fileDto.setOriginalName(savedName);
                     fileDto.setSavedName(savedName);
-                    fileDto.setFilePath(file.getAbsolutePath());
+                    fileDto.setFilePath("/resources/upload/travel");
                     fileDto.setFileType("image");
                     fileDto.setFileSize(file.length());
 
@@ -123,6 +162,10 @@ public class TravelPostService {
     public boolean isWriter(int seqTravelPost, int seqMember) {
         Integer writerSeq = dao.getWriterSeq(seqTravelPost);
         return writerSeq != null && writerSeq == seqMember;
+    }
+
+    public List<LocationDTO> locationListByTravelPost(int seqTravelPost) {
+        return dao.locationListByTravelPost(seqTravelPost);
     }
 
     private List<String> extractImageSrcList(String content) {
@@ -148,17 +191,11 @@ public class TravelPostService {
         }
 
         int index = src.lastIndexOf("/");
+
         if (index == -1 || index == src.length() - 1) {
             return null;
         }
 
         return src.substring(index + 1);
-    }
-    
-    @Autowired
-    private LocationDAO locationDAO;
-    
-    public List<LocationDTO> locationListByTravelPost(int seqTravelPost) {
-        return dao.locationListByTravelPost(seqTravelPost);
     }
 }

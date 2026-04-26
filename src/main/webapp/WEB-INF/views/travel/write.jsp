@@ -9,6 +9,9 @@
     <meta charset="UTF-8">
     <title>deverytime</title>
 
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+
     <%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 
     <link rel="stylesheet" href="${cp}/resources/css/travel.css">
@@ -25,7 +28,11 @@
 
         <h1 class="text-3xl font-bold mb-6">게시글 작성</h1>
 
-        <form method="post" action="${cp}/travel/write.do" class="travel-write-form">
+        <form method="post"
+		      action="${cp}/travel/write.do?${_csrf.parameterName}=${_csrf.token}"
+		      class="travel-write-form"
+		      enctype="multipart/form-data">
+
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="form-group">
@@ -53,11 +60,11 @@
                     선택된 장소가 없습니다.
                 </div>
 
-                <input type="hidden" id="placeName">
-                <input type="hidden" id="address">
-                <input type="hidden" id="latitude">
-                <input type="hidden" id="longitude">
-                <input type="hidden" id="mapProviderId">
+                <input type="hidden" id="placeName" name="placeName">
+                <input type="hidden" id="address" name="address">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="mapProviderId" name="mapProviderId">
             </div>
 
             <div class="form-group">
@@ -65,8 +72,6 @@
 
                 <div id="editor"></div>
                 <input type="hidden" name="content" id="content">
-
-                <div id="imagePreviewArea" class="image-preview-area"></div>
             </div>
 
             <div class="flex gap-3">
@@ -133,7 +138,8 @@
         });
     });
 
-    const csrfToken = '${_csrf.token}';
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
     const editor = new toastui.Editor({
         el: document.querySelector('#editor'),
@@ -144,12 +150,15 @@
         hooks: {
             addImageBlobHook: async (blob, callback) => {
                 const formData = new FormData();
-                formData.append('file', blob);
+                formData.append('attach', blob);
+
+                const csrfHeader = '${_csrf.headerName}';
+                const csrfToken = '${_csrf.token}';
 
                 const response = await fetch('${cp}/travel/imageUpload.do', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': csrfToken
+                        [csrfHeader]: csrfToken
                     },
                     body: formData
                 });
@@ -160,6 +169,7 @@
                 }
 
                 const result = await response.json();
+
                 callback(result.url, '이미지');
             }
         }
@@ -179,8 +189,8 @@
         if (placeName && latitude && longitude) {
             locationHtml =
                 '<div class="travel-location-data" ' +
-                'data-place-name="' + placeName.replace(/"/g, '&quot;') + '" ' +
-                'data-address="' + address.replace(/"/g, '&quot;') + '" ' +
+                'data-place-name="' + placeName + '" ' +
+                'data-address="' + address + '" ' +
                 'data-latitude="' + latitude + '" ' +
                 'data-longitude="' + longitude + '" ' +
                 'data-map-provider-id="' + mapProviderId + '" ' +

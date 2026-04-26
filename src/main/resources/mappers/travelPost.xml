@@ -189,37 +189,38 @@
     </select>
     
     <select id="getMapLocations"
-	        parameterType="int"
-	        resultType="com.tripto.dto.LocationDTO">
-	
-	    SELECT
-	        l.SEQLOCATION AS seqLocation,
-	        l.PLACENAME AS placeName,
-	        l.ADDRESS AS address,
-	        l.LATITUDE AS latitude,
-	        l.LONGITUDE AS longitude
-	    FROM ROUTINE r
-	        INNER JOIN LOCATION l
-	            ON r.SEQLOCATION = l.SEQLOCATION
-	    WHERE r.SEQTRAVELPOST = #{seqTravelPost}
-	    ORDER BY r.SEQROUTINE
-	
-	</select>
-	
-	<select id="locationListByTravelPost"
-	        parameterType="int"
-	        resultType="com.tripto.dto.LocationDTO">
-	    SELECT
-	        l.SEQLOCATION AS seqLocation,
-	        l.PLACENAME AS placeName,
-	        l.ADDRESS AS address,
-	        l.LATITUDE AS latitude,
-	        l.LONGITUDE AS longitude,
-	        l.MAPPROVIDERID AS mapProviderId
-	    FROM ROUTINE r
-	        INNER JOIN LOCATION l
-	            ON r.SEQLOCATION = l.SEQLOCATION
-	    WHERE r.SEQTRAVELPOST = #{seqTravelPost}
-	</select>
+            parameterType="int"
+            resultType="com.tripto.dto.LocationDTO">
+
+        SELECT
+            l.SEQLOCATION AS seqLocation,
+            l.PLACENAME AS placeName,
+            l.ADDRESS AS address,
+            l.LATITUDE AS latitude,
+            l.LONGITUDE AS longitude
+        FROM ROUTINE r
+            INNER JOIN LOCATION l
+                ON r.SEQLOCATION = l.SEQLOCATION
+        WHERE r.SEQTRAVELPOST = #{seqTravelPost}
+        ORDER BY r.SEQ ASC
+
+    </select>
+
+    <select id="locationListByTravelPost"
+            parameterType="int"
+            resultType="com.tripto.dto.LocationDTO">
+        SELECT
+            l.SEQLOCATION AS seqLocation,
+            l.PLACENAME AS placeName,
+            l.ADDRESS AS address,
+            l.LATITUDE AS latitude,
+            l.LONGITUDE AS longitude,
+            l.MAPPROVIDERID AS mapProviderId
+        FROM ROUTINE r
+            INNER JOIN LOCATION l
+                ON r.SEQLOCATION = l.SEQLOCATION
+        WHERE r.SEQTRAVELPOST = #{seqTravelPost}
+        ORDER BY r.SEQ ASC
+    </select>
 
 </mapper>

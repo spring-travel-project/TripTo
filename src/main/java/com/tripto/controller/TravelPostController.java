@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.tripto.dto.LocationDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.service.CommentService;
 import com.tripto.service.TravelPostService;
@@ -98,8 +97,8 @@ public class TravelPostController {
         dto.setSeqMember(seqMember);
         */
 
-        // 테스트용 사용자
-        dto.setSeqMember(1);
+    	// 테스트용 사용자
+    	dto.setSeqMember(1);
 
         int result = service.add(dto, req);
 
@@ -196,7 +195,7 @@ public class TravelPostController {
     // 이미지 업로드
     @PostMapping("/travel/imageUpload.do")
     @ResponseBody
-    public Map<String, String> imageUpload(@RequestParam("file") MultipartFile file,
+    public Map<String, String> imageUpload(@RequestParam("attach") MultipartFile file,
                                            HttpServletRequest req) {
 
         Map<String, String> result = new HashMap<>();

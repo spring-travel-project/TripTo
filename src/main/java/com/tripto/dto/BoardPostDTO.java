@@ -21,25 +21,27 @@ public class BoardPostDTO {
     private String createDate;
     private String updateDate;
 
-    // Á¶ÀÎ¿ë
+    // ï¿½ï¿½ï¿½Î¿ï¿½
     private String categoryName;
     private String writerName;
     private String writerNickname;
 
-    // Ã·ºÎÆÄÀÏ ´ëÇ¥°ª
+    // Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½
     private String originalName;
     private String savedName;
     private String fileType;
     private long fileSize;
 
-    // °Ë»ö/ÆäÀÌÂ¡
+    // ï¿½Ë»ï¿½/ï¿½ï¿½ï¿½ï¿½Â¡
     private String searchWord;
     private String category;
     private int begin;
     private int end;
     private int page;
 
-    // »ó¼¼ Ã·ºÎ¸ñ·Ï
+    // ï¿½ï¿½ Ã·ï¿½Î¸ï¿½ï¿½
     private List<BoardPostFileDTO> fileList;
     private String filePath;
+    
+    private String thumbnailUrl;
 }

@@ -58,8 +58,8 @@
 
                         <div class="travel-list-thumb">
                             <c:choose>
-                                <c:when test="${not empty dto.savedName}">
-								    <img src="${cp}/resources/upload/travel/${dto.savedName}" alt="대표 이미지">
+                                <c:when test="${not empty dto.thumbnailUrl}">
+								    <img src="${dto.thumbnailUrl}" alt="대표 이미지">
 								</c:when>
                                 <c:otherwise>
                                     <div class="travel-list-noimg">이미지 없음</div>
