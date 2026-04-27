@@ -8,6 +8,7 @@
             (SELECT COUNT(*) FROM travel_post) as "totalTravel",
             (SELECT COUNT(*) FROM board_post) as "totalBoard",
             (SELECT COUNT(*) FROM report WHERE targetType = 'USER') as "reportMemberTotal",
+            (SELECT COUNT(*) FROM report WHERE targetType = 'TRAVEL') as "reportTravelTotal",
             (SELECT COUNT(*) FROM report WHERE targetType = 'POST') as "reportBoardTotal"
         FROM dual
     </select>
