@@ -373,5 +373,29 @@
 	    WHERE r.seq = #{routineId}
 	</select>
 	
+	<select id="findMatchingRoom" parameterType="map" resultType="Integer">
+        SELECT seq FROM (
+            SELECT cr.seq
+            FROM chattingroom cr
+                INNER JOIN user_chat uc1 ON cr.seq = uc1.seqChattingroom AND uc1.seqMember = #{me}
+                INNER JOIN user_chat uc2 ON cr.seq = uc2.seqChattingroom AND uc2.seqMember = #{target}
+            WHERE cr.category = 1
+        ) WHERE ROWNUM = 1
+    </select>
+
+    <insert id="createChattingRoom" parameterType="com.tripto.dto.ChatRoomDTO">
+        <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+            SELECT seqChattingroom.NEXTVAL FROM dual
+        </selectKey>
+        
+        INSERT INTO chattingroom (seq, name, category, seqTravelPost)
+        VALUES (#{roomId}, NULL, #{category}, NULL)
+    </insert>
+
+    <insert id="insertUserChat" parameterType="map">
+        INSERT INTO user_chat (seqChattingroom, seqMember, auth, isActive)
+        VALUES (#{roomId}, #{userId}, 0, 1)
+    </insert>
+	
 	
 </mapper>

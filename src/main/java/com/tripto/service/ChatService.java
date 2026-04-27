@@ -217,5 +217,42 @@ public class ChatService {
         return chatDAO.getRoutineDetail(routineId);
     }
     
+ // 🌟 매칭 채팅방 생성 또는 가져오기 로직
+    public int createOrGetMatchingChatRoom(int me, int target) {
+        
+        Map<String, Integer> map = new HashMap<>();
+        map.put("me", me);
+        map.put("target", target);
+
+        // 1. 이미 나와 상대방이 함께 있는 '매칭(category=1)' 방이 있는지 검사
+        Integer existingRoomId = chatDAO.findMatchingRoom(map);
+
+        if (existingRoomId != null) {
+            return existingRoomId; // 방이 이미 있으면 기존 방 번호 리턴!
+        }
+
+        // 2. 방이 없다면 새로 생성 (chattingroom 테이블)
+        ChatRoomDTO newRoom = new ChatRoomDTO();
+        newRoom.setCategory(1); // 1 = 매칭 카테고리
+        
+        // DAO를 다녀오면 newRoom 객체 안에 새로 발급된 roomId(PK)가 채워집니다.
+        chatDAO.createChattingRoom(newRoom); 
+        
+        int newRoomId = newRoom.getRoomId();
+
+        // 3. 나를 이 채팅방에 참여시킴 (user_chat 테이블)
+        Map<String, Integer> userMap1 = new HashMap<>();
+        userMap1.put("roomId", newRoomId);
+        userMap1.put("userId", me);
+        chatDAO.insertUserChat(userMap1);
+
+        // 4. 상대방을 이 채팅방에 참여시킴 (user_chat 테이블)
+        Map<String, Integer> userMap2 = new HashMap<>();
+        userMap2.put("roomId", newRoomId);
+        userMap2.put("userId", target);
+        chatDAO.insertUserChat(userMap2);
+
+        return newRoomId; // 🌟 최종적으로 새로 만들어진 방 번호를 리턴
+    }
     
 }

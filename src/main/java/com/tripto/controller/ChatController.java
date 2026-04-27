@@ -274,4 +274,27 @@ public class ChatController {
         return loginUser.getSeqMember();
     }
     
+ // 🌟 매칭 프로필에서 1:1 채팅 시작하기
+    @GetMapping("/chat/start")
+    public String startChat(@RequestParam("targetSeq") int targetSeq) {
+
+        // 1. 내 로그인 번호 확인
+        Integer loginUserId = getLoginUserSeq();
+        
+        if (loginUserId == null) {
+            return "redirect:/member/login.do";
+        }
+
+        // 2. 나 자신에게 채팅을 거는 경우 튕겨내기 (방어 코드)
+        if (loginUserId == targetSeq) {
+            return "redirect:/matching/detail?seqMember=" + targetSeq;
+        }
+
+        // 3. 서비스 호출: 기존 방이 있으면 가져오고, 없으면 방 + 참여자 생성 후 방 번호 리턴
+        int roomId = chatService.createOrGetMatchingChatRoom(loginUserId, targetSeq);
+
+        // 4. 찾은(또는 생성된) 방으로 리다이렉트 이동! (카테고리 1 = 매칭)
+        return "redirect:/chat/list?roomId=" + roomId + "&category=1";
+    }
+    
 }
