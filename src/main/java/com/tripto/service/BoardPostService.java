@@ -16,6 +16,9 @@ import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
 import com.tripto.dto.BoardPostFileDTO;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Service
 public class BoardPostService {
 
@@ -31,7 +34,30 @@ public class BoardPostService {
     }
 
     public List<BoardPostDTO> list(BoardPostDTO dto) {
-        return dao.list(dto);
+
+        List<BoardPostDTO> list = dao.list(dto);
+
+        for (BoardPostDTO post : list) {
+            post.setThumbnailUrl(extractFirstImageSrc(post.getContent()));
+        }
+
+        return list;
+    }
+
+    private String extractFirstImageSrc(String content) {
+
+        if (content == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(content);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
     private String getUploadPath(HttpServletRequest req) {

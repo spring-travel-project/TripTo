@@ -6,121 +6,200 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<title>deverytime</title>
-	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
-	<link rel="stylesheet" href="${cp}/resources/css/board.css">
-	<link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
-	<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
-	<style>
-	    select[name="seqCategory"] {
-	        width: 220px !important;
-	        max-width: 100% !important;
-	        height: 44px !important;
-	        padding: 0 40px 0 12px !important;
-	        border: 1px solid #cbd5e1 !important;
-	        border-radius: 8px !important;
-	        background-color: #fff !important;
-	        color: #0f172a !important;
-	        box-shadow: none !important;
-	        outline: none !important;
-	
-	        appearance: none !important;
-	        -webkit-appearance: none !important;
-	        -moz-appearance: none !important;
-	
-	        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364758b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='4,6 8,10 12,6'/></svg>") !important;
-	        background-repeat: no-repeat !important;
-	        background-position: right 12px center !important;
-	        background-size: 14px !important;
-	    }
-	
-	    select[name="seqCategory"]:focus {
-	        border-color: #94a3b8 !important;
-	        box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12) !important;
-	        outline: none !important;
-	    }
-	</style>
+    <meta charset="UTF-8">
+    <title>deverytime</title>
+
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+
+    <%@ include file="/WEB-INF/views/inc/asset.jsp" %>
+
+    <link rel="stylesheet" href="${cp}/resources/css/travel.css">
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 </head>
 
 <body>
 
-	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
+<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
-	<div class="board-write-page">
-	
-		<div class="max-w-3xl mx-auto mt-10">
-		
-		    <h1 class="text-3xl font-bold mb-6">게시글 작성</h1>
-		
-		    <form method="post" action="${cp}/board/write.do" enctype="multipart/form-data">
-	
-			    <div class="form-group">
-				    <label class="form-label">카테고리</label>
-				    <select name="seqCategory" class="input input-bordered category-select">
-				        <c:forEach items="${categoryList}" var="c">
-				            <option value="${c.seqCategory}">
-				                ${c.categoryName}
-				            </option>
-				        </c:forEach>
-				    </select>
-				</div>
-				
-				<div class="form-group">
-				    <label class="form-label">제목</label>
-				    <input type="text" name="title" class="input input-bordered w-full">
-				</div>
-				
-				<!-- 내용 -->
-				<div class="form-group">
-				    <label class="form-label">내용</label>
-				
-				    <div id="editor"></div>
-					<input type="hidden" name="content" id="content">
-				
-				    <!-- 내용 아래 이미지 미리보기 영역 -->
-				    <div id="imagePreviewArea" class="image-preview-area"></div>
-				</div>
-							
-			    <div class="flex gap-3">
-			        <button type="submit" class="btn-board-outline">등록</button>
-			        <a href="${cp}/board/list.do" class="btn-board-outline btn-board-outline-light">취소</a>
-			    </div>
-			
-			</form>
-		
-		</div>
-	</div>
+<div class="travel-write-page">
+    <div class="max-w-3xl mx-auto mt-10">
 
-	<script>
-	    const editor = new toastui.Editor({
-	        el: document.querySelector('#editor'),
-	        height: '400px',
-	        initialEditType: 'wysiwyg',
-	        previewStyle: 'vertical',
-	        hooks: {
-	            addImageBlobHook: async (blob, callback) => {
-	                const formData = new FormData();
-	                formData.append('file', blob);
-	
-	                const response = await fetch('${cp}/board/imageUpload.do', {
-	                    method: 'POST',
-	                    body: formData
-	                });
-	
-	                const result = await response.json();
-	
-	                // 서버에서 반환한 이미지 URL을 본문에 삽입
-	                callback(result.url, '이미지');
-	            }
-	        }
-	    });
-	
-	    // 등록 버튼 클릭 시 HTML 내용 넣기
-	    document.querySelector('form').addEventListener('submit', function () {
-	        document.getElementById('content').value = editor.getHTML();
-	    });
-	</script>
+        <h1 class="text-3xl font-bold mb-6">게시글 작성</h1>
+
+        <form method="post"
+		      action="${cp}/travel/write.do?${_csrf.parameterName}=${_csrf.token}"
+		      class="travel-write-form"
+		      enctype="multipart/form-data">
+
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+
+            <div class="form-group">
+                <label class="form-label">제목</label>
+                <input type="text" name="title" class="input input-bordered w-full" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">만남 장소</label>
+
+                <div class="travel-map-search">
+                    <input type="text"
+                           id="placeKeyword"
+                           class="input input-bordered w-full"
+                           placeholder="장소명을 검색하세요. 예: 강남역">
+
+                    <button type="button" id="btnSearchPlace" class="btn-travel-outline">
+                        검색
+                    </button>
+                </div>
+
+                <div id="map" style="width:100%; height:360px; margin-top:12px; border-radius:14px;"></div>
+
+                <div id="selectedPlaceBox" style="margin-top:10px;">
+                    선택된 장소가 없습니다.
+                </div>
+
+                <input type="hidden" id="placeName" name="placeName">
+                <input type="hidden" id="address" name="address">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="mapProviderId" name="mapProviderId">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">내용</label>
+
+                <div id="editor"></div>
+                <input type="hidden" name="content" id="content">
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="btn-travel-outline">등록</button>
+                <a href="${cp}/travel/list.do" class="btn-travel-outline btn-travel-outline-light">취소</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cf168dc299fb311b33c67ac55e3af698&libraries=services"></script>
+
+<script>
+    const mapContainer = document.getElementById('map');
+
+    const map = new kakao.maps.Map(mapContainer, {
+        center: new kakao.maps.LatLng(37.5665, 126.9780),
+        level: 5
+    });
+
+    const places = new kakao.maps.services.Places();
+    let marker = null;
+
+    document.getElementById('btnSearchPlace').addEventListener('click', function () {
+        const keyword = document.getElementById('placeKeyword').value.trim();
+
+        if (keyword === '') {
+            alert('장소명을 입력하세요.');
+            return;
+        }
+
+        places.keywordSearch(keyword, function (data, status) {
+            if (status !== kakao.maps.services.Status.OK || data.length === 0) {
+                alert('검색 결과가 없습니다.');
+                return;
+            }
+
+            const place = data[0];
+            const lat = place.y;
+            const lng = place.x;
+            const position = new kakao.maps.LatLng(lat, lng);
+
+            map.setCenter(position);
+            map.setLevel(3);
+
+            if (marker) {
+                marker.setMap(null);
+            }
+
+            marker = new kakao.maps.Marker({
+                map: map,
+                position: position
+            });
+
+            document.getElementById('placeName').value = place.place_name;
+            document.getElementById('address').value = place.road_address_name || place.address_name;
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            document.getElementById('mapProviderId').value = place.id;
+
+            document.getElementById('selectedPlaceBox').innerText =
+                '선택된 장소: ' + place.place_name + ' / ' + (place.road_address_name || place.address_name);
+        });
+    });
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    const editor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        height: '700px',
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        initialValue: '',
+        hooks: {
+            addImageBlobHook: async (blob, callback) => {
+                const formData = new FormData();
+                formData.append('attach', blob);
+
+                const csrfHeader = '${_csrf.headerName}';
+                const csrfToken = '${_csrf.token}';
+
+                const response = await fetch('${cp}/travel/imageUpload.do', {
+                    method: 'POST',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    alert('이미지 업로드 실패');
+                    return;
+                }
+
+                const result = await response.json();
+
+                callback(result.url, '이미지');
+            }
+        }
+    });
+
+    document.querySelector('.travel-write-form').addEventListener('submit', function () {
+        const html = editor.getHTML();
+
+        const placeName = document.getElementById('placeName').value;
+        const address = document.getElementById('address').value;
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+        const mapProviderId = document.getElementById('mapProviderId').value;
+
+        let locationHtml = '';
+
+        if (placeName && latitude && longitude) {
+            locationHtml =
+                '<div class="travel-location-data" ' +
+                'data-place-name="' + placeName + '" ' +
+                'data-address="' + address + '" ' +
+                'data-latitude="' + latitude + '" ' +
+                'data-longitude="' + longitude + '" ' +
+                'data-map-provider-id="' + mapProviderId + '" ' +
+                'style="display:none;"></div>';
+        }
+
+        document.getElementById('content').value = html + locationHtml;
+    });
+</script>
 
 </body>
 </html>

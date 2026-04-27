@@ -3,6 +3,224 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.tripto.dao.TravelPostDAO">
+<mapper namespace="travelPost">
+
+    <!-- 게시글 개수 -->
+    <select id="getTotalCount" parameterType="com.tripto.dto.TravelPostDTO" resultType="int">
+        SELECT COUNT(*)
+        FROM TRAVEL_POST bp
+            INNER JOIN MEMBER m
+                ON bp.SEQMEMBER = m.SEQMEMBER
+        WHERE bp.STATUS = 'NORMAL'
+
+        <!-- 검색 -->
+        <if test="searchWord != null and searchWord.trim() != ''">
+            AND (
+                bp.TITLE LIKE '%' || #{searchWord} || '%'
+                OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
+            )
+        </if>
+    </select>
+
+    <!-- 게시글 목록 -->
+    <select id="list" parameterType="com.tripto.dto.TravelPostDTO" resultType="com.tripto.dto.TravelPostDTO">
+        SELECT *
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY bp.SEQTRAVELPOST DESC) AS rnum,
+                bp.SEQTRAVELPOST AS seqTravelPost,
+                bp.SEQMEMBER AS seqMember,
+                bp.TITLE AS title,
+                bp.CONTENT AS content,
+                bp.VIEWCOUNT AS viewCount,
+                bp.STATUS AS status,
+                TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD') AS createDate,
+                TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD') AS updateDate,
+                m.NAME AS writerName,
+                f.SAVEDNAME AS savedName
+            FROM TRAVEL_POST bp
+                INNER JOIN MEMBER m
+                    ON bp.SEQMEMBER = m.SEQMEMBER
+                LEFT JOIN (
+                    SELECT
+                        SEQTRAVELPOST,
+                        SAVEDNAME,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY SEQTRAVELPOST
+                            ORDER BY SEQTRAVELPOSTFILE ASC
+                        ) AS file_rnum
+                    FROM TRAVEL_POST_FILE
+                ) f
+                    ON bp.SEQTRAVELPOST = f.SEQTRAVELPOST
+                   AND f.file_rnum = 1
+            WHERE bp.STATUS = 'NORMAL'
+
+            <!-- 검색 -->
+            <if test="searchWord != null and searchWord.trim() != ''">
+                AND (
+                    bp.TITLE LIKE '%' || #{searchWord} || '%'
+                    OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
+                )
+            </if>
+        )
+        WHERE rnum BETWEEN #{begin} AND #{end}
+    </select>
+
+    <!-- 게시글 등록 -->
+    <insert id="add" parameterType="com.tripto.dto.TravelPostDTO">
+
+        <selectKey keyProperty="seqTravelPost" resultType="int" order="BEFORE">
+            SELECT SEQTRAVELPOST.NEXTVAL FROM DUAL
+        </selectKey>
+
+        INSERT INTO TRAVEL_POST (
+	        SEQTRAVELPOST,
+	        SEQMEMBER,
+	        TITLE,
+	        CONTENT,
+	        VIEWCOUNT,
+	        STATUS,
+	        CREATEDATE
+	    ) VALUES (
+	        #{seqTravelPost},
+	        #{seqMember},
+	        #{title},
+	        #{content},
+	        0,
+	        'NORMAL',
+	        SYSDATE
+	    )
+
+    </insert>
+
+    <!-- 파일 등록 -->
+    <insert id="addFile" parameterType="com.tripto.dto.TravelPostFileDTO">
+        INSERT INTO TRAVEL_POST_FILE (
+            SEQTRAVELPOSTFILE,
+            SEQTRAVELPOST,
+            ORIGINALNAME,
+            SAVEDNAME,
+            FILEPATH,
+            FILESIZE,
+            FILETYPE,
+            CREATEDATE
+        ) VALUES (
+            SEQTRAVELPOSTFILE.NEXTVAL,
+            #{seqTravelPost},
+            #{originalName},
+            #{savedName},
+            #{filePath},
+            #{fileSize},
+            #{fileType},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 게시글 상세 -->
+    <select id="get" parameterType="int" resultType="com.tripto.dto.TravelPostDTO">
+	    SELECT
+	        tp.SEQTRAVELPOST AS seqTravelPost,
+	        tp.SEQMEMBER AS seqMember,
+	        tp.TITLE AS title,
+	        tp.CONTENT AS content,
+	        tp.VIEWCOUNT AS viewCount,
+	        tp.STATUS AS status,
+	        TO_CHAR(tp.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+	        TO_CHAR(tp.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+	        m.NAME AS writerName
+	    FROM TRAVEL_POST tp
+	        INNER JOIN MEMBER m
+	            ON tp.SEQMEMBER = m.SEQMEMBER
+	    WHERE tp.SEQTRAVELPOST = #{seqTravelPost}
+	      AND tp.STATUS = 'NORMAL'
+	</select>
+
+    <!-- 파일 목록 -->
+    <select id="fileList" parameterType="int" resultType="com.tripto.dto.TravelPostFileDTO">
+        SELECT
+            SEQTRAVELPOSTFILE AS seqTravelPostFile,
+            SEQTRAVELPOST AS seqTravelPost,
+            ORIGINALNAME AS originalName,
+            SAVEDNAME AS savedName,
+            FILESIZE AS fileSize,
+            FILETYPE AS fileType,
+            TO_CHAR(CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate
+        FROM TRAVEL_POST_FILE
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+        ORDER BY SEQTRAVELPOSTFILE ASC
+    </select>
+
+    <!-- 조회수 증가 -->
+    <update id="increaseViewCount" parameterType="int">
+        UPDATE TRAVEL_POST
+        SET VIEWCOUNT = VIEWCOUNT + 1
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+    </update>
+
+    <!-- 수정 -->
+    <update id="edit" parameterType="com.tripto.dto.TravelPostDTO">
+        UPDATE TRAVEL_POST
+        SET
+            TITLE = #{title},
+            CONTENT = #{content},
+            UPDATEDATE = SYSDATE
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+    </update>
+
+    <!-- 파일 삭제 -->
+    <delete id="deleteFiles" parameterType="int">
+        DELETE FROM TRAVEL_POST_FILE
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+    </delete>
+
+    <!-- 게시글 삭제 -->
+    <update id="deletePost" parameterType="int">
+        UPDATE TRAVEL_POST
+        SET STATUS = 'DELETED',
+            UPDATEDATE = SYSDATE
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+    </update>
+
+    <!-- 작성자 체크 -->
+    <select id="getWriterSeq" parameterType="int" resultType="int">
+        SELECT SEQMEMBER
+        FROM TRAVEL_POST
+        WHERE SEQTRAVELPOST = #{seqTravelPost}
+    </select>
+    
+    <select id="getMapLocations"
+            parameterType="int"
+            resultType="com.tripto.dto.LocationDTO">
+
+        SELECT
+            l.SEQLOCATION AS seqLocation,
+            l.PLACENAME AS placeName,
+            l.ADDRESS AS address,
+            l.LATITUDE AS latitude,
+            l.LONGITUDE AS longitude
+        FROM ROUTINE r
+            INNER JOIN LOCATION l
+                ON r.SEQLOCATION = l.SEQLOCATION
+        WHERE r.SEQTRAVELPOST = #{seqTravelPost}
+        ORDER BY r.SEQ ASC
+
+    </select>
+
+    <select id="locationListByTravelPost"
+            parameterType="int"
+            resultType="com.tripto.dto.LocationDTO">
+        SELECT
+            l.SEQLOCATION AS seqLocation,
+            l.PLACENAME AS placeName,
+            l.ADDRESS AS address,
+            l.LATITUDE AS latitude,
+            l.LONGITUDE AS longitude,
+            l.MAPPROVIDERID AS mapProviderId
+        FROM ROUTINE r
+            INNER JOIN LOCATION l
+                ON r.SEQLOCATION = l.SEQLOCATION
+        WHERE r.SEQTRAVELPOST = #{seqTravelPost}
+        ORDER BY r.SEQ ASC
+    </select>
 
 </mapper>

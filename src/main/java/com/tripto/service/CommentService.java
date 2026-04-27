@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.tripto.dao.CommentDAO;
 import com.tripto.dto.BoardCommentDTO;
+import com.tripto.dto.TravelCommentDTO;
 
 @Service
 public class CommentService {
@@ -48,5 +49,41 @@ public class CommentService {
         }
 
         return dao.delete(seqBoardComment);
+    }
+    
+    public List<TravelCommentDTO> travelList(int seqTravelPost) {
+        return dao.travelList(seqTravelPost);
+    }
+
+    public int travelAdd(TravelCommentDTO dto) {
+        return dao.travelAdd(dto);
+    }
+
+    public int travelEdit(TravelCommentDTO dto, int currentSeqMember) {
+        Integer writerSeq = dao.getTravelWriterSeq(dto.getSeqTravelComment());
+
+        if (writerSeq == null) {
+            return 0;
+        }
+
+        if (writerSeq != currentSeqMember) {
+            return 0;
+        }
+
+        return dao.travelEdit(dto);
+    }
+
+    public int travelDelete(int seqTravelComment, int currentSeqMember, boolean isAdmin) {
+        Integer writerSeq = dao.getTravelWriterSeq(seqTravelComment);
+
+        if (writerSeq == null) {
+            return 0;
+        }
+
+        if (!isAdmin && writerSeq != currentSeqMember) {
+            return 0;
+        }
+
+        return dao.travelDelete(seqTravelComment);
     }
 }
