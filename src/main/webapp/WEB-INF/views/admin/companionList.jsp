@@ -26,18 +26,19 @@
         <section class="flex-1 bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
             <h2 class="text-3xl font-black mb-8 text-slate-900">🤝 동행 관리</h2>
 
-            <form action="${pageContext.request.contextPath}/admin/companionList" method="GET" class="flex items-center gap-3 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <select name="searchType" class="select select-bordered w-32 font-bold bg-white">
+            <form action="${pageContext.request.contextPath}/admin/companionList" method="GET" class="flex items-center gap-3 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <select name="searchType" class="select select-bordered w-32 font-bold bg-white text-sm">
                     <option value="title" ${searchType == 'title' ? 'selected' : ''}>제목</option>
-                    <option value="writer" ${searchType == 'writer' ? 'selected' : ''}>작성자</option> </select>
+                    <option value="writer" ${searchType == 'writer' ? 'selected' : ''}>작성자</option>
+                </select>
                 
                 <div class="relative flex-grow">
-                    <input type="text" name="searchKeyword" value="${searchKeyword}" placeholder="검색어를 입력하세요" class="input input-bordered w-full font-medium bg-white" />
+                    <input type="text" name="searchKeyword" value="${searchKeyword}" placeholder="검색어를 입력하세요" class="input input-bordered w-full pl-4 font-medium bg-white" />
                 </div>
 
-                <div class="form-control bg-white px-4 py-2 rounded-xl border border-slate-200 whitespace-nowrap">
+                <div class="form-control mr-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
                     <label class="label cursor-pointer gap-3 p-0">
-                        <span class="label-text font-bold text-slate-600">삭제글 포함</span> 
+                        <span class="label-text font-bold text-slate-600 whitespace-nowrap">삭제글 포함</span> 
                         <input type="checkbox" name="showDeleted" value="Y" ${showDeleted == 'Y' ? 'checked' : ''} 
                                class="checkbox checkbox-primary checkbox-sm" onchange="this.form.submit()" />
                     </label>
@@ -64,62 +65,70 @@
                         <c:forEach var="item" items="${list}">
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td>${item.SEQTRAVELPOST}</td>
-                                
                                 <td class="text-left font-bold text-slate-800 truncate">
-                                    <a href="${pageContext.request.contextPath}/travel/detail?seqTravelPost=${item.SEQTRAVELPOST}" 
+                                    <a href="${pageContext.request.contextPath}/travel/detail.do?seqTravelPost=${item.SEQTRAVELPOST}" 
                                        target="_blank" class="hover:text-blue-600 hover:underline">
                                        ${item.TITLE}
                                     </a>
                                 </td>
-                                
                                 <td class="truncate">${item.WRITERNAME}</td>
-                                <td class="text-xs">${item.CREATEDATE}</td>
+                                <td class="text-xs text-slate-400">${item.CREATEDATE}</td>
                                 <td>${item.VIEWCOUNT}</td>
-                                
                                 <td>
                                     <span class="badge ${item.REPORTCOUNT > 0 ? 'badge-error text-white' : 'badge-ghost'} font-bold">
                                         ${item.REPORTCOUNT}
                                     </span>
                                 </td>
-                                
                                 <td class="whitespace-nowrap">
                                     <c:choose>
                                         <c:when test="${item.STATUS == 'DELETED'}">
-                                            <span class="badge badge-error badge-sm text-[10px] text-white font-bold">삭제됨</span>
+                                            <span class="badge badge-error badge-sm text-[10px] text-white font-bold py-2">삭제됨</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="badge badge-ghost badge-sm text-[10px] font-bold text-slate-400">정상</span>
+                                            <span class="badge badge-ghost badge-sm text-[10px] font-bold text-slate-400 py-2">정상</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                
                                 <td>
                                     <c:if test="${item.STATUS == 'NORMAL'}">
-                                        <button type="button" onclick="deleteCompanion('${item.SEQTRAVELPOST}', '${item.TITLE}')" 
-                                                class="btn btn-error btn-xs text-white font-bold">삭제</button>
+                                        <button type="button" 
+                                                onclick="deleteCompanion('${item.SEQTRAVELPOST}', '${item.TITLE}')" 
+                                                class="btn btn-error btn-xs text-white font-bold px-3 shadow-sm border-none">
+                                            삭제
+                                        </button>
                                     </c:if>
-                                    <c:if test="${item.STATUS == 'DELETED'}">-</c:if>
+                                    <c:if test="${item.STATUS == 'DELETED'}">
+                                        <span class="text-slate-300">-</span>
+                                    </c:if>
                                 </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty list}">
-                            <tr><td colspan="8" class="py-24 text-slate-400 font-bold text-center">동행 게시글이 없습니다.</td></tr>
+                            <tr><td colspan="8" class="py-24 text-slate-400 font-bold text-center">데이터가 없습니다.</td></tr>
                         </c:if>
                     </tbody>
                 </table>
             </div>
 
             <div class="flex justify-center mt-10">
-                <div class="join border border-slate-200">
+                <div class="join border border-slate-200 shadow-sm">
                     <c:if test="${currentPage > 1}">
-                        <a href="${pageContext.request.contextPath}/admin/companionList?page=${currentPage - 1}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" class="join-item btn btn-sm bg-white border-none">«</a>
+                        <a href="${pageContext.request.contextPath}/admin/companionList?page=${currentPage - 1}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" 
+                           class="join-item btn btn-sm bg-white text-slate-600 border-none">«</a>
                     </c:if>
-                    <c:forEach var="i" begin="1" end="${totalPage}">
-                        <a href="${pageContext.request.contextPath}/admin/companionList?page=${i}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" 
-                           class="join-item btn btn-sm ${currentPage == i ? 'btn-primary text-white' : 'bg-white text-slate-600'} border-none">${i}</a>
-                    </c:forEach>
+            
+                    <c:if test="${totalPage > 0}">
+                        <c:forEach var="i" begin="1" end="${totalPage}">
+                            <a href="${pageContext.request.contextPath}/admin/companionList?page=${i}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" 
+                               class="join-item btn btn-sm ${currentPage == i ? 'btn-primary text-white' : 'bg-white text-slate-600'} border-none">
+                               ${i}
+                            </a>
+                        </c:forEach>
+                    </c:if>
+            
                     <c:if test="${currentPage < totalPage}">
-                        <a href="${pageContext.request.contextPath}/admin/companionList?page=${currentPage + 1}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" class="join-item btn btn-sm bg-white border-none">»</a>
+                        <a href="${pageContext.request.contextPath}/admin/companionList?page=${currentPage + 1}&searchType=${searchType}&searchKeyword=${searchKeyword}&showDeleted=${showDeleted}" 
+                           class="join-item btn btn-sm bg-white text-slate-600 border-none">»</a>
                     </c:if>
                 </div>
             </div>
@@ -127,15 +136,32 @@
     </main>
 
     <script>
+        /**
+         * 동행 게시글 삭제 처리 (비동기 처리 후 페이징 갱신을 위해 새로고침)
+         */
         function deleteCompanion(seq, title) {
-            // 방어 코드: 번호가 제대로 넘어왔는지 확인
-            if (!seq || seq === 'undefined' || seq === '') {
-                alert("게시글 번호를 불러오지 못했습니다.");
+            if (!seq || seq === '') {
+                alert("게시글 번호를 확인할 수 없습니다.");
                 return;
             }
-            
-            if (confirm("[" + title + "]\n동행 게시글을 삭제 처리하시겠습니까?")) {
-                location.href = "${pageContext.request.contextPath}/admin/companionDelete?seqTravelPost=" + seq; // 🌟 파라미터 이름 수정
+
+            if (confirm("[" + title + "]\n이 게시글을 정말로 삭제 처리하시겠습니까?")) {
+                
+                fetch("${pageContext.request.contextPath}/admin/companionDelete?seqTravelPost=" + seq)
+                .then(response => response.text())
+                .then(data => {
+                    if (data === 'success') {
+                        // 🌟 옆으로 미는 애니메이션 대신 바로 새로고침을 실행합니다.
+                        // location.href = location.href 를 사용하면 현재 검색 파라미터가 그대로 유지된 채 새로고침됩니다.
+                        location.href = location.href;
+                    } else {
+                        alert("삭제 처리에 실패했습니다. 다시 시도해주세요.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("서버와 통신 중 오류가 발생했습니다.");
+                });
             }
         }
     </script>

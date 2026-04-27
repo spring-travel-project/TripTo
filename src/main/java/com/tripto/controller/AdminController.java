@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.tripto.dto.MemberDTO;
 import com.tripto.service.AdminService;
@@ -162,9 +163,19 @@ public class AdminController {
         return "admin/companionList";
     }
 
+    //  1. @ResponseBody 꼭 추가 (화면 이동 없이 데이터만 받기 위해)
     @GetMapping("/companionDelete")
-    public String companionDelete(@RequestParam String seqCompanionPost) {
-        adminService.deleteCompanion(seqCompanionPost);
-        return "redirect:/admin/companionList";
+    @ResponseBody 
+    public String companionDelete(@RequestParam String seqTravelPost) { // 🌟 2. 받는 이름을 seqTravelPost로 변경!
+        
+        // 서비스로 번호 넘겨서 삭제(업데이트) 처리
+        int result = adminService.deleteCompanion(seqTravelPost); 
+        
+        // 처리 결과에 따라 자바스크립트로 문자열 반환
+        if (result > 0) {
+            return "success";
+        } else {
+            return "fail";
+        }
     }
 }

@@ -65,7 +65,7 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td>${item.SEQBOARDPOST}</td>
                                 <td class="text-left font-bold text-slate-800 truncate">
-                                    <a href="${pageContext.request.contextPath}/board/detail?seqBoardPost=${item.SEQBOARDPOST}" 
+                                    <a href="${pageContext.request.contextPath}/board/detail.do?seqBoardPost=${item.SEQBOARDPOST}" 
                                        target="_blank" class="hover:text-blue-600 hover:underline">
                                        ${item.TITLE}
                                     </a>
