@@ -205,9 +205,12 @@ public class ChatService {
         int seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
 
         dto.setSeqTravelPost(seqTravelPost);
-        dto.setSeqLocation(1); // 임시 장소값
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
+
+        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
+            chatDAO.insertLocation(dto);
+        }
 
         return chatDAO.insertRoutine(dto) == 1;
     }
@@ -293,7 +296,15 @@ public class ChatService {
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
 
+        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
+            chatDAO.insertLocation(dto);
+        } else {
+            dto.setSeqLocation(origin.getSeqLocation());
+        }
+
         return chatDAO.updateRoutine(dto) == 1;
     }
+    
+    
     
 }

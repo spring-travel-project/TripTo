@@ -166,10 +166,17 @@
 	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
 	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
 	            ELSE '종료'
-	        END AS dDayText
+	        END AS dDayText,
+	        l.placeName,
+	        l.address,
+	        l.latitude,
+	        l.longitude,
+	        l.mapProviderId
 	    FROM routine r
 	        INNER JOIN member m
 	            ON r.seqMember = m.seqMember
+	        LEFT JOIN location l
+	            ON r.seqLocation = l.seqLocation
 	    WHERE r.seqChattingroom = #{roomId}
 	    ORDER BY r.dDay ASC NULLS LAST, r.regdate DESC
 	</select>
@@ -374,10 +381,19 @@
 	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
 	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
 	            ELSE '종료'
-	        END AS dDayText
+	        END AS dDayText,
+	
+	        l.placeName,
+	        l.address,
+	        l.latitude,
+	        l.longitude,
+	        l.mapProviderId
+	
 	    FROM routine r
 	        INNER JOIN member m
 	            ON r.seqMember = m.seqMember
+	        LEFT JOIN location l
+	            ON r.seqLocation = l.seqLocation
 	    WHERE r.seq = #{routineId}
 	</select>
 	
@@ -410,13 +426,35 @@
 	    WHERE seq = #{routineId}
 	</delete>
 	
+	<insert id="insertLocation" parameterType="com.tripto.dto.RoutineDTO">
+	    <selectKey keyProperty="seqLocation" resultType="int" order="BEFORE">
+	        SELECT seqLocation.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO location (
+	        seqLocation,
+	        placeName,
+	        address,
+	        latitude,
+	        longitude,
+	        mapProviderId
+	    ) VALUES (
+	        #{seqLocation},
+	        #{placeName},
+	        #{address},
+	        #{latitude},
+	        #{longitude},
+	        #{mapProviderId}
+	    )
+	</insert>
+	
 	<update id="updateRoutine" parameterType="com.tripto.dto.RoutineDTO">
 	    UPDATE routine
 	    SET
 	        title = #{title},
-	        detail = #{detail}
+	        detail = #{detail},
+	        seqLocation = #{seqLocation}
 	    WHERE seq = #{seq}
 	</update>
-	
 	
 </mapper>
