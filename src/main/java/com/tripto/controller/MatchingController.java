@@ -20,7 +20,7 @@ public class MatchingController {
         this.matchingService = matchingService;
     }
 
-    @GetMapping("/matching/list")
+    @GetMapping("/matching/list.do")
     public String matchingList(
             @RequestParam(required = false) String mbti,
             @RequestParam(required = false) Integer smoking,
@@ -32,21 +32,21 @@ public class MatchingController {
             Model model) {
 
 		/*
-		 * // ·Î±×ÀÎ À¯Àú PK °¡Á®¿À±â Integer loginSeq = (Integer)
+		 * // ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ PK ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Integer loginSeq = (Integer)
 		 * session.getAttribute("loginSeq");
 		 * 
 		 * if (loginSeq == null) { return "redirect:/member/login"; }
 		 */
     	
-    	//  [ÀÓ½Ã ·Î±×ÀÎ ·ÎÁ÷] 
-        // ¼¼¼Ç¿¡ ·Î±×ÀÎ Á¤º¸°¡ ¾øÀ¸¸é Å×½ºÆ®¸¦ À§ÇØ °­Á¦·Î 1¹ø À¯Àú·Î ¼¼ÆÃÇÕ´Ï´Ù.
+    	//  [ï¿½Ó½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½] 
+        // ï¿½ï¿½ï¿½Ç¿ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         if (session.getAttribute("loginSeq") == null) {
-            session.setAttribute("loginSeq", 1); // DB¿¡ Á¸ÀçÇÏ´Â È¸¿ø ¹øÈ£·Î ¼³Á¤ÇÏ¼¼¿ä.
+            session.setAttribute("loginSeq", 1); // DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.
         }
         
         
 
-        // ÀÌÁ¦ loginSeq´Â ¹«Á¶°Ç Á¸ÀçÇÏ°Ô µË´Ï´Ù.
+        // ï¿½ï¿½ï¿½ï¿½ loginSeqï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ë´Ï´ï¿½.
         Integer loginSeq = (Integer) session.getAttribute("loginSeq");
         
         Map<String, Object> params = new HashMap<>();
@@ -73,7 +73,7 @@ public class MatchingController {
     @GetMapping("/matching/detail")
     public String matchingDetail(@RequestParam("seqMember") int targetSeq, HttpSession session, Model model) {
         
-        // 1. ³» ¹øÈ£ ¼¼ÆÃ (Å×½ºÆ®¿ë)
+        // 1. ï¿½ï¿½ ï¿½ï¿½È£ ï¿½ï¿½ï¿½ï¿½ (ï¿½×½ï¿½Æ®ï¿½ï¿½)
         Integer loginSeq = (Integer) session.getAttribute("loginSeq");
         if (loginSeq == null) {
             session.setAttribute("loginSeq", 1); 
@@ -84,13 +84,13 @@ public class MatchingController {
         map.put("loginSeq", loginSeq);
         map.put("targetSeq", targetSeq);
 
-        // 2. »ó´ë¹æ ÇÁ·ÎÇÊ (+ ³ª¿ÍÀÇ ¸ÅÄª Ä«¿îÆ® °è»ê Æ÷ÇÔ) °¡Á®¿À±â
+        // 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Äª Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         MatchDTO targetProfile = matchingService.getMatchDetail(map);
         
-        // 3. ³» ÇÁ·ÎÇÊ °¡Á®¿À±â (JSP¿¡¼­ ºí¶óÀÎµå Ã³¸® ºñ±³¿ë)
+        // 3. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (JSPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ ï¿½ñ±³¿ï¿½)
         MatchDTO myProfile = matchingService.getMyProfile(loginSeq);
 
-        // 4. JSP·Î Àü´Þ
+        // 4. JSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         model.addAttribute("target", targetProfile);
         model.addAttribute("me", myProfile);
 

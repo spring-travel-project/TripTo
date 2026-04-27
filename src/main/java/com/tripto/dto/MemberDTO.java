@@ -23,4 +23,6 @@ public class MemberDTO {
     private String birth;         // 생년월일 (YYYY-MM-DD 형태의 문자열)
     private String region;        // 거주 국가
     private String intro;         // 자기소개
+    
+    private int reportCount;    // 신고 당한 횟수
 }

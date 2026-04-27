@@ -13,28 +13,16 @@
 
     <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-10 flex gap-8">
         
-        <aside class="w-64 flex-shrink-0">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sticky top-24">
-                <div class="text-[11px] font-bold text-slate-400 mb-4 px-4 tracking-[0.2em] uppercase">Admin Navigation</div>
+       	<aside class="w-64 flex-shrink-0">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
                 <ul class="menu w-full gap-2 text-base font-bold text-slate-600">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/admin/memberList.do" class="active bg-blue-50 text-blue-600">
-                            👤 회원 관리
-                        </a>
-                    </li>
-                    <li>
-                        <a href="${pageContext.request.contextPath}/admin/companionList.do" class="hover:bg-slate-50 transition-colors">
-                            🤝 동행 게시판 관리
-                        </a>
-                    </li>
-                    <li>
-                        <a href="${pageContext.request.contextPath}/admin/boardList.do" class="hover:bg-slate-50 transition-colors">
-                            📝 일반 게시판 관리
-                        </a>
-                    </li>
+                    <li><a href="${pageContext.request.contextPath}/admin/main" class="active bg-blue-50 text-blue-600">📊 대시보드</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/memberList" class="hover:bg-slate-50 transition-colors" >👤 회원 관리</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/companionList" class="hover:bg-slate-50 transition-colors">🤝 동행 관리</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/boardList" class="hover:bg-slate-50 transition-colors">📝 일반 게시판 관리</a></li>
                 </ul>
             </div>
-        </aside>
+		</aside>
 
         <section class="flex-1 flex flex-col gap-8">
             
