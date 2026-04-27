@@ -18,6 +18,7 @@
 
 		<div class="content-card card-pad">
 			<form method="post" action="${pageContext.request.contextPath}/chat/poll/write" class="space-y-6">
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 				<input type="hidden" name="seqChattingroom" value="${roomId}">
 
 				<div class="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6">

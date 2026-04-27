@@ -57,6 +57,8 @@
 					<div class="space-y-3">
 						<c:forEach items="${pollContentList}" var="item">
 							<form method="post" action="${pageContext.request.contextPath}/chat/poll/vote">
+								
+								<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 								<input type="hidden" name="roomId" value="${roomId}">
 								<input type="hidden" name="pollId" value="${poll.seq}">
 								<input type="hidden" name="pollContentId" value="${item.seq}">
@@ -122,6 +124,7 @@
 						  action="${pageContext.request.contextPath}/chat/poll/delete"
 						  onsubmit="return confirm('정말 이 투표를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.');">
 			
+						<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 						<input type="hidden" name="roomId" value="${roomId}">
 						<input type="hidden" name="pollId" value="${poll.seq}">
 			
