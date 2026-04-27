@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
-import com.tripto.dto.RoutineDTO;
-import com.tripto.dto.PollDTO;
 import com.tripto.dto.PollContentDTO;
+import com.tripto.dto.PollDTO;
+import com.tripto.dto.RoutineDTO;
 
 @Repository
 public class ChatDAO {
@@ -107,6 +107,23 @@ public class ChatDAO {
     
     public RoutineDTO getRoutineDetail(int routineId) {
         return template.selectOne("chat.getRoutineDetail", routineId);
+    }
+
+
+    // 1. 기존 매칭 채팅방 번호 찾기 (없으면 null 반환)
+    public Integer findMatchingRoom(Map<String, Integer> map) {
+        // sqlSession 대신 template 사용
+        return template.selectOne("chat.findMatchingRoom", map); 
+    }
+
+    // 2. 새 채팅방 만들기 (INSERT)
+    public void createChattingRoom(ChatRoomDTO newRoom) {
+        template.insert("chat.createChattingRoom", newRoom);
+    }
+
+    // 3. 만들어진 방에 유저 참여시키기 (INSERT)
+    public void insertUserChat(Map<String, Integer> map) {
+        template.insert("chat.insertUserChat", map);
     }
     
 }

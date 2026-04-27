@@ -1,7 +1,5 @@
 package com.tripto.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,17 +18,17 @@ public class HomeController {
     public String index(Model model) {
         
         // ==========================================================
-        // [¹æ¹ý 1] ¿Ã·ÁÁÖ½Å DB¿¡ ½ÇÁ¦·Î Á¸ÀçÇÏ´Â 12¹ø °Ô½Ã±ÛÀ» °íÁ¤À¸·Î ¶ç¿ì±â
+        // [ï¿½ï¿½ï¿½ 1] ï¿½Ã·ï¿½ï¿½Ö½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ 12ï¿½ï¿½ ï¿½Ô½Ã±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         // ==========================================================
         int pickSeq = 12; 
         BoardPostDTO featuredPost = boardPostService.get(pickSeq, false);
         
 
-        //  °øÅë Ã³¸®: °¡Á®¿Â °Ô½Ã±Û°ú »çÁøÀ» È­¸é(JSP)À¸·Î ³Ñ°ÜÁÝ´Ï´Ù.
+        //  ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô½Ã±Û°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½(JSP)ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½Ý´Ï´ï¿½.
         if (featuredPost != null) {
             model.addAttribute("featuredPost", featuredPost);
             
-            // Ã·ºÎÆÄÀÏ ¸®½ºÆ®°¡ Á¸ÀçÇÏ¸é, Ã¹ ¹øÂ° »çÁøÀÇ ÀúÀåµÈ ÆÄÀÏ¸íÀ» ³Ñ±è (DBÀÇ SAVEDNAME)
+            // Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½, Ã¹ ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½Ñ±ï¿½ (DBï¿½ï¿½ SAVEDNAME)
             if (featuredPost.getFileList() != null && !featuredPost.getFileList().isEmpty()) {
                 model.addAttribute("mainImage", featuredPost.getFileList().get(0).getSavedName());
             }

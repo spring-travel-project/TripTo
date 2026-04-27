@@ -2,16 +2,18 @@ package com.tripto.dao;
 
 import java.util.List;
 import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
+
 import com.tripto.dto.MatchDTO;
 
-@Mapper // ½ºÇÁ¸µ ¼³Á¤¿¡ µû¶ó @Repository¸¦ ¾²°Å³ª »ý·«ÇÒ ¼öµµ ÀÖ½À´Ï´Ù.
+@Mapper // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ @Repositoryï¿½ï¿½ ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
 public interface MatchingDAO {
 
-    // 1. matching.xmlÀÇ <select id="getMyProfile"> °ú ¿¬°á
+    // 1. matching.xmlï¿½ï¿½ <select id="getMyProfile"> ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     MatchDTO getMyProfile(Integer loginSeq);
 
-    // 2. matching.xmlÀÇ <select id="getMatchingList"> ¿Í ¿¬°á
+    // 2. matching.xmlï¿½ï¿½ <select id="getMatchingList"> ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     List<MatchDTO> getMatchingList(Map<String, Object> params);
 
 	MatchDTO getMatchDetail(Map<String, Integer> map);
