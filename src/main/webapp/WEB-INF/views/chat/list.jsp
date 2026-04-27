@@ -159,9 +159,10 @@
 								</div>
 
 								<div class="flex items-center gap-2 shrink-0">
-									<button type="button" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium hover:bg-slate-100 transition">
-										일정/투표
-									</button>
+									<a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}"
+									   class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium hover:bg-slate-100 transition">
+									    일정/투표
+									</a>
 									<button type="button" id="exitRoomBtn"
 									        class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition">
 									    채팅방 나가기
@@ -279,7 +280,7 @@
 		const chatMessageList = document.getElementById('chatMessageList');
 	
 		const selectedRoomId = '${selectedRoomId}';
-		const loginUserId = '${loginUserId}';
+		model.addAttribute("loginUserId", loginUserId);
 		const contextPath = '${pageContext.request.contextPath}';
 		
 		const exitBtn = document.getElementById('exitRoomBtn');

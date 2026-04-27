@@ -6,16 +6,23 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.service.ChatService;
+import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.PollDTO;
+import com.tripto.dto.PollContentDTO;
+import com.tripto.dto.MemberDTO;
 
 @Controller
 public class ChatController {
@@ -29,7 +36,11 @@ public class ChatController {
             @RequestParam(value = "category", required = false) Integer category,
             Model model) {
 
-        int loginUserId = 1; // 임시 로그인 사용자
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	}
 
         List<ChatRoomDTO> roomList = chatService.getRoomList(loginUserId, roomId, category);
 
@@ -68,7 +79,11 @@ public class ChatController {
             @RequestParam("message") String message,
             @RequestParam(value = "category", required = false) Integer category) {
 
-        int loginUserId = 1; // 임시 로그인 사용자
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	} 
 
         chatService.insertMessage(roomId, loginUserId, message);
 
@@ -84,7 +99,7 @@ public class ChatController {
     public Map<String, Object> exitRoom(
             @RequestParam("roomId") int roomId) {
 
-        int loginUserId = 1; // 임시 로그인
+    	Integer loginUserId = getLoginUserSeq();
 
         boolean result = chatService.exitRoom(roomId, loginUserId);
 
@@ -93,4 +108,170 @@ public class ChatController {
 
         return response;
     }
+    
+    @GetMapping("/chat/schedulePoll")
+    public String schedulePoll(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        Integer loginUserId = getLoginUserSeq();
+
+        if (loginUserId == null) {
+            return "redirect:/member/login.do";
+        }
+
+        List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
+        List<PollDTO> pollList = chatService.getPollList(roomId);
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("routineList", routineList);
+        model.addAttribute("pollList", pollList);
+        model.addAttribute("loginUserId", loginUserId);
+
+        return "chat/schedulePoll";
+    }
+    
+    @GetMapping("/chat/poll/write")
+    public String pollWrite(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        model.addAttribute("roomId", roomId);
+
+        return "chat/pollWrite";
+    }
+
+    @PostMapping("/chat/poll/write")
+    public String pollWriteOk(
+            PollDTO dto,
+            @RequestParam("pollContents") List<String> pollContents) {
+
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+        dto.setSeqMember(loginUserId);
+
+        chatService.insertPoll(dto, pollContents);
+
+        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
+    }
+    
+    @GetMapping("/chat/poll/detail")
+    public String pollDetail(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId,
+            Model model) {
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+        List<PollContentDTO> pollContentList = chatService.getPollContentList(pollId);
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("poll", poll);
+        model.addAttribute("pollContentList", pollContentList);
+
+        return "chat/pollDetail";
+    }
+    
+    @PostMapping("/chat/poll/vote")
+    public String votePoll(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId,
+            @RequestParam("pollContentId") int pollContentId) {
+
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+        chatService.votePoll(pollId, pollContentId, loginUserId);
+
+        return "redirect:/chat/poll/detail?roomId=" + roomId + "&pollId=" + pollId;
+    }
+    
+    @PostMapping("/chat/poll/delete")
+    public String deletePoll(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("pollId") int pollId) {
+
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+        chatService.deletePoll(pollId, loginUserId);
+
+        return "redirect:/chat/schedulePoll?roomId=" + roomId;
+    }
+    
+    @GetMapping("/chat/routine/write")
+    public String routineWrite(
+            @RequestParam("roomId") int roomId,
+            Model model) {
+
+        model.addAttribute("roomId", roomId);
+
+        return "chat/routineWrite";
+    }
+    
+    @PostMapping("/chat/routine/write")
+    public String routineWriteOk(RoutineDTO dto) {
+
+    	Integer loginUserId = getLoginUserSeq();
+
+    	if (loginUserId == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+        dto.setSeqMember(loginUserId);
+
+        chatService.insertRoutine(dto);
+
+        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
+    }
+
+    @GetMapping("/chat/routine/detail")
+    public String routineDetail(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("routineId") int routineId,
+            Model model) {
+
+        Integer loginUserId = getLoginUserSeq();
+
+        if (loginUserId == null) {
+            return "redirect:/member/login.do";
+        }
+
+        RoutineDTO routine = chatService.getRoutineDetail(routineId);
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("routine", routine);
+        model.addAttribute("loginUserId", loginUserId);
+
+        return "chat/routineDetail";
+    }
+    
+    private Integer getLoginUserSeq() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+
+        String loggedInId = auth.getName();
+
+        MemberDTO loginUser = memberService.getMemberById(loggedInId);
+
+        if (loginUser == null) {
+            return null;
+        }
+
+        return loginUser.getSeqMember();
+    }
+    
 }

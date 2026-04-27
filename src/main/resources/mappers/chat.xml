@@ -139,5 +139,239 @@
 	        SYSDATE
 	    )
 	</insert>
-
+	
+	<select id="getRoutineList" parameterType="int" resultType="com.tripto.dto.RoutineDTO">
+	    SELECT
+	        r.seq,
+	        r.seqMember,
+	        r.seqChattingroom,
+	        r.seqTravelPost,
+	        r.seqLocation,
+	        r.title,
+	        TO_CHAR(r.detail) AS detail,
+	        r.regdate,
+	        r.dDay,
+	        m.nickname AS writerNickname,
+	        TO_CHAR(r.regdate, 'MM-DD') AS regdateText,
+	        CASE
+	            WHEN r.dDay IS NULL THEN '예정'
+	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
+	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
+	            ELSE '종료'
+	        END AS dDayText
+	    FROM routine r
+	        INNER JOIN member m
+	            ON r.seqMember = m.seqMember
+	    WHERE r.seqChattingroom = #{roomId}
+	    ORDER BY r.dDay ASC NULLS LAST, r.regdate DESC
+	</select>
+	
+	<select id="getPollList" parameterType="int" resultType="com.tripto.dto.PollDTO">
+	    SELECT
+	        p.seq,
+	        p.seqChattingroom,
+	        p.seqMember,
+	        p.pollTitle,
+	        p.pollEnddate,
+	        p.polldetail,
+	        m.nickname AS writerNickname,
+	        TO_CHAR(p.pollEnddate, 'MM-DD HH24:MI') AS enddateText,
+	        NVL(pr.participantCount, 0) AS participantCount
+	    FROM poll p
+	        INNER JOIN member m
+	            ON p.seqMember = m.seqMember
+	        LEFT JOIN (
+	            SELECT
+	                pc.seqPoll,
+	                COUNT(DISTINCT pr.seqMember) AS participantCount
+	            FROM poll_content pc
+	                LEFT JOIN poll_result pr
+	                    ON pc.seq = pr.seqPollContent
+	            GROUP BY pc.seqPoll
+	        ) pr
+	            ON p.seq = pr.seqPoll
+	    WHERE p.seqChattingroom = #{roomId}
+	    ORDER BY p.pollEnddate ASC
+	</select>
+	
+	
+	<insert id="insertPoll" parameterType="com.tripto.dto.PollDTO">
+	    <selectKey keyProperty="seq" resultType="int" order="BEFORE">
+	        SELECT seqPoll.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO poll (
+	        seq,
+	        seqChattingroom,
+	        seqMember,
+	        pollTitle,
+	        pollEnddate,
+	        polldetail
+	    ) VALUES (
+	        #{seq},
+	        #{seqChattingroom},
+	        #{seqMember},
+	        #{pollTitle},
+	        TO_DATE(REPLACE(#{pollEnddateInput}, 'T', ' '), 'YYYY-MM-DD HH24:MI'),
+	        #{polldetail}
+	    )
+	</insert>
+	
+	<insert id="insertPollContent" parameterType="map">
+	    INSERT INTO poll_content (
+	        seq,
+	        seqPoll,
+	        pollContent
+	    ) VALUES (
+	        seqPollContent.NEXTVAL,
+	        #{seqPoll},
+	        #{pollContent}
+	    )
+	</insert>
+	
+	<select id="getPollDetail" parameterType="int" resultType="com.tripto.dto.PollDTO">
+	    SELECT
+	        p.seq,
+	        p.seqChattingroom,
+	        p.seqMember,
+	        p.pollTitle,
+	        p.pollEnddate,
+	        p.polldetail,
+	        m.nickname AS writerNickname,
+	        TO_CHAR(p.pollEnddate, 'YYYY-MM-DD HH24:MI') AS enddateText,
+	        NVL(pr.totalParticipantCount, 0) AS totalParticipantCount
+	    FROM poll p
+	        INNER JOIN member m
+	            ON p.seqMember = m.seqMember
+	        LEFT JOIN (
+	            SELECT
+	                pc.seqPoll,
+	                COUNT(DISTINCT pr.seqMember) AS totalParticipantCount
+	            FROM poll_content pc
+	                LEFT JOIN poll_result pr
+	                    ON pc.seq = pr.seqPollContent
+	            GROUP BY pc.seqPoll
+	        ) pr
+	            ON p.seq = pr.seqPoll
+	    WHERE p.seq = #{pollId}
+	</select>
+	
+	<select id="getPollContentList" parameterType="int" resultType="com.tripto.dto.PollContentDTO">
+	    SELECT
+	        pc.seq,
+	        pc.seqPoll,
+	        pc.pollContent,
+	        COUNT(pr.seq) AS voteCount
+	    FROM poll_content pc
+	        LEFT JOIN poll_result pr
+	            ON pc.seq = pr.seqPollContent
+	    WHERE pc.seqPoll = #{pollId}
+	    GROUP BY
+	        pc.seq,
+	        pc.seqPoll,
+	        pc.pollContent
+	    ORDER BY pc.seq ASC
+	</select>
+	
+	<insert id="votePoll" parameterType="map">
+	    INSERT INTO poll_result (
+	        seq,
+	        seqPollContent,
+	        seqMember
+	    ) VALUES (
+	        seqPollResult.NEXTVAL,
+	        #{pollContentId},
+	        #{seqMember}
+	    )
+	</insert>
+	
+	<delete id="deletePreviousVote" parameterType="map">
+	    DELETE FROM poll_result
+	    WHERE seqMember = #{seqMember}
+	      AND seqPollContent IN (
+	          SELECT seq
+	          FROM poll_content
+	          WHERE seqPoll = #{pollId}
+	      )
+	</delete>
+	
+	<delete id="deletePollResultByPollId" parameterType="int">
+	    DELETE FROM poll_result
+	    WHERE seqPollContent IN (
+	        SELECT seq
+	        FROM poll_content
+	        WHERE seqPoll = #{pollId}
+	    )
+	</delete>
+	
+	<delete id="deletePollContentByPollId" parameterType="int">
+	    DELETE FROM poll_content
+	    WHERE seqPoll = #{pollId}
+	</delete>
+	
+	<delete id="deletePoll" parameterType="int">
+	    DELETE FROM poll
+	    WHERE seq = #{pollId}
+	</delete>
+	
+	<select id="getTravelPostSeqByRoomId" parameterType="int" resultType="int">
+	    SELECT seqTravelPost
+	    FROM chattingroom
+	    WHERE seq = #{roomId}
+	</select>
+	
+	<insert id="insertRoutine" parameterType="com.tripto.dto.RoutineDTO">
+	    <selectKey keyProperty="seq" resultType="int" order="BEFORE">
+	        SELECT seqRoutine.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO routine (
+	        seq,
+	        seqMember,
+	        seqChattingroom,
+	        seqTravelPost,
+	        seqLocation,
+	        title,
+	        detail,
+	        regdate,
+	        dDay
+	    ) VALUES (
+	        #{seq},
+	        #{seqMember},
+	        #{seqChattingroom},
+	        #{seqTravelPost},
+	        #{seqLocation},
+	        #{title},
+	        #{detail},
+	        SYSDATE,
+	        NULL
+	    )
+	</insert>
+	
+	<select id="getRoutineDetail" parameterType="int" resultType="com.tripto.dto.RoutineDTO">
+	    SELECT
+	        r.seq,
+	        r.seqMember,
+	        r.seqChattingroom,
+	        r.seqTravelPost,
+	        r.seqLocation,
+	        r.title,
+	        TO_CHAR(r.detail) AS detail,
+	        r.regdate,
+	        r.dDay,
+	        m.nickname AS writerNickname,
+	        TO_CHAR(r.regdate, 'YYYY-MM-DD HH24:MI') AS regdateText,
+	        CASE
+	            WHEN r.dDay IS NULL THEN '예정'
+	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
+	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
+	            ELSE '종료'
+	        END AS dDayText
+	    FROM routine r
+	        INNER JOIN member m
+	            ON r.seqMember = m.seqMember
+	    WHERE r.seq = #{routineId}
+	</select>
+	
+	
 </mapper>

@@ -1,0 +1,124 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>TripTo | 일정 상세</title>
+	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
+</head>
+<body class="bg-slate-50 text-slate-800">
+	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
+
+	<main class="page-wrap">
+
+		<div class="mb-8 flex items-end justify-between gap-4">
+			<div>
+				<h1 class="section-title">일정 상세</h1>
+				<p class="section-desc">채팅방에 공유된 여행 일정을 확인하세요.</p>
+			</div>
+
+			<a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${roomId}"
+			   class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium hover:bg-slate-100 transition">
+				목록으로 돌아가기
+			</a>
+		</div>
+
+		<div class="content-card card-pad space-y-6">
+
+			<!-- 일정 제목 -->
+			<div class="rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 text-center">
+				<h2 class="text-2xl font-bold text-slate-900">
+					<c:out value="${routine.title}" />
+				</h2>
+			</div>
+
+			<!-- 작성 정보 -->
+			<div class="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+				<div>
+					작성자:
+					<span class="font-semibold text-slate-700">
+						<c:out value="${routine.writerNickname}" />
+					</span>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<span class="inline-flex items-center rounded-full bg-sky-100 text-sky-700 text-xs font-medium px-2 py-0.5">
+						<c:out value="${routine.dDayText}" />
+					</span>
+					<span>
+						작성일 <c:out value="${routine.regdateText}" />
+					</span>
+				</div>
+			</div>
+
+			<!-- 일정 내용 -->
+			<div class="rounded-2xl border border-slate-200 bg-slate-100 p-8 min-h-[360px]">
+				<h3 class="text-xl font-bold text-slate-900 mb-5">일정 내용</h3>
+
+				<p class="text-sm text-slate-700 leading-7 whitespace-pre-line">
+					<c:out value="${routine.detail}" />
+				</p>
+
+				<!-- 첨부파일 표시 영역 -->
+				<c:if test="${not empty fileList}">
+					<div class="mt-8 space-y-4">
+						<c:forEach items="${fileList}" var="file">
+				
+							<c:choose>
+								<c:when test="${file.fileType.startsWith('image/')}">
+									<img src="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
+									     alt="${file.originalName}"
+									     class="max-w-full rounded-2xl border border-slate-200 shadow-sm">
+								</c:when>
+				
+								<c:when test="${file.fileType.startsWith('video/')}">
+									<video controls
+									       class="max-w-full rounded-2xl border border-slate-200 shadow-sm">
+										<source src="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
+										        type="${file.fileType}">
+									</video>
+								</c:when>
+				
+								<c:otherwise>
+									<a href="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
+									   download="${file.originalName}"
+									   class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 hover:bg-slate-50 transition">
+										<div>
+											<p class="font-semibold text-slate-800">
+												<c:out value="${file.originalName}" />
+											</p>
+											<p class="text-xs text-slate-400">
+												파일 다운로드
+											</p>
+										</div>
+										<span class="text-sm font-semibold text-sky-600">다운로드</span>
+									</a>
+								</c:otherwise>
+							</c:choose>
+				
+						</c:forEach>
+					</div>
+				</c:if>
+			</div>
+
+			<!-- 하단 버튼 -->
+			<c:if test="${routine.seqMember == loginUserId}">
+				<div class="flex justify-end gap-3">
+					<a href="#"
+					   class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-100 transition">
+						수정
+					</a>
+
+					<a href="#"
+					   class="px-5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition">
+						삭제
+					</a>
+				</div>
+			</c:if>
+
+		</div>
+
+	</main>
+</body>
+</html>
