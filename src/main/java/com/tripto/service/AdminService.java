@@ -52,6 +52,18 @@ public class AdminService {
     public int deleteBoard(String seqBoardPost) {
         return dao.boardDelete(seqBoardPost); // 이때는 return을 쓰는 게 맞아요!
     }
+    
+    public List<Map<String, Object>> getCompanionList(Map<String, Object> map) {
+        return dao.companionList(map);
+    }
+
+    public int getCompanionCount(Map<String, Object> map) {
+        return dao.companionCount(map);
+    }
+
+    public int deleteCompanion(String seqCompanionPost) {
+        return dao.companionDelete(seqCompanionPost);
+    }
 }
 	
 

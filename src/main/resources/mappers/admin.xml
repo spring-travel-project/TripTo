@@ -122,6 +122,39 @@
 	    SET status = 'DELETED' WHERE seqBoardPost = #{seqBoardPost}
 	</update>
 	
+	<select id="companionList" resultType="map" parameterType="map">
+        SELECT * FROM (
+            SELECT a.*, rownum as rnum FROM (
+                SELECT 
+                    t.seqTravelPost, t.title, m.nickname as writerName, 
+                    t.createDate, t.viewCount, t.status,
+                    (SELECT COUNT(*) FROM report r WHERE r.targetType = 'TRAVEL' AND r.seqTarget = t.seqTravelPost) as reportCount
+                FROM travel_post t
+                JOIN member m ON t.seqMember = m.seqMember
+                WHERE 1=1
+                <if test='showDeleted == null or showDeleted != "Y"'>
+                    AND t.status = 'NORMAL'
+                </if>
+                <if test='searchKeyword != null and searchKeyword != ""'>
+                    AND t.title LIKE '%' || #{searchKeyword} || '%'
+                </if>
+                ORDER BY reportCount DESC, t.seqTravelPost DESC
+            ) a
+        ) WHERE rnum BETWEEN #{start} AND #{end}
+    </select>
+
+    <select id="companionCount" resultType="int" parameterType="map">
+        SELECT COUNT(*) FROM travel_post
+        WHERE 1=1
+        <if test='showDeleted == null or showDeleted != "Y"'>
+            AND status = 'NORMAL'
+        </if>
+    </select>
+
+    <update id="companionDelete" parameterType="String">
+        UPDATE travel_post SET status = 'DELETED' WHERE seqTravelPost = #{seqTravelPost}
+    </update>
+	
 	
 	
 </mapper>

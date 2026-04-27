@@ -129,4 +129,42 @@ public class AdminController {
         adminService.deleteBoard(seqBoardPost); // 서비스/DAO에 해당 메서드 추가 필요
         return "redirect:/admin/boardList";
     }
+    
+    @GetMapping("/companionList")
+    public String companionList(Model model, 
+                                @RequestParam(defaultValue = "1") int page,
+                                @RequestParam(required = false) String searchType,
+                                @RequestParam(required = false) String searchKeyword,
+                                @RequestParam(required = false) String showDeleted) {
+        
+        int pageSize = 10;
+        int start = (page - 1) * pageSize + 1;
+        int end = page * pageSize;
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("start", start);
+        map.put("end", end);
+        map.put("searchType", searchType);
+        map.put("searchKeyword", searchKeyword);
+        map.put("showDeleted", showDeleted);
+
+        List<Map<String, Object>> list = adminService.getCompanionList(map);
+        int totalCount = adminService.getCompanionCount(map);
+        int totalPage = (int)Math.ceil((double)totalCount / pageSize);
+
+        model.addAttribute("list", list);
+        model.addAttribute("totalPage", totalPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchKeyword", searchKeyword);
+        model.addAttribute("showDeleted", showDeleted);
+
+        return "admin/companionList";
+    }
+
+    @GetMapping("/companionDelete")
+    public String companionDelete(@RequestParam String seqCompanionPost) {
+        adminService.deleteCompanion(seqCompanionPost);
+        return "redirect:/admin/companionList";
+    }
 }

@@ -54,5 +54,17 @@ public class AdminDAO {
 		
 		return sql.update("admin.boardDelete",seqBoardPost);
 	}
+	
+	public List<Map<String, Object>> companionList(Map<String, Object> map) {
+	    return sql.selectList("admin.companionList", map);
+	}
+
+	public int companionCount(Map<String, Object> map) {
+	    return sql.selectOne("admin.companionCount", map);
+	}
+
+	public int companionDelete(String seqCompanionPost) {
+	    return sql.update("admin.companionDelete", seqCompanionPost);
+	}
 
 }
