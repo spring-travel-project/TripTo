@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,17 +21,38 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
+import com.tripto.dto.MemberDTO;
 import com.tripto.service.BoardPostService;
 import com.tripto.service.CommentService;
+import com.tripto.service.MemberService;
 
 @Controller
 public class BoardPostController {
 
-    @Autowired
-    private BoardPostService service;
+    private final BoardPostService service;
+    private final CommentService commentService;
+    private final MemberService memberService;
 
-    @Autowired
-    private CommentService commentService;
+    public BoardPostController(BoardPostService service,
+                               CommentService commentService,
+                               MemberService memberService) {
+        this.service = service;
+        this.commentService = commentService;
+        this.memberService = memberService;
+    }
+
+    private MemberDTO getLoginMember() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+
+        String loggedInId = auth.getName();
+
+        return memberService.getMemberById(loggedInId);
+    }
 
     // 게시글 목록
     @GetMapping("/board/list.do")
@@ -39,14 +60,7 @@ public class BoardPostController {
             @RequestParam(required = false, defaultValue = "") String category,
             @RequestParam(required = false, defaultValue = "") String searchWord,
             @RequestParam(required = false, defaultValue = "1") int page,
-            Model model,
-            HttpSession session) {
-
-        // 로그인 체크 추가
-		/*
-		 * if (session.getAttribute("seqMember") == null) { return
-		 * "redirect:/member/login.do"; }
-		 */
+            Model model) {
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -78,13 +92,16 @@ public class BoardPostController {
 
     // 글쓰기 화면
     @GetMapping("/board/write.do")
-    public String write(Model model, HttpSession session) {
+    public String write(Model model) {
 
-        if (session.getAttribute("seqMember") == null) {
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
         model.addAttribute("categoryList", service.categoryList());
+
         return "board/write";
     }
 
@@ -92,16 +109,15 @@ public class BoardPostController {
     @PostMapping("/board/write.do")
     public String writeOk(BoardPostDTO dto,
                           HttpServletRequest req,
-                          HttpSession session,
                           RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        dto.setSeqMember(seqMember);
+        dto.setSeqMember(loginMember.getSeqMember());
 
         int result = service.add(dto, req);
 
@@ -117,8 +133,7 @@ public class BoardPostController {
     // 상세보기
     @GetMapping("/board/detail.do")
     public String detail(@RequestParam int seqBoardPost,
-                         Model model,
-                         HttpSession session) {
+                         Model model) {
 
         BoardPostDTO dto = service.get(seqBoardPost, true);
 
@@ -126,16 +141,21 @@ public class BoardPostController {
             return "redirect:/board/list.do";
         }
 
-        int currentSeqMember = 1;
-        boolean isAdmin = false;
-        boolean isWriter = true;
+        MemberDTO loginMember = getLoginMember();
+
+        boolean isLogin = loginMember != null;
+        boolean isWriter = isLogin
+                && Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+        boolean isAdmin = isLogin
+                && "ADMIN".equals(loginMember.getGrade());
 
         model.addAttribute("dto", dto);
-        model.addAttribute("isWriter", isWriter);
-
         model.addAttribute("commentList", commentService.list(seqBoardPost));
-        model.addAttribute("currentSeqMember", currentSeqMember);
+
+        model.addAttribute("isLogin", isLogin);
+        model.addAttribute("isWriter", isWriter);
         model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);
 
         return "board/detail";
     }
@@ -144,16 +164,27 @@ public class BoardPostController {
     @GetMapping("/board/edit.do")
     public String edit(@RequestParam int seqBoardPost,
                        Model model,
-                       HttpSession session,
                        RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
         BoardPostDTO dto = service.get(seqBoardPost, false);
+
+        if (dto == null) {
+            return "redirect:/board/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
+        }
 
         model.addAttribute("dto", dto);
         model.addAttribute("categoryList", service.categoryList());
@@ -165,18 +196,31 @@ public class BoardPostController {
     @PostMapping("/board/edit.do")
     public String editOk(BoardPostDTO dto,
                          HttpServletRequest req,
-                         HttpSession session,
                          RedirectAttributes rttr) throws Exception {
 
         req.setCharacterEncoding("UTF-8");
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        dto.setSeqMember(seqMember);
+        BoardPostDTO originDto = service.get(dto.getSeqBoardPost(), false);
+
+        if (originDto == null) {
+            return "redirect:/board/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(originDto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
+        }
+
+        dto.setSeqMember(loginMember.getSeqMember());
 
         int result = service.edit(dto, req);
 
@@ -192,13 +236,26 @@ public class BoardPostController {
     // 삭제
     @PostMapping("/board/delete.do")
     public String delete(@RequestParam int seqBoardPost,
-                         HttpSession session,
                          RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
+        }
+
+        BoardPostDTO dto = service.get(seqBoardPost, false);
+
+        if (dto == null) {
+            return "redirect:/board/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "삭제 권한이 없습니다.");
+            return "redirect:/board/detail.do?seqBoardPost=" + seqBoardPost;
         }
 
         int result = service.delete(seqBoardPost);
@@ -215,22 +272,20 @@ public class BoardPostController {
     // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
-    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file,
-                                           HttpSession session) {
+    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file) {
 
         Map<String, Object> result = new HashMap<>();
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             result.put("error", "login");
             return result;
         }
 
         try {
-
             Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-            		"cloud_name", "df2o0mjgj",
+                    "cloud_name", "df2o0mjgj",
                     "api_key", "154321363337894",
                     "api_secret", "Z3WzpCWRQ4tBgwXQ-J1lYZc44XU"
             ));
@@ -246,6 +301,7 @@ public class BoardPostController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            result.put("error", "upload");
         }
 
         return result;

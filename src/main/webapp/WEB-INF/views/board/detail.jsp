@@ -152,38 +152,48 @@
                 </div>
 
                 <div class="board-detail-action-right">
-                    <form method="post"
-					      action="${cp}/report/add.do"
-					      onsubmit="return confirm('이 게시글을 신고하시겠습니까?');">
+                    <!-- 신고 버튼: 작성자가 아닐 때만 -->
+					<c:if test="${!isWriter}">
+					    <form method="post"
+					          action="${cp}/report/add.do"
+					          class="board-report-form"
+					          onsubmit="return confirm('이 게시글을 신고하시겠습니까?');">
 					
-					    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-					    <input type="hidden" name="targetType" value="BOARD">
-					    <input type="hidden" name="seqTarget" value="${dto.seqBoardPost}">
+					        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+					        <input type="hidden" name="targetType" value="BOARD">
+					        <input type="hidden" name="seqTarget" value="${dto.seqBoardPost}">
 					
-					    <button type="submit" class="btn-board-outline btn-board-sm btn-board-report">
-					        신고
-					    </button>
-					</form>
-
-                    <c:if test="${isWriter}">
-                        <a href="${cp}/board/edit.do?seqBoardPost=${dto.seqBoardPost}"
-                           class="btn-board-outline btn-board-sm">
-                            수정
-                        </a>
-
-                        <form method="post"
-						      action="${cp}/board/delete.do"
-						      class="board-delete-form"
-						      onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
-						
-						    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-						    <input type="hidden" name="seqBoardPost" value="${dto.seqBoardPost}">
-						
-						    <button type="submit" class="btn-board-outline btn-board-sm btn-board-danger">
-						        삭제
-						    </button>
-						</form>
-                    </c:if>
+					        <button type="submit" class="btn-board-outline btn-board-sm btn-board-warning">
+					            신고
+					        </button>
+					    </form>
+					</c:if>
+					
+					
+					<!-- 수정 버튼: 작성자만 -->
+					<c:if test="${isWriter}">
+					    <a href="${cp}/board/edit.do?seqBoardPost=${dto.seqBoardPost}"
+					       class="btn-board-outline btn-board-sm">
+					        수정
+					    </a>
+					</c:if>
+					
+					
+					<!-- 삭제 버튼: 작성자 or 관리자 -->
+					<c:if test="${isWriter or isAdmin}">
+					    <form method="post"
+					          action="${cp}/board/delete.do"
+					          class="board-delete-form"
+					          onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+					
+					        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+					        <input type="hidden" name="seqBoardPost" value="${dto.seqBoardPost}">
+					
+					        <button type="submit" class="btn-board-outline btn-board-sm btn-board-danger">
+					            삭제
+					        </button>
+					    </form>
+					</c:if>
                 </div>
             </div>
 

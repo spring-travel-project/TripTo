@@ -25,4 +25,6 @@ public class MemberDTO {
     private String intro;         // 자기소개
     
     private int reportCount;    // 신고 당한 횟수
+    
+    private String grade;
 }

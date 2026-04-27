@@ -1,63 +1,83 @@
 package com.tripto.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.tripto.dto.BoardCommentDTO;
+import com.tripto.dto.MemberDTO;
 import com.tripto.dto.TravelCommentDTO;
 import com.tripto.service.CommentService;
+import com.tripto.service.MemberService;
 
 @Controller
 public class CommentController {
 
-    @Autowired
-    private CommentService service;
+    private final CommentService service;
+    private final MemberService memberService;
+
+    public CommentController(CommentService service, MemberService memberService) {
+        this.service = service;
+        this.memberService = memberService;
+    }
+
+    private MemberDTO getLoginMember() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+
+        String loggedInId = auth.getName();
+
+        return memberService.getMemberById(loggedInId);
+    }
 
     @PostMapping("/comment/add.do")
     public String add(BoardCommentDTO dto,
-            HttpServletRequest request,
-            HttpSession session,
-            RedirectAttributes rttr) throws Exception {
-		
-		request.setCharacterEncoding("UTF-8");
-		
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+                      HttpServletRequest request,
+                      RedirectAttributes rttr) throws Exception {
 
-        if (seqMember == null) {
+        request.setCharacterEncoding("UTF-8");
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-		dto.setSeqMember(seqMember);
-		
-		int result = service.add(dto);
-		
-		if (result == 1) {
-		  rttr.addFlashAttribute("message", "댓글이 등록되었습니다.");
-		} else {
-		  rttr.addFlashAttribute("message", "댓글 등록 실패");
-		}
-		
-		return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
-	}
+        dto.setSeqMember(loginMember.getSeqMember());
+
+        int result = service.add(dto);
+
+        if (result == 1) {
+            rttr.addFlashAttribute("message", "댓글이 등록되었습니다.");
+        } else {
+            rttr.addFlashAttribute("message", "댓글 등록 실패");
+        }
+
+        return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
+    }
 
     @PostMapping("/comment/edit.do")
     public String edit(BoardCommentDTO dto,
                        HttpServletRequest request,
-                       HttpSession session,
                        RedirectAttributes rttr) throws Exception {
 
         request.setCharacterEncoding("UTF-8");
 
-        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (currentSeqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
+
+        int currentSeqMember = loginMember.getSeqMember();
 
         int result = service.edit(dto, currentSeqMember);
 
@@ -73,16 +93,16 @@ public class CommentController {
     @PostMapping("/comment/delete.do")
     public String delete(int seqBoardComment,
                          int seqBoardPost,
-                         HttpSession session,
                          RedirectAttributes rttr) {
 
-        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (currentSeqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        boolean isAdmin = false;
+        int currentSeqMember = loginMember.getSeqMember();
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
 
         int result = service.delete(seqBoardComment, currentSeqMember, isAdmin);
 
@@ -98,18 +118,17 @@ public class CommentController {
     @PostMapping("/travel/comment/add.do")
     public String travelAdd(TravelCommentDTO dto,
                             HttpServletRequest request,
-                            HttpSession session,
                             RedirectAttributes rttr) throws Exception {
 
-    	request.setCharacterEncoding("UTF-8");
-    	
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        request.setCharacterEncoding("UTF-8");
 
-        if (seqMember == null) {
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        dto.setSeqMember(seqMember);
+        dto.setSeqMember(loginMember.getSeqMember());
 
         int result = service.travelAdd(dto);
 
@@ -131,16 +150,17 @@ public class CommentController {
     @PostMapping("/travel/comment/edit.do")
     public String travelEdit(TravelCommentDTO dto,
                              HttpServletRequest request,
-                             HttpSession session,
                              RedirectAttributes rttr) throws Exception {
 
         request.setCharacterEncoding("UTF-8");
 
-        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (currentSeqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
+
+        int currentSeqMember = loginMember.getSeqMember();
 
         int result = service.travelEdit(dto, currentSeqMember);
 
@@ -156,16 +176,16 @@ public class CommentController {
     @PostMapping("/travel/comment/delete.do")
     public String travelDelete(int seqTravelComment,
                                int seqTravelPost,
-                               HttpSession session,
                                RedirectAttributes rttr) {
 
-        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (currentSeqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        boolean isAdmin = false;
+        int currentSeqMember = loginMember.getSeqMember();
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
 
         int result = service.travelDelete(seqTravelComment, currentSeqMember, isAdmin);
 
