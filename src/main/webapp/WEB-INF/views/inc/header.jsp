@@ -67,7 +67,7 @@
                     </ul>
                 </li>
 
-                <li><a href="${pageContext.request.contextPath}/chat/list.do" class="h-full flex items-center ${uri.contains('/chat/') ? 'active' : ''}">채팅</a></li>
+                <li><a href="${pageContext.request.contextPath}/chat/list" class="h-full flex items-center ${uri.contains('/chat/') ? 'active' : ''}">채팅</a></li>
                 
                 <div class="divider divider-horizontal mx-1"></div>
 
