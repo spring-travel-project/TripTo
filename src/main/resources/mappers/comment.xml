@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="boardComment">
+
+	<!-- Board 댓글 -->
+    <select id="list" parameterType="int" resultType="com.tripto.dto.BoardCommentDTO">
+        SELECT
+            bc.SEQBOARDCOMMENT AS seqBoardComment,
+            bc.SEQBOARDPOST AS seqBoardPost,
+            bc.SEQMEMBER AS seqMember,
+            bc.CONTENT AS content,
+            TO_CHAR(bc.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+            TO_CHAR(bc.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+            bc.STATUS AS status,
+            m.NAME AS writerName
+        FROM BOARD_COMMENT bc
+            INNER JOIN MEMBER m
+                ON bc.SEQMEMBER = m.SEQMEMBER
+        WHERE bc.SEQBOARDPOST = #{seqBoardPost}
+          AND bc.STATUS = 'NORMAL'
+        ORDER BY bc.SEQBOARDCOMMENT ASC
+    </select>
+
+    <insert id="add" parameterType="com.tripto.dto.BoardCommentDTO">
+        INSERT INTO BOARD_COMMENT (
+            SEQBOARDCOMMENT,
+            SEQBOARDPOST,
+            SEQMEMBER,
+            CONTENT,
+            CREATEDATE,
+            UPDATEDATE,
+            STATUS
+        ) VALUES (
+            SEQBOARDCOMMENT.NEXTVAL,
+            #{seqBoardPost},
+            #{seqMember},
+            #{content},
+            SYSDATE,
+            SYSDATE,
+            'NORMAL'
+        )
+    </insert>
+
+    <update id="delete" parameterType="int">
+        UPDATE BOARD_COMMENT
+        SET STATUS = 'DELETED',
+            UPDATEDATE = SYSDATE
+        WHERE SEQBOARDCOMMENT = #{seqBoardComment}
+          AND STATUS = 'NORMAL'
+    </update>
+
+    <select id="getWriterSeq" parameterType="int" resultType="int">
+        SELECT SEQMEMBER
+        FROM BOARD_COMMENT
+        WHERE SEQBOARDCOMMENT = #{seqBoardComment}
+          AND STATUS = 'NORMAL'
+    </select>
+    
+    <!-- Travel 댓글 목록 -->
+	<select id="travelList" parameterType="int" resultType="com.tripto.dto.TravelCommentDTO">
+	    SELECT
+	        tc.SEQTRAVELCOMMENT AS seqTravelComment,
+	        tc.SEQTRAVELPOST AS seqTravelPost,
+	        tc.SEQMEMBER AS seqMember,
+	        tc.CONTENT AS content,
+	        TO_CHAR(tc.CREATEDATE, 'YYYY-MM-DD HH24:MI') AS createDate,
+	        TO_CHAR(tc.UPDATEDATE, 'YYYY-MM-DD HH24:MI') AS updateDate,
+	        tc.STATUS AS status,
+	        m.NAME AS writerName
+	    FROM TRAVEL_COMMENT tc
+	        INNER JOIN MEMBER m
+	            ON tc.SEQMEMBER = m.SEQMEMBER
+	    WHERE tc.SEQTRAVELPOST = #{seqTravelPost}
+	      AND tc.STATUS = 'NORMAL'
+	    ORDER BY tc.SEQTRAVELCOMMENT ASC
+	</select>
+	
+	<!-- Travel 댓글 등록 -->
+	<insert id="travelAdd" parameterType="com.tripto.dto.TravelCommentDTO">
+	    INSERT INTO TRAVEL_COMMENT (
+	        SEQTRAVELCOMMENT,
+	        SEQTRAVELPOST,
+	        SEQMEMBER,
+	        CONTENT,
+	        CREATEDATE,
+	        UPDATEDATE,
+	        STATUS
+	    ) VALUES (
+	        SEQTRAVELCOMMENT.NEXTVAL,
+	        #{seqTravelPost},
+	        #{seqMember},
+	        #{content},
+	        SYSDATE,
+	        SYSDATE,
+	        'NORMAL'
+	    )
+	</insert>
+	
+	<!-- Travel 댓글 수정 -->
+	<update id="travelEdit" parameterType="com.tripto.dto.TravelCommentDTO">
+	    UPDATE TRAVEL_COMMENT
+	    SET CONTENT = #{content},
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</update>
+	
+	<!-- Travel 댓글 삭제 -->
+	<update id="travelDelete" parameterType="int">
+	    UPDATE TRAVEL_COMMENT
+	    SET STATUS = 'DELETED',
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</update>
+	
+	<!-- Travel 댓글 작성자 번호 조회 -->
+	<select id="getTravelWriterSeq" parameterType="int" resultType="int">
+	    SELECT SEQMEMBER
+	    FROM TRAVEL_COMMENT
+	    WHERE SEQTRAVELCOMMENT = #{seqTravelComment}
+	      AND STATUS = 'NORMAL'
+	</select>
+
+</mapper>
