@@ -1,15 +1,13 @@
 package com.tripto.controller;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,18 +19,39 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.tripto.dto.MemberDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.service.CommentService;
+import com.tripto.service.MemberService;
 import com.tripto.service.TravelPostService;
 
 @Controller
 public class TravelPostController {
 
-    @Autowired
-    private TravelPostService service;
+    private final TravelPostService service;
+    private final CommentService commentService;
+    private final MemberService memberService;
 
-    @Autowired
-    private CommentService commentService;
+    public TravelPostController(TravelPostService service,
+                                CommentService commentService,
+                                MemberService memberService) {
+        this.service = service;
+        this.commentService = commentService;
+        this.memberService = memberService;
+    }
+
+    private MemberDTO getLoginMember() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+
+        String loggedInId = auth.getName();
+
+        return memberService.getMemberById(loggedInId);
+    }
 
     // 게시글 목록
     @GetMapping("/travel/list.do")
@@ -40,14 +59,7 @@ public class TravelPostController {
             @RequestParam(required = false, defaultValue = "") String category,
             @RequestParam(required = false, defaultValue = "") String searchWord,
             @RequestParam(required = false, defaultValue = "1") int page,
-            Model model,
-            HttpSession session) {
-
-        // 로그인 체크 추가
-		/*
-		 * if (session.getAttribute("seqMember") == null) { return
-		 * "redirect:/member/login.do"; }
-		 */
+            Model model) {
 
         TravelPostDTO dto = new TravelPostDTO();
         dto.setCategory(category);
@@ -70,15 +82,18 @@ public class TravelPostController {
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("searchWord", searchWord);
+        model.addAttribute("category", category);
 
         return "travel/list";
     }
 
     // 글쓰기 화면
     @GetMapping("/travel/write.do")
-    public String write(Model model, HttpSession session) {
+    public String write() {
 
-        if (session.getAttribute("seqMember") == null) {
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
@@ -89,16 +104,15 @@ public class TravelPostController {
     @PostMapping("/travel/write.do")
     public String writeOk(TravelPostDTO dto,
                           HttpServletRequest req,
-                          HttpSession session,
                           RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        dto.setSeqMember(seqMember);
+        dto.setSeqMember(loginMember.getSeqMember());
 
         int result = service.add(dto, req);
 
@@ -114,8 +128,7 @@ public class TravelPostController {
     // 상세보기
     @GetMapping("/travel/detail.do")
     public String detail(@RequestParam int seqTravelPost,
-                         Model model,
-                         HttpSession session) {
+                         Model model) {
 
         TravelPostDTO dto = service.get(seqTravelPost, true);
 
@@ -123,16 +136,23 @@ public class TravelPostController {
             return "redirect:/travel/list.do";
         }
 
-        int currentSeqMember = 1;
-        boolean isAdmin = false;
-        boolean isWriter = true;
+        MemberDTO loginMember = getLoginMember();
+
+        boolean isLogin = loginMember != null;
+
+        boolean isWriter = isLogin
+                && Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+
+        boolean isAdmin = isLogin
+                && "ADMIN".equals(loginMember.getGrade());
 
         model.addAttribute("dto", dto);
         model.addAttribute("locationList", service.locationListByTravelPost(seqTravelPost));
-        model.addAttribute("isWriter", isWriter);
-
         model.addAttribute("commentList", commentService.travelList(seqTravelPost));
-        model.addAttribute("currentSeqMember", currentSeqMember);
+
+        model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);
+        model.addAttribute("isLogin", isLogin);
+        model.addAttribute("isWriter", isWriter);
         model.addAttribute("isAdmin", isAdmin);
 
         return "travel/detail";
@@ -142,16 +162,27 @@ public class TravelPostController {
     @GetMapping("/travel/edit.do")
     public String edit(@RequestParam int seqTravelPost,
                        Model model,
-                       HttpSession session,
                        RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
         TravelPostDTO dto = service.get(seqTravelPost, false);
+
+        if (dto == null) {
+            return "redirect:/travel/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            return "redirect:/travel/detail.do?seqTravelPost=" + seqTravelPost;
+        }
 
         model.addAttribute("dto", dto);
 
@@ -162,18 +193,31 @@ public class TravelPostController {
     @PostMapping("/travel/edit.do")
     public String editOk(TravelPostDTO dto,
                          HttpServletRequest req,
-                         HttpSession session,
                          RedirectAttributes rttr) throws Exception {
 
         req.setCharacterEncoding("UTF-8");
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        dto.setSeqMember(seqMember);
+        TravelPostDTO originDto = service.get(dto.getSeqTravelPost(), false);
+
+        if (originDto == null) {
+            return "redirect:/travel/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(originDto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
+            return "redirect:/travel/detail.do?seqTravelPost=" + dto.getSeqTravelPost();
+        }
+
+        dto.setSeqMember(loginMember.getSeqMember());
 
         int result = service.edit(dto, req);
 
@@ -189,13 +233,26 @@ public class TravelPostController {
     // 삭제
     @PostMapping("/travel/delete.do")
     public String delete(@RequestParam int seqTravelPost,
-                         HttpSession session,
                          RedirectAttributes rttr) {
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
+        }
+
+        TravelPostDTO dto = service.get(seqTravelPost, false);
+
+        if (dto == null) {
+            return "redirect:/travel/list.do";
+        }
+
+        boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        if (!isWriter && !isAdmin) {
+            rttr.addFlashAttribute("message", "삭제 권한이 없습니다.");
+            return "redirect:/travel/detail.do?seqTravelPost=" + seqTravelPost;
         }
 
         int result = service.delete(seqTravelPost);
@@ -212,20 +269,18 @@ public class TravelPostController {
     // 이미지 업로드
     @PostMapping("/travel/imageUpload.do")
     @ResponseBody
-    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file,
-                                           HttpSession session) {
+    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file) {
 
         Map<String, Object> result = new HashMap<>();
 
-        Integer seqMember = (Integer) session.getAttribute("seqMember");
+        MemberDTO loginMember = getLoginMember();
 
-        if (seqMember == null) {
+        if (loginMember == null) {
             result.put("error", "login");
             return result;
         }
 
         try {
-
             Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
                     "cloud_name", "df2o0mjgj",
                     "api_key", "154321363337894",
@@ -243,6 +298,7 @@ public class TravelPostController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            result.put("error", "upload");
         }
 
         return result;

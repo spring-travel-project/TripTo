@@ -152,38 +152,48 @@
                     </div>
 
                     <div class="travel-detail-action-right">
-                        <form method="post"
-                              action="${cp}/report/add.do"
-                              onsubmit="return confirm('이 동행 게시글을 신고하시겠습니까?');">
-
-                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                            <input type="hidden" name="targetType" value="TRAVEL">
-                            <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
-
-                            <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-report">
-                                신고
-                            </button>
-                        </form>
-
-                        <c:if test="${isWriter}">
-                            <a href="${cp}/travel/edit.do?seqTravelPost=${dto.seqTravelPost}"
-                               class="btn-travel-outline btn-travel-sm">
-                                수정
-                            </a>
-
-                            <form method="post"
-                                  action="${cp}/travel/delete.do"
-                                  class="travel-delete-form"
-                                  onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
-
-                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                <input type="hidden" name="seqTravelPost" value="${dto.seqTravelPost}">
-
-                                <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-danger">
-                                    삭제
-                                </button>
-                            </form>
-                        </c:if>
+                        <!-- 신고 버튼: 작성자가 아닐 때만 -->
+						<c:if test="${!isWriter}">
+						    <form method="post"
+						          action="${cp}/report/add.do"
+						          class="travel-report-form"
+						          onsubmit="return confirm('이 게시글을 신고하시겠습니까?');">
+						
+						        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+						        <input type="hidden" name="targetType" value="TRAVEL">
+						        <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
+						
+						        <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-warning">
+						            신고
+						        </button>
+						    </form>
+						</c:if>
+						
+						
+						<!-- 수정 버튼: 작성자만 -->
+						<c:if test="${isWriter}">
+						    <a href="${cp}/travel/edit.do?seqTravelPost=${dto.seqTravelPost}"
+						       class="btn-travel-outline btn-travel-sm">
+						        수정
+						    </a>
+						</c:if>
+						
+						
+						<!-- 삭제 버튼: 작성자 or 관리자 -->
+						<c:if test="${isWriter or isAdmin}">
+						    <form method="post"
+						          action="${cp}/travel/delete.do"
+						          class="travel-delete-form"
+						          onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+						
+						        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+						        <input type="hidden" name="seqTravelPost" value="${dto.seqTravelPost}">
+						
+						        <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-danger">
+						            삭제
+						        </button>
+						    </form>
+						</c:if>
                     </div>
                 </div>
             </section>
