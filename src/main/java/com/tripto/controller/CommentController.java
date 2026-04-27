@@ -1,6 +1,7 @@
 package com.tripto.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,12 +21,18 @@ public class CommentController {
     @PostMapping("/comment/add.do")
     public String add(BoardCommentDTO dto,
             HttpServletRequest request,
+            HttpSession session,
             RedirectAttributes rttr) throws Exception {
 		
 		request.setCharacterEncoding("UTF-8");
 		
-		// 임시 로그인 사용자
-		dto.setSeqMember(1);
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+		dto.setSeqMember(seqMember);
 		
 		int result = service.add(dto);
 		
@@ -41,11 +48,16 @@ public class CommentController {
     @PostMapping("/comment/edit.do")
     public String edit(BoardCommentDTO dto,
                        HttpServletRequest request,
+                       HttpSession session,
                        RedirectAttributes rttr) throws Exception {
 
         request.setCharacterEncoding("UTF-8");
 
-        int currentSeqMember = 1;
+        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+
+        if (currentSeqMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         int result = service.edit(dto, currentSeqMember);
 
@@ -61,9 +73,15 @@ public class CommentController {
     @PostMapping("/comment/delete.do")
     public String delete(int seqBoardComment,
                          int seqBoardPost,
+                         HttpSession session,
                          RedirectAttributes rttr) {
 
-        int currentSeqMember = 1;
+        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+
+        if (currentSeqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
         boolean isAdmin = false;
 
         int result = service.delete(seqBoardComment, currentSeqMember, isAdmin);
@@ -80,11 +98,18 @@ public class CommentController {
     @PostMapping("/travel/comment/add.do")
     public String travelAdd(TravelCommentDTO dto,
                             HttpServletRequest request,
+                            HttpSession session,
                             RedirectAttributes rttr) throws Exception {
 
     	request.setCharacterEncoding("UTF-8");
     	
-        dto.setSeqMember(1);
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        dto.setSeqMember(seqMember);
 
         int result = service.travelAdd(dto);
 
@@ -106,11 +131,16 @@ public class CommentController {
     @PostMapping("/travel/comment/edit.do")
     public String travelEdit(TravelCommentDTO dto,
                              HttpServletRequest request,
+                             HttpSession session,
                              RedirectAttributes rttr) throws Exception {
 
         request.setCharacterEncoding("UTF-8");
 
-        int currentSeqMember = 1;
+        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+
+        if (currentSeqMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         int result = service.travelEdit(dto, currentSeqMember);
 
@@ -126,9 +156,15 @@ public class CommentController {
     @PostMapping("/travel/comment/delete.do")
     public String travelDelete(int seqTravelComment,
                                int seqTravelPost,
+                               HttpSession session,
                                RedirectAttributes rttr) {
 
-        int currentSeqMember = 1;
+        Integer currentSeqMember = (Integer) session.getAttribute("seqMember");
+
+        if (currentSeqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
         boolean isAdmin = false;
 
         int result = service.travelDelete(seqTravelComment, currentSeqMember, isAdmin);

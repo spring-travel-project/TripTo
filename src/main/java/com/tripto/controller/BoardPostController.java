@@ -39,7 +39,14 @@ public class BoardPostController {
             @RequestParam(required = false, defaultValue = "") String category,
             @RequestParam(required = false, defaultValue = "") String searchWord,
             @RequestParam(required = false, defaultValue = "1") int page,
-            Model model) {
+            Model model,
+            HttpSession session) {
+
+        // 로그인 체크 추가
+		/*
+		 * if (session.getAttribute("seqMember") == null) { return
+		 * "redirect:/member/login.do"; }
+		 */
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -73,12 +80,9 @@ public class BoardPostController {
     @GetMapping("/board/write.do")
     public String write(Model model, HttpSession session) {
 
-        // 로그인 체크 (현재 비활성화)
-        /*
         if (session.getAttribute("seqMember") == null) {
             return "redirect:/member/login.do";
         }
-        */
 
         model.addAttribute("categoryList", service.categoryList());
         return "board/write";
@@ -91,8 +95,6 @@ public class BoardPostController {
                           HttpSession session,
                           RedirectAttributes rttr) {
 
-        // 로그인 체크 (현재 비활성화)
-        /*
         Integer seqMember = (Integer) session.getAttribute("seqMember");
 
         if (seqMember == null) {
@@ -100,10 +102,6 @@ public class BoardPostController {
         }
 
         dto.setSeqMember(seqMember);
-        */
-
-        // 테스트용 사용자
-        dto.setSeqMember(1);
 
         int result = service.add(dto, req);
 
@@ -128,7 +126,6 @@ public class BoardPostController {
             return "redirect:/board/list.do";
         }
 
-        // 테스트용
         int currentSeqMember = 1;
         boolean isAdmin = false;
         boolean isWriter = true;
@@ -136,7 +133,6 @@ public class BoardPostController {
         model.addAttribute("dto", dto);
         model.addAttribute("isWriter", isWriter);
 
-        // 댓글
         model.addAttribute("commentList", commentService.list(seqBoardPost));
         model.addAttribute("currentSeqMember", currentSeqMember);
         model.addAttribute("isAdmin", isAdmin);
@@ -150,6 +146,12 @@ public class BoardPostController {
                        Model model,
                        HttpSession session,
                        RedirectAttributes rttr) {
+
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         BoardPostDTO dto = service.get(seqBoardPost, false);
 
@@ -168,7 +170,13 @@ public class BoardPostController {
 
         req.setCharacterEncoding("UTF-8");
 
-        dto.setSeqMember(1);
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        dto.setSeqMember(seqMember);
 
         int result = service.edit(dto, req);
 
@@ -184,7 +192,14 @@ public class BoardPostController {
     // 삭제
     @PostMapping("/board/delete.do")
     public String delete(@RequestParam int seqBoardPost,
+                         HttpSession session,
                          RedirectAttributes rttr) {
+
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         int result = service.delete(seqBoardPost);
 
@@ -200,9 +215,17 @@ public class BoardPostController {
     // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
-    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file) {
+    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file,
+                                           HttpSession session) {
 
         Map<String, Object> result = new HashMap<>();
+
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            result.put("error", "login");
+            return result;
+        }
 
         try {
 
