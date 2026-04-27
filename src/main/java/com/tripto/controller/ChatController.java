@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.service.ChatService;
+import com.tripto.service.MemberService;
 import com.tripto.dto.RoutineDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.PollContentDTO;
@@ -29,18 +30,21 @@ public class ChatController {
 
     @Autowired
     private ChatService chatService;
-
+    private MemberService memberService;
+    
     @GetMapping("/chat/list")
     public String list(
             @RequestParam(value = "roomId", required = false) Integer roomId,
             @RequestParam(value = "category", required = false) Integer category,
             Model model) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
     	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         List<ChatRoomDTO> roomList = chatService.getRoomList(loginUserId, roomId, category);
 
@@ -79,11 +83,13 @@ public class ChatController {
             @RequestParam("message") String message,
             @RequestParam(value = "category", required = false) Integer category) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
-    	} 
+    	}
+
+    	int loginUserId = loginMember.getSeqMember(); 
 
         chatService.insertMessage(roomId, loginUserId, message);
 
@@ -99,7 +105,9 @@ public class ChatController {
     public Map<String, Object> exitRoom(
             @RequestParam("roomId") int roomId) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
+
+    	int loginUserId = loginMember.getSeqMember();
 
         boolean result = chatService.exitRoom(roomId, loginUserId);
 
@@ -114,11 +122,13 @@ public class ChatController {
             @RequestParam("roomId") int roomId,
             Model model) {
 
-        Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-        if (loginUserId == null) {
-            return "redirect:/member/login.do";
-        }
+    	if (loginMember == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
         List<PollDTO> pollList = chatService.getPollList(roomId);
@@ -146,11 +156,13 @@ public class ChatController {
             PollDTO dto,
             @RequestParam("pollContents") List<String> pollContents) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
     	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         dto.setSeqMember(loginUserId);
 
@@ -181,11 +193,13 @@ public class ChatController {
             @RequestParam("pollId") int pollId,
             @RequestParam("pollContentId") int pollContentId) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
     	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         chatService.votePoll(pollId, pollContentId, loginUserId);
 
@@ -197,11 +211,13 @@ public class ChatController {
             @RequestParam("roomId") int roomId,
             @RequestParam("pollId") int pollId) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
     	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         chatService.deletePoll(pollId, loginUserId);
 
@@ -221,11 +237,13 @@ public class ChatController {
     @PostMapping("/chat/routine/write")
     public String routineWriteOk(RoutineDTO dto) {
 
-    	Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-    	if (loginUserId == null) {
+    	if (loginMember == null) {
     	    return "redirect:/member/login.do";
     	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         dto.setSeqMember(loginUserId);
 
@@ -240,11 +258,13 @@ public class ChatController {
             @RequestParam("routineId") int routineId,
             Model model) {
 
-        Integer loginUserId = getLoginUserSeq();
+    	MemberDTO loginMember = getLoginMember();
 
-        if (loginUserId == null) {
-            return "redirect:/member/login.do";
-        }
+    	if (loginMember == null) {
+    	    return "redirect:/member/login.do";
+    	}
+
+    	int loginUserId = loginMember.getSeqMember();
 
         RoutineDTO routine = chatService.getRoutineDetail(routineId);
 
@@ -255,7 +275,7 @@ public class ChatController {
         return "chat/routineDetail";
     }
     
-    private Integer getLoginUserSeq() {
+    private MemberDTO getLoginMember() {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -265,13 +285,7 @@ public class ChatController {
 
         String loggedInId = auth.getName();
 
-        MemberDTO loginUser = memberService.getMemberById(loggedInId);
-
-        if (loginUser == null) {
-            return null;
-        }
-
-        return loginUser.getSeqMember();
+        return memberService.getMemberById(loggedInId);
     }
     
  // 🌟 매칭 프로필에서 1:1 채팅 시작하기

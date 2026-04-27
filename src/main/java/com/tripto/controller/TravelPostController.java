@@ -60,6 +60,12 @@ public class TravelPostController {
             @RequestParam(required = false, defaultValue = "") String searchWord,
             @RequestParam(required = false, defaultValue = "1") int page,
             Model model) {
+    	
+    	MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         TravelPostDTO dto = new TravelPostDTO();
         dto.setCategory(category);
