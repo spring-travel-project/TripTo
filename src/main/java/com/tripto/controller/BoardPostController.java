@@ -144,10 +144,17 @@ public class BoardPostController {
         MemberDTO loginMember = getLoginMember();
 
         boolean isLogin = loginMember != null;
+
         boolean isWriter = isLogin
                 && Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
-        boolean isAdmin = isLogin
-                && "ADMIN".equals(loginMember.getGrade());
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = auth != null
+                && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getPrincipal())
+                && auth.getAuthorities().stream()
+                        .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
 
         model.addAttribute("dto", dto);
         model.addAttribute("commentList", commentService.list(seqBoardPost));
@@ -179,7 +186,7 @@ public class BoardPostController {
         }
 
         boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
-        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
 
         if (!isWriter && !isAdmin) {
             rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
@@ -213,7 +220,7 @@ public class BoardPostController {
         }
 
         boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(originDto.getSeqMember());
-        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
 
         if (!isWriter && !isAdmin) {
             rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
@@ -251,7 +258,14 @@ public class BoardPostController {
         }
 
         boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
-        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = auth != null
+                && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getPrincipal())
+                && auth.getAuthorities().stream()
+                        .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
 
         if (!isWriter && !isAdmin) {
             rttr.addFlashAttribute("message", "삭제 권한이 없습니다.");

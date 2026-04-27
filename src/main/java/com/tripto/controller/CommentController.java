@@ -102,7 +102,7 @@ public class CommentController {
         }
 
         int currentSeqMember = loginMember.getSeqMember();
-        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
 
         int result = service.delete(seqBoardComment, currentSeqMember, isAdmin);
 
@@ -185,7 +185,7 @@ public class CommentController {
         }
 
         int currentSeqMember = loginMember.getSeqMember();
-        boolean isAdmin = "ADMIN".equals(loginMember.getGrade());
+        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
 
         int result = service.travelDelete(seqTravelComment, currentSeqMember, isAdmin);
 
