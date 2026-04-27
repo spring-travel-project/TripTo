@@ -314,4 +314,63 @@ public class ChatController {
         return "redirect:/chat/list?roomId=" + roomId + "&category=1";
     }
     
+    @PostMapping("/chat/routine/delete")
+    public String deleteRoutine(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("routineId") int routineId) {
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        int loginUserId = loginMember.getSeqMember();
+
+        chatService.deleteRoutine(routineId, loginUserId);
+
+        return "redirect:/chat/schedulePoll?roomId=" + roomId;
+    }
+    
+    @GetMapping("/chat/routine/edit")
+    public String routineEdit(
+            @RequestParam("roomId") int roomId,
+            @RequestParam("routineId") int routineId,
+            Model model) {
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        RoutineDTO routine = chatService.getRoutineDetail(routineId);
+
+        if (routine == null || routine.getSeqMember() != loginMember.getSeqMember()) {
+            return "redirect:/chat/schedulePoll?roomId=" + roomId;
+        }
+
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("routine", routine);
+
+        return "chat/routineEdit";
+    }
+
+    @PostMapping("/chat/routine/edit")
+    public String routineEditOk(RoutineDTO dto) {
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        chatService.updateRoutine(dto, loginMember.getSeqMember());
+
+        return "redirect:/chat/routine/detail?roomId="
+                + dto.getSeqChattingroom()
+                + "&routineId="
+                + dto.getSeq();
+    }
+    
 }

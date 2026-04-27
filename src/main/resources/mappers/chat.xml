@@ -405,5 +405,18 @@
 	    VALUES (seqUserChat.NEXTVAL, #{roomId}, #{userId}, 0, 1)
 	</insert>
 	
+	<delete id="deleteRoutine" parameterType="int">
+	    DELETE FROM routine
+	    WHERE seq = #{routineId}
+	</delete>
+	
+	<update id="updateRoutine" parameterType="com.tripto.dto.RoutineDTO">
+	    UPDATE routine
+	    SET
+	        title = #{title},
+	        detail = #{detail}
+	    WHERE seq = #{seq}
+	</update>
+	
 	
 </mapper>
