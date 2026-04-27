@@ -280,7 +280,7 @@
 		const chatMessageList = document.getElementById('chatMessageList');
 	
 		const selectedRoomId = '${selectedRoomId}';
-		const loginUserId = '${loginUserId}';
+		model.addAttribute("loginUserId", loginUserId);
 		const contextPath = '${pageContext.request.contextPath}';
 		
 		const exitBtn = document.getElementById('exitRoomBtn');

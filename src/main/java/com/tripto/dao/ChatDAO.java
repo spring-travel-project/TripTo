@@ -105,4 +105,8 @@ public class ChatDAO {
         return template.insert("chat.insertRoutine", dto);
     }
     
+    public RoutineDTO getRoutineDetail(int routineId) {
+        return template.selectOne("chat.getRoutineDetail", routineId);
+    }
+    
 }

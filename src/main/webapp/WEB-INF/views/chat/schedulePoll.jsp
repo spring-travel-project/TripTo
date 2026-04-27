@@ -45,7 +45,8 @@
 						<c:choose>
 							<c:when test="${not empty routineList}">
 								<c:forEach items="${routineList}" var="routine">
-									<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+									<a href="${pageContext.request.contextPath}/chat/routine/detail?roomId=${roomId}&routineId=${routine.seq}"
+   									class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
 										<div class="flex items-start justify-between gap-3 mb-4">
 											<div class="min-w-0">
 												<div class="flex items-center gap-2 mb-2 flex-wrap">
@@ -79,7 +80,7 @@
 												</p>
 											</div>
 										</div>
-									</div>
+									</a>
 								</c:forEach>
 							</c:when>
 

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMessageDTO;
@@ -211,5 +212,10 @@ public class ChatService {
 
         return chatDAO.insertRoutine(dto) == 1;
     }
+    
+    public RoutineDTO getRoutineDetail(int routineId) {
+        return chatDAO.getRoutineDetail(routineId);
+    }
+    
     
 }
