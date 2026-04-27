@@ -23,39 +23,39 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
             <div class="lg:col-span-5 sticky top-12">
-			    <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
-			        
-			        <div class="h-[550px] w-full bg-white flex items-center justify-center">
-			            <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty target.pic ? 'pic.png' : target.pic}" 
-			                 class="w-4/5 h-4/5 object-contain rounded-2xl">
-			        </div>
-			        
-			        <div class="p-10 text-center">
-			            <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-100 text-slate-600 font-bold text-sm mb-4">
-			                <span>${target.gender == 0 ? 'MALE' : 'FEMALE'}</span>
-			                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-			                <span>${target.age} AGE</span>
-			            </div>
-			            <h1 class="text-5xl font-black text-slate-900 mb-8 tracking-tight">${target.nickname}</h1>
-			            
-			            <button class="w-full bg-blue-600 text-white py-6 rounded-2xl font-bold text-xl hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3"
-			                    onclick="location.href='${pageContext.request.contextPath}/chat/start?targetSeq=${target.seqMember}'">
-			                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-			                    <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.14 6.337.408 1.92.25 3.413 1.874 3.413 3.826v6.016c0 1.952-1.493 3.576-3.413 3.826-1.077.14-2.162.24-3.26.298-.318.016-.612.183-.796.45L10.5 20.59V18.11c0-.402-.34-.727-.75-.75a48.384 48.384 0 01-4.837-.527c-1.92-.25-3.413-1.874-3.413-3.826V6.484c0-1.952 1.493-3.576 3.413-3.826z" />
-			                </svg>
-			                채팅 신청하기
-			            </button>
-			
-			            <button class="mt-6 w-full flex items-center justify-center gap-2 text-slate-400 hover:text-red-500 font-bold transition-all group"
-			                    onclick="reportUser('${target.seqMember}', '${target.nickname}')">
-			                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 group-hover:animate-pulse">
-			                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 010-5.715l-3.114.732a9 9 0 01-6.086-.71l-.108-.054a9 9 0 00-6.208-.682L3 10.5V15z" />
-			                </svg>
-			                이 사용자 신고하기
-			            </button>
-			        </div>
-			    </div>
-			</div>
+                <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+                    
+                    <div class="h-[550px] w-full bg-white flex items-center justify-center">
+                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty target.pic ? 'pic.png' : target.pic}" 
+                             class="w-4/5 h-4/5 object-contain rounded-2xl">
+                    </div>
+                    
+                    <div class="p-10 text-center">
+                        <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-100 text-slate-600 font-bold text-sm mb-4">
+                            <span>${target.gender == 0 ? 'MALE' : 'FEMALE'}</span>
+                            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                            <span>${target.age} AGE</span>
+                        </div>
+                        <h1 class="text-5xl font-black text-slate-900 mb-8 tracking-tight">${target.nickname}</h1>
+                        
+                        <button class="w-full bg-blue-600 text-white py-6 rounded-2xl font-bold text-xl hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3"
+                                onclick="location.href='${pageContext.request.contextPath}/chat/start?targetSeq=${target.seqMember}'">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+                                <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.14 6.337.408 1.92.25 3.413 1.874 3.413 3.826v6.016c0 1.952-1.493 3.576-3.413 3.826-1.077.14-2.162.24-3.26.298-.318.016-.612.183-.796.45L10.5 20.59V18.11c0-.402-.34-.727-.75-.75a48.384 48.384 0 01-4.837-.527c-1.92-.25-3.413-1.874-3.413-3.826V6.484c0-1.952 1.493-3.576 3.413-3.826z" />
+                            </svg>
+                            채팅 신청하기
+                        </button>
+            
+                        <button class="mt-6 w-full flex items-center justify-center gap-2 text-slate-400 hover:text-red-500 font-bold transition-all group"
+                                onclick="reportUser('${target.seqMember}', '${target.nickname}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 group-hover:animate-pulse">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 010-5.715l-3.114.732a9 9 0 01-6.086-.71l-.108-.054a9 9 0 00-6.208-.682L3 10.5V15z" />
+                            </svg>
+                            이 사용자 신고하기
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="lg:col-span-7">
                 <div class="bg-white rounded-[2.5rem] border border-slate-200 p-12 shadow-sm">
@@ -151,29 +151,61 @@
                             <p class="text-xl font-bold text-slate-700">${empty me.languageNames ? '🔒' : target.languageNames}</p>
                         </div>
 
-                    </div>                   
+                    </div>                    
                 </div>
             </div>
         </div>
     </main>
-</body>
 
-<script>
-    function reportUser(seq, nickname) {
-        // 본인 신고 방지 로직 (필요시 세션값과 비교)
-        // if(seq == '${sessionScope.seqMember}') { alert('본인을 신고할 수 없습니다.'); return; }
+    <script>
+        // 🌟 서버(ReportController)에서 넘어온 완료/실패 메시지 띄우기
+        const alertMessage = '${message}';
+        if (alertMessage) {
+            alert(alertMessage);
+        }
 
-        if (confirm("[" + nickname + "] 사용자를 부적절한 활동으로 신고하시겠습니까?")) {
-            // 신고 사유를 입력받는 간단한 prompt 창
-            const reason = prompt('신고 사유를 입력해주세요.');
-            
-            if (reason) {
-                // 실제 신고 처리를 위한 서블릿/컨트롤러 호출
-                location.href = "${pageContext.request.contextPath}/member/report?targetSeq=" + seq + "&reason=" + encodeURIComponent(reason);
-            } else if (reason === "") {
-                alert('신고 사유를 반드시 입력해야 합니다.');
+        function reportUser(seq, nickname) {
+            // 본인 신고 방지 로직 (실제 서비스 시 아래 주석 해제하여 사용)
+            /*
+            const mySeq = '${sessionScope.seqMember}'; 
+            if(seq == mySeq) { 
+                alert('본인을 신고할 수 없습니다. 😅'); 
+                return; 
+            }
+            */
+
+            if (confirm("[" + nickname + "] 사용자를 부적절한 활동으로 신고하시겠습니까?")) {
+                
+                // 🌟 자바스크립트로 숨겨진 Form을 만들어서 POST 방식으로 컨트롤러에 전송
+                let form = document.createElement('form');
+                form.action = '${pageContext.request.contextPath}/report/add.do';
+                form.method = 'POST';
+                
+                let csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '${_csrf.parameterName}';
+                csrfInput.value = '${_csrf.token}';
+                form.appendChild(csrfInput);
+
+                // targetType = 'USER' 인풋 생성
+                let inputTargetType = document.createElement('input');
+                inputTargetType.type = 'hidden';
+                inputTargetType.name = 'targetType';
+                inputTargetType.value = 'USER';
+                form.appendChild(inputTargetType);
+
+                // seqTarget = 대상 회원 번호 인풋 생성
+                let inputSeqTarget = document.createElement('input');
+                inputSeqTarget.type = 'hidden';
+                inputSeqTarget.name = 'seqTarget';
+                inputSeqTarget.value = seq;
+                form.appendChild(inputSeqTarget);
+
+                // 바디에 폼을 붙이고 바로 전송
+                document.body.appendChild(form);
+                form.submit();
             }
         }
-    }
-</script>
+    </script>
+</body>
 </html>
