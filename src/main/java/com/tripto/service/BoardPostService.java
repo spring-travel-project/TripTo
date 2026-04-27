@@ -16,9 +16,6 @@ import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
 import com.tripto.dto.BoardPostFileDTO;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Service
 public class BoardPostService {
 

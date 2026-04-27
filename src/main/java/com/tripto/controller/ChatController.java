@@ -14,22 +14,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.MemberDTO;
+import com.tripto.dto.PollContentDTO;
+import com.tripto.dto.PollDTO;
+import com.tripto.dto.RoutineDTO;
 import com.tripto.service.ChatService;
 import com.tripto.service.MemberService;
-import com.tripto.dto.RoutineDTO;
-import com.tripto.dto.PollDTO;
-import com.tripto.dto.PollContentDTO;
-import com.tripto.dto.MemberDTO;
 
 @Controller
 public class ChatController {
 
     @Autowired
     private ChatService chatService;
+    @Autowired
     private MemberService memberService;
     
     @GetMapping("/chat/list")
@@ -292,22 +292,25 @@ public class ChatController {
     @GetMapping("/chat/start")
     public String startChat(@RequestParam("targetSeq") int targetSeq) {
 
-        // 1. 내 로그인 번호 확인
-        Integer loginUserId = getLoginUserSeq();
+        // 1. 옛날 이름 말고, 태훈님이 새로 만든 getLoginMember() 사용!
+        MemberDTO loginMember = getLoginMember();
         
-        if (loginUserId == null) {
+        if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        // 2. 나 자신에게 채팅을 거는 경우 튕겨내기 (방어 코드)
+        // 2. DTO에서 진짜 내 번호(int) 꺼내기
+        int loginUserId = loginMember.getSeqMember();
+
+        // 3. 나 자신에게 채팅을 거는 경우 튕겨내기
         if (loginUserId == targetSeq) {
             return "redirect:/matching/detail?seqMember=" + targetSeq;
         }
 
-        // 3. 서비스 호출: 기존 방이 있으면 가져오고, 없으면 방 + 참여자 생성 후 방 번호 리턴
+        // 4. 서비스 호출 (기존 방 찾기 or 새 방 만들기)
         int roomId = chatService.createOrGetMatchingChatRoom(loginUserId, targetSeq);
 
-        // 4. 찾은(또는 생성된) 방으로 리다이렉트 이동! (카테고리 1 = 매칭)
+        // 5. 방으로 이동
         return "redirect:/chat/list?roomId=" + roomId + "&category=1";
     }
     

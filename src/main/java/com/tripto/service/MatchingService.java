@@ -2,7 +2,9 @@ package com.tripto.service;
 
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.stereotype.Service;
+
 import com.tripto.dao.MatchingDAO;
 import com.tripto.dto.MatchDTO;
 
@@ -11,22 +13,22 @@ public class MatchingService {
 
     private final MatchingDAO matchingDAO;
 
-    // »ý¼ºÀÚ ÁÖÀÔ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     public MatchingService(MatchingDAO matchingDAO) {
         this.matchingDAO = matchingDAO;
     }
 
-    // 1. ³» ÇÁ·ÎÇÊ Á¤º¸ °¡Á®¿À±â (MBTI µî ¸ÂÃã Å¥·¹ÀÌ¼Ç¿ë)
+    // 1. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (MBTI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ï¿½Ì¼Ç¿ï¿½)
     public MatchDTO getMyProfile(Integer loginSeq) {
         return matchingDAO.getMyProfile(loginSeq);
     }
 
-    // 2. ¸ÅÄªµÈ È¸¿ø ¸ñ·Ï °¡Á®¿À±â (ÇÊÅÍ Á¶°Ç ¹× ·Î±×ÀÎ À¯Àú Á¤º¸ Æ÷ÇÔ)
+    // 2. ï¿½ï¿½Äªï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     public List<MatchDTO> getMatchingList(Map<String, Object> params) {
         return matchingDAO.getMatchingList(params);
     }
     
- // 3. »ó¼¼ ÇÁ·ÎÇÊ °¡Á®¿À±â (´ÜÀÏ Å¬·¡½º ¸Þ¼­µå)
+ // 3. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½)
     public MatchDTO getMatchDetail(Map<String, Integer> map) {
     return matchingDAO.getMatchDetail(map);
     }

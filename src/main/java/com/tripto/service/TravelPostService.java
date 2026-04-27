@@ -17,9 +17,6 @@ import com.tripto.dto.LocationDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.dto.TravelPostFileDTO;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Service
 public class TravelPostService {
 

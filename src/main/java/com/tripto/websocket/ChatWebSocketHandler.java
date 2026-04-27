@@ -1,9 +1,14 @@
 package com.tripto.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tripto.dto.ChatMessageDTO;
-import com.tripto.dto.ChatSocketMessageDTO;
-import com.tripto.service.ChatService;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -11,9 +16,10 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tripto.dto.ChatMessageDTO;
+import com.tripto.dto.ChatSocketMessageDTO;
+import com.tripto.service.ChatService;
 
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -23,7 +29,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // roomId º° Á¢¼Ó ¼¼¼Ç ¸ñ·Ï
+    // roomId ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     private final Map<Integer, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
 
     // sessionId -> roomId
@@ -31,7 +37,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // ¿¬°á¸¸ ¿Ï·á. ½ÇÁ¦ room µî·ÏÀº Ã¹ ENTER ¸Þ½ÃÁö¿¡¼­ Ã³¸®
+        // ï¿½ï¿½ï¿½á¸¸ ï¿½Ï·ï¿½. ï¿½ï¿½ï¿½ï¿½ room ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¹ ENTER ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
     }
 
     @Override
@@ -87,7 +93,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             ChatSocketMessageDTO response = new ChatSocketMessageDTO();
             response.setType("EXIT");
             response.setRoomId(roomId);
-            response.setMessage("ÇÑ ¸íÀÌ Ã¤ÆÃ¹æÀ» ³ª°¬½À´Ï´Ù.");
+            response.setMessage("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Ã¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
             String json = objectMapper.writeValueAsString(response);
             broadcastToRoom(roomId, json);
