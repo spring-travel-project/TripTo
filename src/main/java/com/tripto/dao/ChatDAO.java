@@ -126,4 +126,12 @@ public class ChatDAO {
         template.insert("chat.insertUserChat", map);
     }
     
+    public int deleteRoutine(int routineId) {
+        return template.delete("chat.deleteRoutine", routineId);
+    }
+    
+    public int updateRoutine(RoutineDTO dto) {
+        return template.update("chat.updateRoutine", dto);
+    }
+    
 }

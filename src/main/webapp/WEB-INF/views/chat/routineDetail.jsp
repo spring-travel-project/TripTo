@@ -105,15 +105,25 @@
 			<!-- 하단 버튼 -->
 			<c:if test="${routine.seqMember == loginUserId}">
 				<div class="flex justify-end gap-3">
-					<a href="#"
+					<a href="${pageContext.request.contextPath}/chat/routine/edit?roomId=${roomId}&routineId=${routine.seq}"
 					   class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-100 transition">
-						수정
+					    수정
 					</a>
 
-					<a href="#"
-					   class="px-5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition">
-						삭제
-					</a>
+					<form method="post"
+					      action="${pageContext.request.contextPath}/chat/routine/delete"
+					      onsubmit="return confirm('정말 이 일정을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.');">
+					
+					    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+					
+					    <input type="hidden" name="roomId" value="${roomId}">
+					    <input type="hidden" name="routineId" value="${routine.seq}">
+					
+					    <button type="submit"
+					            class="px-5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition">
+					        일정 삭제
+					    </button>
+					</form>
 				</div>
 			</c:if>
 

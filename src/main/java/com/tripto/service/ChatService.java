@@ -254,4 +254,46 @@ public class ChatService {
         return newRoomId; // 🌟 최종적으로 새로 만들어진 방 번호를 리턴
     }
     
+    public boolean deleteRoutine(int routineId, int loginUserId) {
+
+        RoutineDTO routine = chatDAO.getRoutineDetail(routineId);
+
+        if (routine == null) {
+            return false;
+        }
+
+        // 작성자만 삭제 가능
+        if (routine.getSeqMember() != loginUserId) {
+            return false;
+        }
+
+        return chatDAO.deleteRoutine(routineId) == 1;
+    }
+    
+    public boolean updateRoutine(RoutineDTO dto, int loginUserId) {
+
+        RoutineDTO origin = chatDAO.getRoutineDetail(dto.getSeq());
+
+        if (origin == null) {
+            return false;
+        }
+
+        if (origin.getSeqMember() != loginUserId) {
+            return false;
+        }
+
+        if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
+            return false;
+        }
+
+        if (dto.getDetail() == null || dto.getDetail().trim().isEmpty()) {
+            return false;
+        }
+
+        dto.setTitle(dto.getTitle().trim());
+        dto.setDetail(dto.getDetail().trim());
+
+        return chatDAO.updateRoutine(dto) == 1;
+    }
+    
 }
