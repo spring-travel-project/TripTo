@@ -196,12 +196,15 @@
 	        height: '700px',
 	        initialEditType: 'wysiwyg',
 	        previewStyle: 'vertical',
-	        initialValue: originContent,
+	        initialValue: '',
+
+	        // 🔥 여기 추가
 	        hooks: {
 	            addImageBlobHook: async (blob, callback) => {
+
 	                const formData = new FormData();
 	                formData.append('attach', blob);
-	
+
 	                const response = await fetch('${cp}/travel/imageUpload.do', {
 	                    method: 'POST',
 	                    headers: {
@@ -209,13 +212,9 @@
 	                    },
 	                    body: formData
 	                });
-	
-	                if (!response.ok) {
-	                    alert('이미지 업로드 실패');
-	                    return;
-	                }
-	
+
 	                const result = await response.json();
+
 	                callback(result.url, '이미지');
 	            }
 	        }

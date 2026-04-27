@@ -147,26 +147,21 @@
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
         initialValue: '',
+
+        // 🔥 여기 추가
         hooks: {
             addImageBlobHook: async (blob, callback) => {
+
                 const formData = new FormData();
                 formData.append('attach', blob);
-
-                const csrfHeader = '${_csrf.headerName}';
-                const csrfToken = '${_csrf.token}';
 
                 const response = await fetch('${cp}/travel/imageUpload.do', {
                     method: 'POST',
                     headers: {
-                        [csrfHeader]: csrfToken
+                        'X-CSRF-TOKEN': '${_csrf.token}'
                     },
                     body: formData
                 });
-
-                if (!response.ok) {
-                    alert('이미지 업로드 실패');
-                    return;
-                }
 
                 const result = await response.json();
 

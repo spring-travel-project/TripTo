@@ -197,16 +197,19 @@ public class BoardPostController {
         }
     }
 
-    // 이미지 업로드
+ // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
-    public Map<String, String> imageUpload(@RequestParam("file") MultipartFile file,
+    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file,
                                            HttpServletRequest req) {
 
-        Map<String, String> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
 
         try {
-            String uploadPath = req.getServletContext().getRealPath("/resources/upload/board");
+        	String uploadPath = req.getServletContext()
+        	        .getRealPath("/resources/img/travel");
+        	
+        	System.out.println("uploadPath = " + uploadPath);
 
             File dir = new File(uploadPath);
             if (!dir.exists()) {
@@ -222,10 +225,11 @@ public class BoardPostController {
 
             String savedName = UUID.randomUUID().toString() + ext;
 
-            File target = new File(dir, savedName);
-            file.transferTo(target);
+            File saveFile = new File(uploadPath, savedName);
+            file.transferTo(saveFile);
 
-            String url = req.getContextPath() + "/resources/upload/board/" + savedName;
+            String url = req.getContextPath() + "/resources/img/travel/" + savedName;
+
             result.put("url", url);
 
         } catch (Exception e) {

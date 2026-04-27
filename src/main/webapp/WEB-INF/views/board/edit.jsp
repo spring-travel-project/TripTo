@@ -82,28 +82,27 @@
 	        height: '700px',
 	        initialEditType: 'wysiwyg',
 	        previewStyle: 'vertical',
-	        initialValue: document.getElementById('originContent').value,
+	        initialValue: '',
+
+	        // 🔥 여기 추가
 	        hooks: {
-	        	addImageBlobHook: async (blob, callback) => {
-	        	    const formData = new FormData();
-	        	    formData.append('file', blob);
+	            addImageBlobHook: async (blob, callback) => {
 
-	        	    const response = await fetch('${cp}/board/imageUpload.do', {
-	        	        method: 'POST',
-	        	        headers: {
-	        	            'X-CSRF-TOKEN': csrfToken
-	        	        },
-	        	        body: formData
-	        	    });
+	                const formData = new FormData();
+	                formData.append('attach', blob);
 
-	        	    if (!response.ok) {
-	        	        alert('이미지 업로드 실패');
-	        	        return;
-	        	    }
+	                const response = await fetch('${cp}/board/imageUpload.do', {
+	                    method: 'POST',
+	                    headers: {
+	                        'X-CSRF-TOKEN': '${_csrf.token}'
+	                    },
+	                    body: formData
+	                });
 
-	        	    const result = await response.json();
-	        	    callback(result.url, '이미지');
-	        	}
+	                const result = await response.json();
+
+	                callback(result.url, '이미지');
+	            }
 	        }
 	    });
 	
