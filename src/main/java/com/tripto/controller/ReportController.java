@@ -1,5 +1,7 @@
 package com.tripto.controller;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,10 +17,15 @@ public class ReportController {
     private ReportService service;
 
     @PostMapping("/report/add.do")
-    public String add(ReportDTO dto, RedirectAttributes rttr) {
+    public String add(ReportDTO dto, HttpSession session, RedirectAttributes rttr) {
 
-        // 임시 로그인 사용자
-        dto.setSeqMember(1);
+        Integer seqMember = (Integer) session.getAttribute("seqMember");
+
+        if (seqMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        dto.setSeqMember(seqMember);
 
         int result = service.add(dto);
 
