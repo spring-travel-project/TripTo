@@ -1,5 +1,7 @@
 package com.tripto.controller;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication; // 🌟 추가: 시큐리티 인증 정보
 import org.springframework.security.core.context.SecurityContextHolder; // 🌟 추가: 시큐리티 금고
@@ -23,10 +25,10 @@ public class ReportController {
     private MemberService memberService; 
 
     @PostMapping("/report/add.do")
-    public String add(ReportDTO dto, RedirectAttributes rttr) {
+    public String add(ReportDTO dto, HttpSession session, RedirectAttributes rttr) {
 
         // 1. 스프링 시큐리티 금고에서 현재 로그인한 사람의 인증서(Authentication) 꺼내기
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         // 2. 방어 코드: 로그인이 안 되어 있거나 익명 사용자(anonymousUser)인 경우 튕겨내기
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
