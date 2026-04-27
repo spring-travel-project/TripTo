@@ -61,6 +61,12 @@ public class BoardPostController {
             @RequestParam(required = false, defaultValue = "") String searchWord,
             @RequestParam(required = false, defaultValue = "1") int page,
             Model model) {
+    	
+    	MemberDTO loginMember = getLoginMember();
+    	
+    	if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
         BoardPostDTO dto = new BoardPostDTO();
         dto.setCategory(category);
@@ -95,7 +101,7 @@ public class BoardPostController {
     public String write(Model model) {
 
         MemberDTO loginMember = getLoginMember();
-
+        
         if (loginMember == null) {
             return "redirect:/member/login.do";
         }
