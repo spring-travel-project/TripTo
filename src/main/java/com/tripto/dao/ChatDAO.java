@@ -134,4 +134,8 @@ public class ChatDAO {
         return template.update("chat.updateRoutine", dto);
     }
     
+    public int insertLocation(RoutineDTO dto) {
+        return template.insert("chat.insertLocation", dto);
+    }
+    
 }

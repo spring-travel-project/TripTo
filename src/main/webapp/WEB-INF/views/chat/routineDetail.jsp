@@ -59,6 +59,18 @@
 				<p class="text-sm text-slate-700 leading-7 whitespace-pre-line">
 					<c:out value="${routine.detail}" />
 				</p>
+				
+				<c:if test="${not empty routine.placeName}">
+					<div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
+						<p class="text-sm font-semibold text-slate-700 mb-1">목적지</p>
+						<p class="text-base font-bold text-slate-900">
+							<c:out value="${routine.placeName}" />
+						</p>
+						<p class="text-sm text-slate-500 mt-1">
+							<c:out value="${routine.address}" />
+						</p>
+					</div>
+				</c:if>
 
 				<!-- 첨부파일 표시 영역 -->
 				<c:if test="${not empty fileList}">

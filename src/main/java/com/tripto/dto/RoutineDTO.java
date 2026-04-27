@@ -17,6 +17,12 @@ public class RoutineDTO {
     private String writerNickname;
     private String regdateText;
     private String dDayText;
+    
+    private String placeName;
+    private String address;
+    private Double latitude;
+    private Double longitude;
+    private String mapProviderId;
 
     public int getSeq() {
         return seq;
@@ -112,5 +118,45 @@ public class RoutineDTO {
 
     public void setdDayText(String dDayText) {
         this.dDayText = dDayText;
+    }
+    
+    public String getPlaceName() {
+        return placeName;
+    }
+
+    public void setPlaceName(String placeName) {
+        this.placeName = placeName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getMapProviderId() {
+        return mapProviderId;
+    }
+
+    public void setMapProviderId(String mapProviderId) {
+        this.mapProviderId = mapProviderId;
     }
 }
