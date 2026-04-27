@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mainRecommend">
+
+    <select id="mainList" resultType="com.tripto.dto.MainRecommendDTO">
+        SELECT
+            seqMainRecommend,
+            targetType,
+            seqTarget,
+            activeYn,
+            createdDate,
+            title,
+            content,
+            thumbnail,
+            detailUrl
+        FROM (
+            SELECT
+                mr.seqMainRecommend AS seqMainRecommend,
+                mr.targetType AS targetType,
+                mr.seqTarget AS seqTarget,
+                mr.activeYn AS activeYn,
+                TO_CHAR(mr.createdDate, 'YYYY-MM-DD') AS createdDate,
+                tp.title AS title,
+                tp.content AS content,
+                tp.thumbnailUrl AS thumbnail,
+                '/travel/detail.do?seqTravelPost=' || tp.seqTravelPost AS detailUrl
+            FROM main_recommend mr
+            INNER JOIN travel_post tp
+                ON mr.targetType = 'TRAVEL'
+               AND mr.seqTarget = tp.seqTravelPost
+            WHERE mr.activeYn = 'Y'
+
+            UNION ALL
+
+            SELECT
+                mr.seqMainRecommend AS seqMainRecommend,
+                mr.targetType AS targetType,
+                mr.seqTarget AS seqTarget,
+                mr.activeYn AS activeYn,
+                TO_CHAR(mr.createdDate, 'YYYY-MM-DD') AS createdDate,
+                bp.title AS title,
+                bp.content AS content,
+                bp.thumbnailUrl AS thumbnail,
+                '/board/detail.do?seqBoardPost=' || bp.seqBoardPost AS detailUrl
+            FROM main_recommend mr
+            INNER JOIN board_post bp
+                ON mr.targetType = 'BOARD'
+               AND mr.seqTarget = bp.seqBoardPost
+            WHERE mr.activeYn = 'Y'
+        )
+        ORDER BY createdDate DESC
+    </select>
+    
+    <select id="isRecommended" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM main_recommend
+	    WHERE targetType = #{targetType}
+	      AND seqTarget = #{seqTarget}
+	      AND activeYn = 'Y'
+	</select>
+	
+	<select id="existsRecommend" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM main_recommend
+	    WHERE targetType = #{targetType}
+	      AND seqTarget = #{seqTarget}
+	</select>
+	
+	<insert id="addRecommend" parameterType="map">
+	    INSERT INTO main_recommend (
+	        seqMainRecommend,
+	        targetType,
+	        seqTarget,
+	        activeYn,
+	        createdDate
+	    ) VALUES (
+	        SEQMAINRECOMMEND.NEXTVAL,
+	        #{targetType},
+	        #{seqTarget},
+	        'Y',
+	        SYSDATE
+	    )
+	</insert>
+	
+	<update id="activeRecommend" parameterType="map">
+	    UPDATE main_recommend
+	    SET activeYn = 'Y'
+	    WHERE targetType = #{targetType}
+	      AND seqTarget = #{seqTarget}
+	</update>
+	
+	<update id="removeRecommend" parameterType="map">
+	    UPDATE main_recommend
+	    SET activeYn = 'N'
+	    WHERE targetType = #{targetType}
+	      AND seqTarget = #{seqTarget}
+	</update>
+
+</mapper>

@@ -3,6 +3,8 @@ package com.tripto.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,6 +26,7 @@ import com.tripto.dto.BoardPostDTO;
 import com.tripto.dto.MemberDTO;
 import com.tripto.service.BoardPostService;
 import com.tripto.service.CommentService;
+import com.tripto.service.MainRecommendService;
 import com.tripto.service.MemberService;
 
 @Controller
@@ -32,13 +35,16 @@ public class BoardPostController {
     private final BoardPostService service;
     private final CommentService commentService;
     private final MemberService memberService;
+    private final MainRecommendService mainRecommendService;
 
     public BoardPostController(BoardPostService service,
                                CommentService commentService,
-                               MemberService memberService) {
+                               MemberService memberService,
+                               MainRecommendService mainRecommendService) {
         this.service = service;
         this.commentService = commentService;
         this.memberService = memberService;
+        this.mainRecommendService = mainRecommendService;
     }
 
     private MemberDTO getLoginMember() {
@@ -52,6 +58,22 @@ public class BoardPostController {
         String loggedInId = auth.getName();
 
         return memberService.getMemberById(loggedInId);
+    }
+    
+    private String extractFirstImageUrl(String content) {
+
+        if (content == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']");
+        Matcher matcher = pattern.matcher(content);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
     // 게시글 목록
@@ -124,6 +146,7 @@ public class BoardPostController {
         }
 
         dto.setSeqMember(loginMember.getSeqMember());
+        dto.setThumbnailUrl(extractFirstImageUrl(dto.getContent()));
 
         int result = service.add(dto, req);
 
@@ -162,6 +185,8 @@ public class BoardPostController {
                 && auth.getAuthorities().stream()
                         .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
 
+        boolean isRecommended = mainRecommendService.isRecommended("BOARD", seqBoardPost);
+
         model.addAttribute("dto", dto);
         model.addAttribute("commentList", commentService.list(seqBoardPost));
 
@@ -169,6 +194,7 @@ public class BoardPostController {
         model.addAttribute("isWriter", isWriter);
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);
+        model.addAttribute("isRecommended", isRecommended);
 
         return "board/detail";
     }
@@ -234,6 +260,7 @@ public class BoardPostController {
         }
 
         dto.setSeqMember(loginMember.getSeqMember());
+        dto.setThumbnailUrl(extractFirstImageUrl(dto.getContent()));
 
         int result = service.edit(dto, req);
 

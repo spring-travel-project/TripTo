@@ -3,6 +3,8 @@ package com.tripto.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,6 +24,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dto.MemberDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.service.CommentService;
+import com.tripto.service.MainRecommendService;
 import com.tripto.service.MemberService;
 import com.tripto.service.TravelPostService;
 
@@ -31,13 +34,16 @@ public class TravelPostController {
     private final TravelPostService service;
     private final CommentService commentService;
     private final MemberService memberService;
+    private final MainRecommendService mainRecommendService;
 
     public TravelPostController(TravelPostService service,
                                 CommentService commentService,
-                                MemberService memberService) {
+                                MemberService memberService,
+                                MainRecommendService mainRecommendService) {
         this.service = service;
         this.commentService = commentService;
         this.memberService = memberService;
+        this.mainRecommendService = mainRecommendService;
     }
 
     private MemberDTO getLoginMember() {
@@ -51,6 +57,22 @@ public class TravelPostController {
         String loggedInId = auth.getName();
 
         return memberService.getMemberById(loggedInId);
+    }
+    
+    private String extractFirstImageUrl(String content) {
+
+        if (content == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']");
+        Matcher matcher = pattern.matcher(content);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
     // 게시글 목록
@@ -119,6 +141,7 @@ public class TravelPostController {
         }
 
         dto.setSeqMember(loginMember.getSeqMember());
+        dto.setThumbnailUrl(extractFirstImageUrl(dto.getContent()));
 
         int result = service.add(dto, req);
 
@@ -135,6 +158,9 @@ public class TravelPostController {
     @GetMapping("/travel/detail.do")
     public String detail(@RequestParam int seqTravelPost,
                          Model model) {
+    	
+    	boolean isRecommended = mainRecommendService.isRecommended("TRAVEL", seqTravelPost);
+    	model.addAttribute("isRecommended", isRecommended);
 
         TravelPostDTO dto = service.get(seqTravelPost, true);
 
