@@ -1,10 +1,8 @@
 package com.tripto.controller;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dto.BoardCategoryDTO;
 import com.tripto.dto.BoardPostDTO;
 import com.tripto.service.BoardPostService;
@@ -197,38 +197,27 @@ public class BoardPostController {
         }
     }
 
- // 이미지 업로드
+    // 이미지 업로드
     @PostMapping("/board/imageUpload.do")
     @ResponseBody
-    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file,
-                                           HttpServletRequest req) {
+    public Map<String, Object> imageUpload(@RequestParam("attach") MultipartFile file) {
 
         Map<String, Object> result = new HashMap<>();
 
         try {
-        	String uploadPath = req.getServletContext()
-        	        .getRealPath("/resources/img/travel");
-        	
-        	System.out.println("uploadPath = " + uploadPath);
 
-            File dir = new File(uploadPath);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+            		"cloud_name", "df2o0mjgj",
+                    "api_key", "154321363337894",
+                    "api_secret", "Z3WzpCWRQ4tBgwXQ-J1lYZc44XU"
+            ));
 
-            String originalName = file.getOriginalFilename();
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.emptyMap()
+            );
 
-            String ext = "";
-            if (originalName != null && originalName.lastIndexOf(".") != -1) {
-                ext = originalName.substring(originalName.lastIndexOf("."));
-            }
-
-            String savedName = UUID.randomUUID().toString() + ext;
-
-            File saveFile = new File(uploadPath, savedName);
-            file.transferTo(saveFile);
-
-            String url = req.getContextPath() + "/resources/img/travel/" + savedName;
+            String url = uploadResult.get("secure_url").toString();
 
             result.put("url", url);
 
