@@ -54,5 +54,10 @@
                 ref="bcryptPasswordEncoder" />
         </security:authentication-provider>
     </security:authentication-manager>
+    
+    
 
 </beans>
+
+
+

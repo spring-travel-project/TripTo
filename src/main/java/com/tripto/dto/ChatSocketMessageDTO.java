@@ -8,8 +8,27 @@ public class ChatSocketMessageDTO {
     private String nickname;
     private String message;
     private String messageTime;
+    
+    private Integer seqFile;
+    private String savedName;
 
-    public String getType() {
+    public Integer getSeqFile() {
+		return seqFile;
+	}
+
+	public void setSeqFile(Integer seqFile) {
+		this.seqFile = seqFile;
+	}
+
+	public String getSavedName() {
+		return savedName;
+	}
+
+	public void setSavedName(String savedName) {
+		this.savedName = savedName;
+	}
+
+	public String getType() {
         return type;
     }
 

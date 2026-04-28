@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
@@ -371,6 +372,37 @@ public class ChatController {
                 + dto.getSeqChattingroom()
                 + "&routineId="
                 + dto.getSeq();
+    }
+    
+    @PostMapping("/chat/uploadFile.do")
+    @ResponseBody
+    public Map<String, Object> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("roomId") int roomId) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            MemberDTO loginMember = getLoginMember();
+            if (loginMember == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+
+            // ChatService에 만들어둔 uploadChatFile 호출
+            int seqFile = chatService.uploadChatFile(file, loginMember.getSeqMember(), roomId);
+            
+            response.put("success", true);
+            response.put("seqFile", seqFile); // DB에 저장된 파일 번호를 JSP로 돌려줌
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "파일 업로드 실패");
+        }
+        
+        return response;
     }
     
 }

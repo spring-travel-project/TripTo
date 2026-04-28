@@ -1,11 +1,14 @@
 package com.tripto.service;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMessageDTO;
@@ -73,31 +76,37 @@ public class ChatService {
         return chatDAO.insertMessage(dto) == 1;
     }
     
-    public ChatMessageDTO saveSocketMessage(int roomId, int seqMember, String message) {
-
-        if (message == null || message.trim().isEmpty()) {
-            return null;
-        }
-
+ // 🌟 기존 메서드를 지우고 이 코드로 덮어씌우세요.
+    public ChatMessageDTO saveSocketMessage(int roomId, int seqMember, String message, Integer seqFile) {
+        
         ChatMessageDTO dto = new ChatMessageDTO();
         dto.setSeqMember(seqMember);
         dto.setSeqChattingroom(roomId);
-        dto.setDetail(message.trim());
+        dto.setSeqFile(seqFile);
 
-        int result = chatDAO.insertMessage(dto);
-
-        if (result != 1) {
-            return null;
+        // 🌟 이 부분이 핵심입니다!
+        // 메시지가 없거나 공백뿐인데 사진(seqFile)이 있다면, 공백 한 칸(" ")을 넣어 NULL 에러를 방지합니다.
+        if ((message == null || message.trim().isEmpty()) && seqFile != null) {
+            dto.setDetail(" "); // 빈 값이 아니라 공백 문자 하나를 넣음
+        } else {
+            dto.setDetail(message);
         }
 
-        ChatMessageDTO saved = new ChatMessageDTO();
-        saved.setSeq(dto.getSeq());
-        saved.setSeqMember(seqMember);
-        saved.setSeqChattingroom(roomId);
-        saved.setDetail(message.trim());
-        saved.setNickname(chatDAO.getNicknameByMemberId(seqMember));
-        saved.setMine(false);
+        // 1. 메시지 저장
+        int result = chatDAO.insertMessage(dto);
+        if (result != 1) return null;
 
+        // 2. 응답 데이터 구성
+        ChatMessageDTO saved = new ChatMessageDTO();
+        saved.setNickname(chatDAO.getNicknameByMemberId(seqMember));
+        saved.setDetail(dto.getDetail());
+        saved.setSeqFile(seqFile);
+        saved.setSeqMember(seqMember);
+
+        if (seqFile != null && seqFile > 0) {
+            saved.setSavedName(chatDAO.getFileNameBySeq(seqFile));
+        }
+        
         return saved;
     }
     
@@ -303,6 +312,44 @@ public class ChatService {
         }
 
         return chatDAO.updateRoutine(dto) == 1;
+    }
+    
+    public int uploadChatFile(MultipartFile file, int seqMember, int roomId) {
+        // 🌟 1. 파일을 저장할 경로 (태훈님 설정에 맞게 수정하세요)
+    	String uploadPath = "C:\\upload\\chat"; 
+        
+        // 폴더가 없으면 생성
+        File dir = new File(uploadPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        try {
+            // 🌟 2. 파일명 중복 방지를 위한 이름 변경 (UUID 사용)
+            String orgName = file.getOriginalFilename();
+            String extension = orgName.substring(orgName.lastIndexOf("."));
+            String savedName = UUID.randomUUID().toString() + extension;
+
+            // 🌟 3. 하드디스크에 파일 물리적 저장
+            File target = new File(uploadPath, savedName);
+            file.transferTo(target);
+
+            // 🌟 4. DB(FILES 테이블)에 정보 insert를 위해 Map 생성
+            Map<String, Object> map = new HashMap<>();
+            map.put("orgName", orgName);
+            map.put("savedName", savedName);
+            map.put("filePath", "/upload/chat/" + savedName); // 웹에서 접근할 경로
+
+            // chat.xml의 insertChatFile 호출 (selectKey로 인해 seqFile이 map에 담김)
+            chatDAO.insertChatFile(map);
+
+            // 🌟 5. 생성된 파일 번호(seqFile) 리턴
+            return (int) map.get("seqFile");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1; // 실패 시 -1 리턴
+        }
     }
     
     

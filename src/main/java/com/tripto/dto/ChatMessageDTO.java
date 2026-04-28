@@ -11,6 +11,17 @@ public class ChatMessageDTO {
     private String nickname;
     private int seqMember;
     private boolean mine;
+    
+
+    public String getSavedName() {
+		return savedName;
+	}
+
+	public void setSavedName(String savedName) {
+		this.savedName = savedName;
+	}
+
+	private String savedName;
 
     public int getSeq() {
         return seq;

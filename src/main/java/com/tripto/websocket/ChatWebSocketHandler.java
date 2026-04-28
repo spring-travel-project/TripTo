@@ -57,32 +57,46 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+     // 🌟 handleTextMessage 메서드 내의 TALK 부분만 교체하세요!
         if ("TALK".equals(socketMessage.getType())) {
-            Integer roomId = socketMessage.getRoomId();
-            Integer seqMember = socketMessage.getSeqMember();
-            String message = socketMessage.getMessage();
+            try { // 🛡️ 1차 방어막: 메시지 처리 전체를 감쌉니다.
+                Integer roomId = socketMessage.getRoomId();
+                Integer seqMember = socketMessage.getSeqMember();
+                String message = socketMessage.getMessage();
+                Integer seqFile = socketMessage.getSeqFile(); // 🌟 프론트에서 보낸 파일번호
 
-            if (roomId == null || seqMember == null || message == null || message.trim().isEmpty()) {
-                return;
+                if (roomId == null || seqMember == null) return;
+
+                // 🌟 서비스 호출 (에러가 나기 쉬운 DB 구간이므로 한 번 더 감싸기)
+                ChatMessageDTO saved = null;
+                try {
+                    saved = chatService.saveSocketMessage(roomId, seqMember, message, seqFile);
+                } catch (Exception e) {
+                    System.err.println("❌ DB 저장 중 에러 발생 (이모티콘/용량 등): " + e.getMessage());
+                    // 여기서 에러가 나도 아래 response 전송 로직으로 가지 않게 saved는 null 유지
+                }
+
+                if (saved != null) {
+                    ChatSocketMessageDTO response = new ChatSocketMessageDTO();
+                    response.setType("TALK");
+                    response.setRoomId(roomId);
+                    response.setSeqMember(seqMember);
+                    response.setNickname(saved.getNickname());
+                    response.setMessage(saved.getDetail());
+                    response.setSeqFile(saved.getSeqFile());
+                    response.setSavedName(saved.getSavedName()); // 🌟 사진 출력을 위해 파일명 세팅!
+                    response.setMessageTime(new SimpleDateFormat("HH:mm").format(new Date()));
+
+                    String json = objectMapper.writeValueAsString(response);
+                    broadcastToRoom(roomId, json);
+                }
+            } catch (Exception e) {
+                // 🛡️ 2차 방어막: 여기서 에러를 잡아줘야 '두 번째 메시지' 전송 시 소켓이 안 끊깁니다!
+                System.err.println("❌ 핸들러 치명적 에러: " + e.getMessage());
+                e.printStackTrace();
             }
-
-            ChatMessageDTO saved = chatService.saveSocketMessage(roomId, seqMember, message);
-
-            if (saved == null) {
-                return;
-            }
-
-            ChatSocketMessageDTO response = new ChatSocketMessageDTO();
-            response.setType("TALK");
-            response.setRoomId(roomId);
-            response.setSeqMember(seqMember);
-            response.setNickname(saved.getNickname());
-            response.setMessage(saved.getDetail());
-            response.setMessageTime(new SimpleDateFormat("HH:mm").format(new Date()));
-
-            String json = objectMapper.writeValueAsString(response);
-            broadcastToRoom(roomId, json);
         }
+        
         if ("EXIT".equals(socketMessage.getType())) {
 
             Integer roomId = socketMessage.getRoomId();
