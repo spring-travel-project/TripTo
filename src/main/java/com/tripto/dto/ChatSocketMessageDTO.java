@@ -9,6 +9,17 @@ public class ChatSocketMessageDTO {
     private String message;
     private String messageTime;
     
+    private int unreadCount;
+    
+
+    public int getUnreadCount() {
+		return unreadCount;
+	}
+
+	public void setUnreadCount(int unreadCount) {
+		this.unreadCount = unreadCount;
+	}
+    
     private Integer seqFile;
     private String savedName;
 

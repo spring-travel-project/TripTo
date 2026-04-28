@@ -87,18 +87,23 @@
 	    SELECT 
 	        cl.seq,
 	        cl.detail,
+	        cl.seqMember,
+	        cl.seqChattingroom,
 	        cl.regdate,
-	        TO_CHAR(cl.regdate, 'HH24:MI') AS messageTime,
+	        TO_CHAR(cl.regdate, 'HH24:MI') as messageTime,
 	        m.nickname,
-	        m.seqMember,
-	        f.savedName,  CASE 
-	            WHEN m.seqMember = #{loginUserId} THEN 1 
+	        f.savedName,
+	        (SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = cl.seqChattingroom) 
+	        - (SELECT COUNT(*) FROM chat_read_status WHERE seqChatLog = cl.seq) - 1 AS unreadCount,
+	        CASE 
+	            WHEN cl.seqMember = #{loginUserId} THEN 1 
 	            ELSE 0 
-	        END AS mine
+	        END as mine
 	    FROM chat_log cl
-	        INNER JOIN member m ON cl.seqMember = m.seqMember
-	        LEFT JOIN FILES f ON cl.seqFile = f.seq  WHERE cl.seqChattingroom = #{roomId}
-	    ORDER BY cl.regdate ASC, cl.seq ASC
+	    JOIN member m ON cl.seqMember = m.seqMember
+	    LEFT JOIN FILES f ON cl.seqFile = f.seq
+	    WHERE cl.seqChattingroom = #{roomId}
+	    ORDER BY cl.seq ASC
 	</select>
     
     <select id="getNicknameByMemberId" parameterType="int" resultType="string">
@@ -510,6 +515,22 @@
 	      AND dDay IS NOT NULL
 	      AND TRUNC(dDay) &lt; TRUNC(SYSDATE)
 	</update>
+	
+	<insert id="insertReadStatus" parameterType="map">
+	    INSERT INTO chat_read_status (seq, seqMember, seqChatLog)
+	    SELECT seqChatReadStatus.NEXTVAL, #{loginUserId}, cl.seq
+	    FROM chat_log cl
+	    WHERE cl.seqChattingroom = #{roomId} 
+	      AND cl.seqMember != #{loginUserId}  AND cl.seq NOT IN (
+	          SELECT seqChatLog 
+	          FROM chat_read_status 
+	          WHERE seqMember = #{loginUserId}
+	      )
+	</insert>
+	
+	<select id="getRoomMemberCount" parameterType="int" resultType="int">
+	    SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = #{roomId}
+	</select>
 
 	
 </mapper>
