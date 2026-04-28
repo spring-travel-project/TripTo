@@ -177,12 +177,23 @@ public class ChatController {
             @RequestParam("pollId") int pollId,
             Model model) {
 
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        int loginUserId = loginMember.getSeqMember();
+
         PollDTO poll = chatService.getPollDetail(pollId);
         List<PollContentDTO> pollContentList = chatService.getPollContentList(pollId);
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("poll", poll);
         model.addAttribute("pollContentList", pollContentList);
+
+       
+        model.addAttribute("loginUserId", loginUserId);
 
         return "chat/pollDetail";
     }

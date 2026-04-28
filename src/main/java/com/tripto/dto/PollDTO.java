@@ -18,6 +18,9 @@ public class PollDTO {
     private String pollEnddateInput;
     
     private int totalParticipantCount;
+    
+    private String pollStatusText;
+    private int pollClosed;
 
     public int getSeq() {
         return seq;
@@ -107,5 +110,20 @@ public class PollDTO {
         this.totalParticipantCount = totalParticipantCount;
     }
 
+    public String getPollStatusText() {
+        return pollStatusText;
+    }
+
+    public void setPollStatusText(String pollStatusText) {
+        this.pollStatusText = pollStatusText;
+    }
+
+    public int getPollClosed() {
+        return pollClosed;
+    }
+
+    public void setPollClosed(int pollClosed) {
+        this.pollClosed = pollClosed;
+    }
     
 }

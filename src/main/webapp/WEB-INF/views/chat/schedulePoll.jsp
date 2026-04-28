@@ -63,9 +63,20 @@
 												</p>
 											</div>
 
-											<span class="text-xs text-slate-400 whitespace-nowrap">
-												<c:out value="${routine.regdateText}" />
-											</span>
+											<div class="text-xs text-slate-400 whitespace-nowrap text-right">
+											    <p>작성일 <c:out value="${routine.regdateText}" /></p>
+											    <p>
+											        종료일
+											        <c:choose>
+											            <c:when test="${not empty routine.dDayDateText}">
+											                <c:out value="${routine.dDayDateText}" />
+											            </c:when>
+											            <c:otherwise>
+											                미정
+											            </c:otherwise>
+											        </c:choose>
+											    </p>
+											</div>
 										</div>
 
 										<div class="flex gap-4">
@@ -120,9 +131,18 @@
 														<c:out value="${poll.pollTitle}" />
 													</h3>
 
-													<span class="inline-flex items-center rounded-full bg-violet-100 text-violet-700 text-xs font-medium px-2 py-0.5">
-														진행중
-													</span>
+													<c:choose>
+													    <c:when test="${poll.pollClosed == 1}">
+													        <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-600 text-xs font-medium px-2 py-0.5">
+													            종료
+													        </span>
+													    </c:when>
+													    <c:otherwise>
+													        <span class="inline-flex items-center rounded-full bg-violet-100 text-violet-700 text-xs font-medium px-2 py-0.5">
+													            진행중
+													        </span>
+													    </c:otherwise>
+													</c:choose>
 												</div>
 
 												<p class="text-sm text-slate-500">
