@@ -213,7 +213,7 @@ public class ChatService {
             return false;
         }
 
-        int seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
+        Integer seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
 
         dto.setSeqTravelPost(seqTravelPost);
         dto.setTitle(dto.getTitle().trim());

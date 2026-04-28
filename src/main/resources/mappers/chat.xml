@@ -375,7 +375,7 @@
 	        #{seq},
 	        #{seqMember},
 	        #{seqChattingroom},
-	        #{seqTravelPost},
+	        #{seqTravelPost, jdbcType=NUMERIC},
 	        #{seqLocation, jdbcType=NUMERIC},
 	        #{title},
 	        #{detail},
