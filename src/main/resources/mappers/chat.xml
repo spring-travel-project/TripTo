@@ -155,14 +155,17 @@
 	        TO_CHAR(r.detail) AS detail,
 	        r.regdate,
 	        r.dDay,
+	        r.status,
+	        TO_CHAR(r.dDay, 'YYYY-MM-DD') AS dDayDateText,
 	        m.nickname AS writerNickname,
 	        TO_CHAR(r.regdate, 'MM-DD') AS regdateText,
 	        CASE
-	            WHEN r.dDay IS NULL THEN '예정'
-	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
-	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
-	            ELSE '종료'
-	        END AS dDayText,
+			    WHEN r.status = 1 THEN '종료'
+			    WHEN r.dDay IS NULL THEN '예정'
+			    WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
+			    WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
+			    ELSE '종료'
+			END AS dDayText,
 	        l.placeName,
 	        l.address,
 	        l.latitude,
@@ -187,6 +190,17 @@
 	        p.polldetail,
 	        m.nickname AS writerNickname,
 	        TO_CHAR(p.pollEnddate, 'MM-DD HH24:MI') AS enddateText,
+	        
+	        CASE
+	            WHEN p.pollEnddate &lt; SYSDATE THEN '종료'
+	            ELSE '진행중'
+	        END AS pollStatusText,
+	
+	        CASE
+	            WHEN p.pollEnddate &lt; SYSDATE THEN 1
+	            ELSE 0
+	        END AS pollClosed,
+	        
 	        NVL(pr.participantCount, 0) AS participantCount
 	    FROM poll p
 	        INNER JOIN member m
@@ -250,6 +264,17 @@
 	        p.polldetail,
 	        m.nickname AS writerNickname,
 	        TO_CHAR(p.pollEnddate, 'YYYY-MM-DD HH24:MI') AS enddateText,
+	        
+	        CASE
+	            WHEN p.pollEnddate &lt; SYSDATE THEN '종료'
+	            ELSE '진행중'
+	        END AS pollStatusText,
+	
+	        CASE
+	            WHEN p.pollEnddate &lt; SYSDATE THEN 1
+	            ELSE 0
+	        END AS pollClosed,
+	        
 	        NVL(pr.totalParticipantCount, 0) AS totalParticipantCount
 	    FROM poll p
 	        INNER JOIN member m
@@ -351,11 +376,11 @@
 	        #{seqMember},
 	        #{seqChattingroom},
 	        #{seqTravelPost},
-	        #{seqLocation},
+	        #{seqLocation, jdbcType=NUMERIC},
 	        #{title},
 	        #{detail},
 	        SYSDATE,
-	        NULL
+	        #{dDay, jdbcType=DATE}
 	    )
 	</insert>
 	
@@ -370,14 +395,17 @@
 	        TO_CHAR(r.detail) AS detail,
 	        r.regdate,
 	        r.dDay,
+	        r.status,
+	        TO_CHAR(r.dDay, 'YYYY-MM-DD') AS dDayDateText,
 	        m.nickname AS writerNickname,
 	        TO_CHAR(r.regdate, 'YYYY-MM-DD HH24:MI') AS regdateText,
 	        CASE
-	            WHEN r.dDay IS NULL THEN '예정'
-	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
-	            WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
-	            ELSE '종료'
-	        END AS dDayText,
+			    WHEN r.status = 1 THEN '종료'
+			    WHEN r.dDay IS NULL THEN '예정'
+			    WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) = 0 THEN 'D-DAY'
+			    WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
+			    ELSE '종료'
+			END AS dDayText,
 	
 	        l.placeName,
 	        l.address,
@@ -453,6 +481,7 @@
 	    WHERE seq = #{seq}
 	</update>
 	
+
 	<insert id="insertChatFile" parameterType="map">
 	    <selectKey keyProperty="seqFile" resultType="int" order="BEFORE">
 	        SELECT seqFile.NEXTVAL FROM dual 
@@ -468,5 +497,14 @@
 	</select>
 	
 	
+
+	<update id="updateExpiredRoutineStatus">
+	    UPDATE routine
+	    SET status = 1
+	    WHERE status = 0
+	      AND dDay IS NOT NULL
+	      AND TRUNC(dDay) &lt; TRUNC(SYSDATE)
+	</update>
+
 	
 </mapper>

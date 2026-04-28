@@ -49,7 +49,24 @@
 						rows="14"
 						class="w-full resize-none rounded-2xl border border-slate-300 bg-slate-50 px-5 py-4 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
 						required>${routine.detail}</textarea>
-						
+					
+					<div class="mt-6">
+					    <label for="dDay" class="block text-sm font-semibold text-slate-700 mb-2">
+					        종료 날짜
+					    </label>
+					
+					    <input
+					        type="date"
+					        id="dDay"
+					        name="dDayInput"
+					        value="${routine.dDayDateText}"
+					        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
+					
+					    <p class="mt-2 text-xs text-slate-400">
+					        날짜를 선택하지 않으면 종료일은 설정되지 않습니다.
+					    </p>
+					</div>
+					
 					<div>
 						<label class="block text-sm font-semibold text-slate-700 mb-2">
 							목적지 선택

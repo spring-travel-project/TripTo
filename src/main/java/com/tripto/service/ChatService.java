@@ -16,6 +16,7 @@ import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
+import java.text.SimpleDateFormat;
 
 @Service
 public class ChatService {
@@ -119,6 +120,7 @@ public class ChatService {
     }
     
     public List<RoutineDTO> getRoutineList(int roomId) {
+        chatDAO.updateExpiredRoutineStatus();
         return chatDAO.getRoutineList(roomId);
     }
 
@@ -217,6 +219,17 @@ public class ChatService {
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
 
+        // 종료 날짜 변환
+        try {
+            if (dto.getdDayInput() != null && !dto.getdDayInput().trim().isEmpty()) {
+                dto.setdDay(new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dto.getdDayInput()));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // 목적지 선택 시 location 저장
         if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
             chatDAO.insertLocation(dto);
         }
@@ -225,6 +238,7 @@ public class ChatService {
     }
     
     public RoutineDTO getRoutineDetail(int routineId) {
+        chatDAO.updateExpiredRoutineStatus();
         return chatDAO.getRoutineDetail(routineId);
     }
     
@@ -304,6 +318,17 @@ public class ChatService {
 
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
+        
+        try {
+            if (dto.getdDayInput() != null && !dto.getdDayInput().trim().isEmpty()) {
+                dto.setdDay(new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dto.getdDayInput()));
+            } else {
+                dto.setdDay(null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
 
         if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
             chatDAO.insertLocation(dto);
@@ -314,6 +339,7 @@ public class ChatService {
         return chatDAO.updateRoutine(dto) == 1;
     }
     
+
     public int uploadChatFile(MultipartFile file, int seqMember, int roomId) {
         // 🌟 1. 파일을 저장할 경로 (태훈님 설정에 맞게 수정하세요)
     	String uploadPath = "C:\\upload\\chat"; 
@@ -352,6 +378,11 @@ public class ChatService {
         }
     }
     
+
+    public void updateExpiredRoutineStatus() {
+        chatDAO.updateExpiredRoutineStatus();
+    }
+
     
     
 }
