@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.FileDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
@@ -97,7 +98,7 @@ public class ChatDAO {
         return template.delete("chat.deletePoll", pollId);
     }
     
-    public int getTravelPostSeqByRoomId(int roomId) {
+    public Integer getTravelPostSeqByRoomId(int roomId) {
         return template.selectOne("chat.getTravelPostSeqByRoomId", roomId);
     }
 
@@ -136,6 +137,18 @@ public class ChatDAO {
     
     public int insertLocation(RoutineDTO dto) {
         return template.insert("chat.insertLocation", dto);
+    }
+    
+    public int insertFile(FileDTO dto) {
+        return template.insert("chat.insertFile", dto);
+    }
+
+    public int insertRoutineFile(Map<String, Object> map) {
+        return template.insert("chat.insertRoutineFile", map);
+    }
+
+    public List<FileDTO> getRoutineFileList(int routineId) {
+        return template.selectList("chat.getRoutineFileList", routineId);
     }
     
 }

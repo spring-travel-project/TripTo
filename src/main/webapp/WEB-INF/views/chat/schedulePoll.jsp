@@ -68,17 +68,20 @@
 											</span>
 										</div>
 
-										<div class="flex gap-4">
-											<div class="w-20 h-20 rounded-xl bg-slate-200 shrink-0 flex items-center justify-center text-xs text-slate-500">
-												첨부<br>사진
-											</div>
-
-											<div class="flex-1 rounded-2xl bg-slate-100 border border-slate-200 px-5 py-4">
-												<p class="text-base font-semibold text-slate-800 mb-2">일정 내용</p>
-												<p class="text-sm text-slate-600 leading-6 whitespace-pre-line">
-													<c:out value="${routine.detail}" />
-												</p>
-											</div>
+										<div class="w-20 h-20 rounded-xl bg-slate-200 shrink-0 overflow-hidden flex items-center justify-center text-xs text-slate-500">
+										    <c:choose>
+										        <c:when test="${not empty routine.filePath}">
+										            <img src="${pageContext.request.contextPath}${routine.filePath}"
+										                 class="w-full h-full object-cover">
+										        </c:when>
+										        <c:otherwise>
+										            <div class="text-center">
+										                첨부<br>사진<br>
+										                filePath: ${routine.filePath}<br>
+										                fileType: ${routine.fileType}
+										            </div>
+										        </c:otherwise>
+										    </c:choose>
 										</div>
 									</a>
 								</c:forEach>

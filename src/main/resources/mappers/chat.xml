@@ -171,12 +171,32 @@
 	        l.address,
 	        l.latitude,
 	        l.longitude,
-	        l.mapProviderId
+	        l.mapProviderId,
+	        rf.filePath,
+	        rf.fileType
 	    FROM routine r
 	        INNER JOIN member m
 	            ON r.seqMember = m.seqMember
 	        LEFT JOIN location l
 	            ON r.seqLocation = l.seqLocation
+	        LEFT JOIN (
+	            SELECT seqRoutine, filePath, fileType
+	            FROM (
+	                SELECT
+	                    rf.seqRoutine,
+	                    f.filePath,
+	                    f.fileType,
+	                    ROW_NUMBER() OVER (
+	                        PARTITION BY rf.seqRoutine
+	                        ORDER BY rf.seq ASC
+	                    ) AS rn
+	                FROM routine_file rf
+	                    INNER JOIN files f
+	                        ON rf.seqFile = f.seq
+	            )
+	            WHERE rn = 1
+	        ) rf
+	            ON r.seq = rf.seqRoutine
 	    WHERE r.seqChattingroom = #{roomId}
 	    ORDER BY r.dDay ASC NULLS LAST, r.regdate DESC
 	</select>
@@ -387,13 +407,33 @@
 	        l.address,
 	        l.latitude,
 	        l.longitude,
-	        l.mapProviderId
+	        l.mapProviderId,
+			rf.filePath,
+			rf.fileType
 	
 	    FROM routine r
 	        INNER JOIN member m
 	            ON r.seqMember = m.seqMember
 	        LEFT JOIN location l
 	            ON r.seqLocation = l.seqLocation
+	        LEFT JOIN (
+			    SELECT seqRoutine, filePath, fileType
+			    FROM (
+			        SELECT
+			            rf.seqRoutine,
+			            f.filePath,
+			            f.fileType,
+			            ROW_NUMBER() OVER (
+			                PARTITION BY rf.seqRoutine
+			                ORDER BY rf.seq ASC
+			            ) AS rn
+			        FROM routine_file rf
+			            INNER JOIN files f
+			                ON rf.seqFile = f.seq
+			    )
+			    WHERE rn = 1
+			) rf
+			    ON r.seq = rf.seqRoutine
 	    WHERE r.seq = #{routineId}
 	</select>
 	
@@ -456,5 +496,58 @@
 	        seqLocation = #{seqLocation}
 	    WHERE seq = #{seq}
 	</update>
+	
+	<insert id="insertFile" parameterType="com.tripto.dto.FileDTO">
+	    <selectKey keyProperty="seq" resultType="int" order="BEFORE">
+	        SELECT SEQFILE.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO files (
+	        seq,
+	        originalName,
+	        savedName,
+	        filePath,
+	        fileSize,
+	        fileType,
+	        createDate
+	    ) VALUES (
+	        #{seq},
+	        #{originalName},
+	        #{savedName},
+	        #{filePath},
+	        #{fileSize},
+	        #{fileType},
+	        SYSDATE
+	    )
+	</insert>
+	
+	<insert id="insertRoutineFile" parameterType="map">
+	    INSERT INTO routine_file (
+	        seq,
+	        seqFile,
+	        seqChattingroom,
+	        seqRoutine
+	    ) VALUES (
+	        SEQROUTINEFILE.NEXTVAL,
+	        #{seqFile},
+	        #{roomId},
+	        #{seqRoutine}
+	    )
+	</insert>
+	
+	<select id="getRoutineFileList" parameterType="int" resultType="com.tripto.dto.FileDTO">
+	    SELECT
+	        f.seq,
+	        f.originalName,
+	        f.savedName,
+	        f.filePath,
+	        f.fileSize,
+	        f.fileType
+	    FROM routine_file rf
+	        INNER JOIN files f
+	            ON rf.seqFile = f.seq
+	    WHERE rf.seqRoutine = #{routineId}
+	    ORDER BY rf.seq ASC
+	</select>
 	
 </mapper>

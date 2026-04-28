@@ -60,6 +60,13 @@
 					<c:out value="${routine.detail}" />
 				</p>
 				
+				<c:forEach items="${fileList}" var="file">
+				    <c:if test="${not empty file.filePath}">
+				        <img src="${pageContext.request.contextPath}${file.filePath}"
+				             class="w-40 rounded-2xl border border-slate-200 shadow-sm">
+				    </c:if>
+				</c:forEach>
+				
 				<c:if test="${not empty routine.placeName}">
 					<div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
 						<p class="text-sm font-semibold text-slate-700 mb-1">목적지</p>
@@ -69,47 +76,6 @@
 						<p class="text-sm text-slate-500 mt-1">
 							<c:out value="${routine.address}" />
 						</p>
-					</div>
-				</c:if>
-
-				<!-- 첨부파일 표시 영역 -->
-				<c:if test="${not empty fileList}">
-					<div class="mt-8 space-y-4">
-						<c:forEach items="${fileList}" var="file">
-				
-							<c:choose>
-								<c:when test="${file.fileType.startsWith('image/')}">
-									<img src="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
-									     alt="${file.originalName}"
-									     class="max-w-full rounded-2xl border border-slate-200 shadow-sm">
-								</c:when>
-				
-								<c:when test="${file.fileType.startsWith('video/')}">
-									<video controls
-									       class="max-w-full rounded-2xl border border-slate-200 shadow-sm">
-										<source src="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
-										        type="${file.fileType}">
-									</video>
-								</c:when>
-				
-								<c:otherwise>
-									<a href="${pageContext.request.contextPath}${file.filePath}/${file.savedName}"
-									   download="${file.originalName}"
-									   class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 hover:bg-slate-50 transition">
-										<div>
-											<p class="font-semibold text-slate-800">
-												<c:out value="${file.originalName}" />
-											</p>
-											<p class="text-xs text-slate-400">
-												파일 다운로드
-											</p>
-										</div>
-										<span class="text-sm font-semibold text-sky-600">다운로드</span>
-									</a>
-								</c:otherwise>
-							</c:choose>
-				
-						</c:forEach>
 					</div>
 				</c:if>
 			</div>

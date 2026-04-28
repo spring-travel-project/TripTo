@@ -23,6 +23,9 @@ public class RoutineDTO {
     private Double latitude;
     private Double longitude;
     private String mapProviderId;
+    
+    private String filePath;   // 파일 경로
+    private String fileType;
 
     public int getSeq() {
         return seq;
@@ -158,5 +161,21 @@ public class RoutineDTO {
 
     public void setMapProviderId(String mapProviderId) {
         this.mapProviderId = mapProviderId;
+    }
+    
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 }

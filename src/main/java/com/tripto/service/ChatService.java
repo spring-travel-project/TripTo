@@ -1,15 +1,19 @@
 package com.tripto.service;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.FileDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
@@ -72,7 +76,7 @@ public class ChatService {
 
         return chatDAO.insertMessage(dto) == 1;
     }
-    
+
     public ChatMessageDTO saveSocketMessage(int roomId, int seqMember, String message) {
 
         if (message == null || message.trim().isEmpty()) {
@@ -100,15 +104,15 @@ public class ChatService {
 
         return saved;
     }
-    
+
     public String getNicknameByMemberId(int seqMember) {
         return chatDAO.getNicknameByMemberId(seqMember);
     }
-    
+
     public boolean exitRoom(int roomId, int userId) {
         return chatDAO.exitRoom(roomId, userId) == 1;
     }
-    
+
     public List<RoutineDTO> getRoutineList(int roomId) {
         return chatDAO.getRoutineList(roomId);
     }
@@ -116,7 +120,7 @@ public class ChatService {
     public List<PollDTO> getPollList(int roomId) {
         return chatDAO.getPollList(roomId);
     }
-    
+
     public boolean insertPoll(PollDTO dto, List<String> pollContents) {
 
         if (dto.getPollTitle() == null || dto.getPollTitle().trim().isEmpty()) {
@@ -156,7 +160,7 @@ public class ChatService {
 
         return true;
     }
-    
+
     public PollDTO getPollDetail(int pollId) {
         return chatDAO.getPollDetail(pollId);
     }
@@ -164,7 +168,7 @@ public class ChatService {
     public List<PollContentDTO> getPollContentList(int pollId) {
         return chatDAO.getPollContentList(pollId);
     }
-    
+
     public boolean votePoll(int pollId, int pollContentId, int seqMember) {
 
         // ���� ��ǥ ���� ����
@@ -173,7 +177,7 @@ public class ChatService {
         // �� �׸����� ��ǥ
         return chatDAO.votePoll(pollContentId, seqMember) == 1;
     }
-    
+
     public boolean deletePoll(int pollId, int loginUserId) {
 
         // �ۼ��ڸ� ���� �����ϰ� �ϰ� ������ DAO���� �ۼ��� Ȯ��
@@ -191,8 +195,12 @@ public class ChatService {
         chatDAO.deletePollContentByPollId(pollId);
         return chatDAO.deletePoll(pollId) == 1;
     }
-    
+
     public boolean insertRoutine(RoutineDTO dto) {
+        return insertRoutine(dto, null);
+    }
+
+    public boolean insertRoutine(RoutineDTO dto, List<MultipartFile> files) {
 
         if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
             return false;
@@ -202,9 +210,14 @@ public class ChatService {
             return false;
         }
 
-        int seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
+        Integer seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
 
-        dto.setSeqTravelPost(seqTravelPost);
+        if (seqTravelPost != null) {
+            dto.setSeqTravelPost(seqTravelPost);
+        } else {
+            dto.setSeqTravelPost(0);
+        }
+
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
 
@@ -212,16 +225,68 @@ public class ChatService {
             chatDAO.insertLocation(dto);
         }
 
-        return chatDAO.insertRoutine(dto) == 1;
+        int routineResult = chatDAO.insertRoutine(dto);
+
+        if (routineResult != 1) {
+            return false;
+        }
+
+        if (files == null || files.isEmpty()) {
+            return true;
+        }
+
+        String uploadPath = "C:/upload/";
+
+        File uploadDir = new File(uploadPath);
+
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        for (MultipartFile file : files) {
+
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+
+            try {
+                String originalName = file.getOriginalFilename();
+                String savedName = UUID.randomUUID().toString() + "_" + originalName;
+
+                File dest = new File(uploadPath + savedName);
+                file.transferTo(dest);
+
+                FileDTO fileDTO = new FileDTO();
+                fileDTO.setOriginalName(originalName);
+                fileDTO.setSavedName(savedName);
+                fileDTO.setFilePath("/upload/" + savedName);
+                fileDTO.setFileSize(file.getSize());
+                fileDTO.setFileType(file.getContentType());
+
+                chatDAO.insertFile(fileDTO);
+
+                Map<String, Object> map = new HashMap<>();
+                map.put("seqFile", fileDTO.getSeq());
+                map.put("roomId", dto.getSeqChattingroom());
+                map.put("seqRoutine", dto.getSeq());
+
+                chatDAO.insertRoutineFile(map);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return true;
     }
-    
+
     public RoutineDTO getRoutineDetail(int routineId) {
         return chatDAO.getRoutineDetail(routineId);
     }
-    
- // 🌟 매칭 채팅방 생성 또는 가져오기 로직
+
+    // 🌟 매칭 채팅방 생성 또는 가져오기 로직
     public int createOrGetMatchingChatRoom(int me, int target) {
-        
+
         Map<String, Integer> map = new HashMap<>();
         map.put("me", me);
         map.put("target", target);
@@ -236,10 +301,10 @@ public class ChatService {
         // 2. 방이 없다면 새로 생성 (chattingroom 테이블)
         ChatRoomDTO newRoom = new ChatRoomDTO();
         newRoom.setCategory(1); // 1 = 매칭 카테고리
-        
+
         // DAO를 다녀오면 newRoom 객체 안에 새로 발급된 roomId(PK)가 채워집니다.
-        chatDAO.createChattingRoom(newRoom); 
-        
+        chatDAO.createChattingRoom(newRoom);
+
         int newRoomId = newRoom.getRoomId();
 
         // 3. 나를 이 채팅방에 참여시킴 (user_chat 테이블)
@@ -256,7 +321,7 @@ public class ChatService {
 
         return newRoomId; // 🌟 최종적으로 새로 만들어진 방 번호를 리턴
     }
-    
+
     public boolean deleteRoutine(int routineId, int loginUserId) {
 
         RoutineDTO routine = chatDAO.getRoutineDetail(routineId);
@@ -272,7 +337,7 @@ public class ChatService {
 
         return chatDAO.deleteRoutine(routineId) == 1;
     }
-    
+
     public boolean updateRoutine(RoutineDTO dto, int loginUserId) {
 
         RoutineDTO origin = chatDAO.getRoutineDetail(dto.getSeq());
@@ -304,7 +369,8 @@ public class ChatService {
 
         return chatDAO.updateRoutine(dto) == 1;
     }
-    
-    
-    
+
+    public List<FileDTO> getRoutineFileList(int routineId) {
+        return chatDAO.getRoutineFileList(routineId);
+    }
 }
