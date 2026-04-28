@@ -117,32 +117,51 @@
                                     </c:if>
 
                                     <div class="max-w-[75%] ${msg.mine ? 'text-right' : ''}">
-                                        <c:if test="${!msg.mine}"><p class="text-xs text-slate-500 mb-1 ml-1">${msg.nickname}</p></c:if>
-                                        <div class="flex items-end ${msg.mine ? 'justify-end' : 'justify-start'} gap-2">
-                                            
-                                            <c:if test="${msg.mine}">
-                                                <div class="flex flex-col items-end min-w-fit">
-                                                    <c:if test="${msg.unreadCount > 0}"><span class="unread-badge unread-count-label">${msg.unreadCount}</span></c:if>
-                                                    <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
-                                                </div>
-                                                <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
-                                                    <c:if test="${not empty msg.savedName}"><img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2"></c:if>
-                                                    <c:out value="${msg.detail}" />
-                                                </div>
-                                            </c:if>
-
-                                            <c:if test="${!msg.mine}">
-                                                <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
-                                                    <c:if test="${not empty msg.savedName}"><img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2"></c:if>
-                                                    <c:out value="${msg.detail}" />
-                                                </div>
-                                                <div class="flex flex-col items-start min-w-fit">
-                                                    <c:if test="${msg.unreadCount > 0}"><span class="unread-badge unread-count-label">${msg.unreadCount}</span></c:if>
-                                                    <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
-                                                </div>
-                                            </c:if>
-                                        </div>
-                                    </div>
+									    <c:if test="${!msg.mine}"><p class="text-xs text-slate-500 mb-1 ml-1">${msg.nickname}</p></c:if>
+									    <div class="flex items-end ${msg.mine ? 'justify-end' : 'justify-start'} gap-2">
+									        
+									        <c:if test="${msg.mine}">
+									            <div class="flex flex-col items-end min-w-fit">
+									                <c:if test="${msg.unreadCount > 0}"><span class="unread-badge unread-count-label">${msg.unreadCount}</span></c:if>
+									                <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
+									            </div>
+									            <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
+									                <c:if test="${not empty msg.savedName}">
+									                    <c:choose>
+									                        <c:when test="${msg.savedName.startsWith('http')}">
+									                            <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+									                        </c:when>
+									                        <c:otherwise>
+									                            <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+									                        </c:otherwise>
+									                    </c:choose>
+									                </c:if>
+									                <c:out value="${msg.detail}" />
+									            </div>
+									        </c:if>
+									
+									        <c:if test="${!msg.mine}">
+									            <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
+									                <c:if test="${not empty msg.savedName}">
+									                    <c:choose>
+									                        <c:when test="${msg.savedName.startsWith('http')}">
+									                            <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+									                        </c:when>
+									                        <c:otherwise>
+									                            <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+									                        </c:otherwise>
+									                    </c:choose>
+									                </c:if>
+									                <c:out value="${msg.detail}" />
+									            </div>
+									            <div class="flex flex-col items-start min-w-fit">
+									                <c:if test="${msg.unreadCount > 0}"><span class="unread-badge unread-count-label">${msg.unreadCount}</span></c:if>
+									                <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
+									            </div>
+									        </c:if>
+									
+									    </div>
+									</div>
                                 </div>
                             </c:forEach>
                         </div>
