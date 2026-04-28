@@ -83,25 +83,10 @@
         </div>
     </main>
     
-    <dialog id="customModal" class="modal">
-        <div class="modal-box text-center">
-            <h3 class="font-bold text-lg mb-2">알림</h3>
-            <p class="py-4 text-slate-600" id="modalMessage"></p>
-            <div class="modal-action justify-center mt-2">
-                <form method="dialog"><button class="btn btn-neutral w-24">확인</button></form>
-            </div>
-        </div>
-    </dialog>
-    
     <script>
     // 기존 닉네임 백업 (자신의 기존 닉네임은 중복 검사 패스하기 위함)
     const originalNickname = "${member.nickname}";
     let isNicknameChecked = true; // 초기 상태는 기존 닉네임이므로 true
-
-    function showAlert(msg) {
-        $('#modalMessage').text(msg);
-        document.getElementById('customModal').showModal();
-    }
 
     // 닉네임 변경 시 다시 중복확인 하도록 상태 변경
     $('#userNickname').on('input', function() {
@@ -208,5 +193,6 @@
         }
     });
     </script>
+<%@ include file="/WEB-INF/views/inc/modal.jsp" %>
 </body>
 </html>
