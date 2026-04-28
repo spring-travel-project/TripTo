@@ -43,37 +43,49 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
 
-        ChatSocketMessageDTO socketMessage = objectMapper.readValue(textMessage.getPayload(), ChatSocketMessageDTO.class);
+    	ChatSocketMessageDTO socketMessage = objectMapper.readValue(textMessage.getPayload(), ChatSocketMessageDTO.class);
 
         if (socketMessage.getType() == null || socketMessage.getRoomId() == null) {
             return;
         }
 
+        // 1. [ENTER] 사용자가 방에 들어왔을 때
         if ("ENTER".equals(socketMessage.getType())) {
             int roomId = socketMessage.getRoomId();
+            int seqMember = socketMessage.getSeqMember(); // 🌟 읽음 처리를 위해 회원 번호 필요
 
             roomSessions.computeIfAbsent(roomId, key -> Collections.synchronizedSet(new HashSet<>())).add(session);
             sessionRoomMap.put(session.getId(), roomId);
+
+            // 🌟 [추가] 1. DB 업데이트: 이 방의 안 읽은 메시지들을 내가 읽은 것으로 기록
+            chatService.updateReadStatus(roomId, seqMember);
+
+            // 🌟 [추가] 2. 실시간 신호: 방에 있는 다른 사람들에게 "누군가 들어와서 읽었으니 1 지워라!"라고 전송
+            ChatSocketMessageDTO readSignal = new ChatSocketMessageDTO();
+            readSignal.setType("READ");
+            readSignal.setRoomId(roomId);
+            readSignal.setSeqMember(seqMember);
+            
+            broadcastToRoom(roomId, objectMapper.writeValueAsString(readSignal));
             return;
         }
 
-     // 🌟 handleTextMessage 메서드 내의 TALK 부분만 교체하세요!
+        // 2. [TALK] 메시지를 보낼 때
         if ("TALK".equals(socketMessage.getType())) {
-            try { // 🛡️ 1차 방어막: 메시지 처리 전체를 감쌉니다.
+            try {
                 Integer roomId = socketMessage.getRoomId();
                 Integer seqMember = socketMessage.getSeqMember();
                 String message = socketMessage.getMessage();
-                Integer seqFile = socketMessage.getSeqFile(); // 🌟 프론트에서 보낸 파일번호
+                Integer seqFile = socketMessage.getSeqFile();
 
                 if (roomId == null || seqMember == null) return;
 
-                // 🌟 서비스 호출 (에러가 나기 쉬운 DB 구간이므로 한 번 더 감싸기)
                 ChatMessageDTO saved = null;
                 try {
+                    // 🌟 서비스 내부에서 unreadCount가 계산되어 나옵니다.
                     saved = chatService.saveSocketMessage(roomId, seqMember, message, seqFile);
                 } catch (Exception e) {
-                    System.err.println("❌ DB 저장 중 에러 발생 (이모티콘/용량 등): " + e.getMessage());
-                    // 여기서 에러가 나도 아래 response 전송 로직으로 가지 않게 saved는 null 유지
+                    System.err.println("❌ DB 저장 중 에러: " + e.getMessage());
                 }
 
                 if (saved != null) {
@@ -84,14 +96,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     response.setNickname(saved.getNickname());
                     response.setMessage(saved.getDetail());
                     response.setSeqFile(saved.getSeqFile());
-                    response.setSavedName(saved.getSavedName()); // 🌟 사진 출력을 위해 파일명 세팅!
+                    response.setSavedName(saved.getSavedName());
                     response.setMessageTime(new SimpleDateFormat("HH:mm").format(new Date()));
+                    
+                    // 🌟 [추가] 3. 실시간 숫자: "이 메시지는 처음에 1(혹은 인원수-1)로 시작해!"라고 알려줌
+                    response.setUnreadCount(saved.getUnreadCount());
 
                     String json = objectMapper.writeValueAsString(response);
                     broadcastToRoom(roomId, json);
                 }
             } catch (Exception e) {
-                // 🛡️ 2차 방어막: 여기서 에러를 잡아줘야 '두 번째 메시지' 전송 시 소켓이 안 끊깁니다!
                 System.err.println("❌ 핸들러 치명적 에러: " + e.getMessage());
                 e.printStackTrace();
             }
