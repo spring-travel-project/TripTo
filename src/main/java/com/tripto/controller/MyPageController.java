@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -134,7 +136,7 @@ public class MyPageController {
 
 	// 5-2. 폼 제출: 내 정보 수정 완료 처리 (POST)
 	@PostMapping("/editInfo.do")
-	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal) {
+	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal, HttpServletRequest request) {
 
 		// 1) 누구를 수정할지 기준(id) 세팅
 		dto.setId(principal.getName());
@@ -142,7 +144,7 @@ public class MyPageController {
 		// 2) 프로필 사진 파일 업로드 처리 (회원가입 로직 100% 재활용)
 		if (!picFile.isEmpty()) {
 			try {
-				String path = "C:/tripto_upload/profile/";
+				String path = request.getServletContext().getRealPath("/resources/upload/profile/");
 				File dir = new File(path);
 				if (!dir.exists())
 					dir.mkdirs();
@@ -184,7 +186,7 @@ public class MyPageController {
 			@RequestParam(value = "staySeqs", required = false) List<Integer> staySeqs,
 			@RequestParam(value = "languageSeqs", required = false) List<Integer> languageSeqs,
 			@RequestParam(value = "ageGroupSeqs", required = false) List<Integer> ageGroupSeqs,
-			@RequestParam("coverFile") MultipartFile coverFile, Principal principal) {
+			@RequestParam("coverFile") MultipartFile coverFile, Principal principal, javax.servlet.http.HttpServletRequest request) {
 
 		// 1) 로그인한 유저의 seqMember 가져와서 DTO에 세팅
 		MemberDTO member = memberService.getMemberById(principal.getName());
@@ -193,7 +195,7 @@ public class MyPageController {
 		// 2) 배경 사진(Cover) 업로드 처리
 		if (!coverFile.isEmpty()) {
 			try {
-				String path = "C:/tripto_upload/cover/"; // 배경 사진 전용 폴더
+				String path = request.getServletContext().getRealPath("/resources/upload/cover/"); // 배경 사진 전용 폴더
 				File dir = new File(path);
 				if (!dir.exists())
 					dir.mkdirs();
