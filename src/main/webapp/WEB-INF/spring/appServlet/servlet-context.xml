@@ -57,6 +57,8 @@
 
     <resources mapping="/upload/**"
         location="file:///C:/upload/" />
+        
+    <resources mapping="/cover/**" location="file:///C:/tripto_upload/cover/" />
     
     <!-- 인터셉터가 어떤 주소를 감시할지 등록 -->
     <beans:bean id="profileCheckInterceptor"

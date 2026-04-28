@@ -26,7 +26,7 @@
         <section class="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden relative">
             
             <div class="h-56 bg-slate-200 relative group">
-                <img src="${pageContext.request.contextPath}/resources/img/default_cover.png" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <img src="${pageContext.request.contextPath}/cover/${empty profile.coverPic ? 'default_cover.png' : profile.coverPic}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute inset-0 bg-black/10"></div>
                 
                 <div class="absolute top-8 right-12 z-10">
