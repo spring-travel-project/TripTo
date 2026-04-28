@@ -43,7 +43,16 @@
             'NORMAL'
         )
     </insert>
-
+	
+	<update id="edit" parameterType="com.tripto.dto.BoardCommentDTO">
+	    UPDATE BOARD_COMMENT
+	    SET CONTENT = #{content},
+	        UPDATEDATE = SYSDATE
+	    WHERE SEQBOARDCOMMENT = #{seqBoardComment}
+	      AND SEQMEMBER = #{seqMember}
+	      AND STATUS = 'NORMAL'
+	</update>
+	
     <update id="delete" parameterType="int">
         UPDATE BOARD_COMMENT
         SET STATUS = 'DELETED',
