@@ -13,8 +13,17 @@ public class ChatRoomDTO {
     private Date regdate;
     private String roomTime;
     private int active;
+    private String partnerProfile;
 
-    public int getRoomId() {
+    public String getPartnerProfile() {
+		return partnerProfile;
+	}
+
+	public void setPartnerProfile(String partnerProfile) {
+		this.partnerProfile = partnerProfile;
+	}
+
+	public int getRoomId() {
         return roomId;
     }
 

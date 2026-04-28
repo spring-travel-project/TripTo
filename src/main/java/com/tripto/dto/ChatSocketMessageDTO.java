@@ -9,6 +9,7 @@ public class ChatSocketMessageDTO {
     private String message;
     private String messageTime;
     
+    
     private int unreadCount;
     
 
