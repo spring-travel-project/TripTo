@@ -159,6 +159,12 @@ public class TravelPostController {
     public String detail(@RequestParam int seqTravelPost,
                          Model model) {
     	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "redirect:/member/login.do";
+        }
+    	
     	boolean isRecommended = mainRecommendService.isRecommended("TRAVEL", seqTravelPost);
     	model.addAttribute("isRecommended", isRecommended);
 
@@ -177,8 +183,6 @@ public class TravelPostController {
 
         // ⭐ 관리자 판별 (시큐리티 기준)
         boolean isAdmin = false;
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             isAdmin = auth.getAuthorities().stream()

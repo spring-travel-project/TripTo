@@ -163,6 +163,12 @@ public class BoardPostController {
     @GetMapping("/board/detail.do")
     public String detail(@RequestParam int seqBoardPost,
                          Model model) {
+    	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "redirect:/member/login.do";
+        }
 
         BoardPostDTO dto = service.get(seqBoardPost, true);
 
@@ -176,8 +182,6 @@ public class BoardPostController {
 
         boolean isWriter = isLogin
                 && loginMember.getSeqMember() == dto.getSeqMember();
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         boolean isAdmin = auth != null
                 && auth.isAuthenticated()
