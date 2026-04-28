@@ -2,123 +2,251 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tripto.dao.MatchingDAO">
 
-   <select id="getMatchingList" parameterType="map" resultType="com.tripto.dto.MatchDTO">
-	    /* 랜덤 슬라이드용 매칭 리스트 조회 */
-	    SELECT * FROM (
-	        SELECT 
-	            m.seqMember AS seqMember, 
-	            m.nickname AS nickname, 
-	            m.pic AS pic, 
-	            m.gender AS gender, 
-	            TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age, 
-	            p.mbti AS mbti, 
-	            p.smoking AS smoking,
-	            p.drinking AS drinking,
-	            
-	            -- 8가지 성향 일치 개수 계산 (matchCount)
-	            (
-	                (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
-	                (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
-	                (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
-	                (CASE WHEN p.travelType = my.travelType THEN 1 ELSE 0 END) +
-	                (CASE WHEN p.stepCount = my.stepCount THEN 1 ELSE 0 END) +
-	                (CASE WHEN EXISTS (SELECT 1 FROM profile_stay ps1 JOIN profile_stay ps2 ON ps1.seqStay = ps2.seqStay WHERE ps1.seqMember = m.seqMember AND ps2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
-	                (CASE WHEN EXISTS (SELECT 1 FROM profile_language pl1 JOIN profile_language pl2 ON pl1.seqLanguage = pl2.seqLanguage WHERE pl1.seqMember = m.seqMember AND pl2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
-	                (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup WHERE pag1.seqMember = m.seqMember AND pag2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
-	            ) AS matchCount
-	
-	        FROM member m
-	        JOIN profile p ON m.seqMember = p.seqMember
-	        
-	        -- 로그인한 유저 정보와 비교하기 위한 CROSS JOIN
-	        CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
-	        
-	        WHERE m.status = 0 
-	        -- 🚨 임시로 주석 처리: DB의 type 데이터가 0이 아닐까봐 잠시 끕니다.
-	        -- AND m.type = 0 
-	        AND m.seqMember != #{loginSeq} -- 본인 제외
-	        
-	        -- 동적 필터 조건
-	        <if test="mbti != null and mbti != ''"> AND p.mbti = #{mbti} </if>
-	        <if test="smoking != null"> AND p.smoking = #{smoking} </if>
-	        <if test="drinking != null"> AND p.drinking = #{drinking} </if>
-	        <if test="travelType != null"> AND p.travelType = #{travelType} </if>
-	        <if test="stepCount != null"> AND p.stepCount = #{stepCount} </if>
-	        
-	        -- 1단계: 먼저 랜덤으로 섞습니다.
-	        ORDER BY DBMS_RANDOM.VALUE
-	        
-	    ) a -- 🚨 오라클의 깐깐함을 피하기 위해 'a'라는 별칭을 붙여주었습니다.
-	    
-	    -- 2단계: 섞인 결과물 중 상단 10명만 가져옵니다.
-	    WHERE ROWNUM &lt;= 10
-	</select>
-	
-	<select id="getMatchDetail" parameterType="map" resultType="com.tripto.dto.MatchDTO">
-	    SELECT 
-	        m.seqMember,
-	        m.nickname,
-	        m.pic,
-	        m.gender,
-	        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
-	        p.mbti,
-	        p.smoking,
-	        p.drinking,
-	        p.travelType,
-	        p.stepCount,
-	        
-	        
-	        -- 🌟 ERD 기반: 선호 숙소 (profile_stay + stay)
-	        (SELECT LISTAGG(s.Name, ', ') WITHIN GROUP (ORDER BY s.seqStay)
-	         FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay
-	         WHERE ps.seqMember = m.seqMember) AS stayNames,
-	         
-	        -- 🌟 ERD 기반: 사용 가능 언어 (profile_language + language)
-	        (SELECT LISTAGG(l.Name, ', ') WITHIN GROUP (ORDER BY l.seqLanguage)
-	         FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage
-	         WHERE pl.seqMember = m.seqMember) AS languageNames,
-	         
-	        -- 🌟 ERD 기반: 선호 연령대 (profile_age_group + age_group)
-	        (SELECT LISTAGG(a.Name, ', ') WITHIN GROUP (ORDER BY a.seqAgeGroup)
-	         FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup
-	         WHERE pa.seqMember = m.seqMember) AS ageGroupNames,
-	
-	        -- 8가지 성향 일치 개수 계산 (matchCount)
-	        (
-	            (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
-	            (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
-	            (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
-	            (CASE WHEN p.travelType = my.travelType THEN 1 ELSE 0 END) +
-	            (CASE WHEN p.stepCount = my.stepCount THEN 1 ELSE 0 END) +
-	            (CASE WHEN EXISTS (SELECT 1 FROM profile_stay ps1 JOIN profile_stay ps2 ON ps1.seqStay = ps2.seqStay WHERE ps1.seqMember = m.seqMember AND ps2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
-	            (CASE WHEN EXISTS (SELECT 1 FROM profile_language pl1 JOIN profile_language pl2 ON pl1.seqLanguage = pl2.seqLanguage WHERE pl1.seqMember = m.seqMember AND pl2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
-	            (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup WHERE pag1.seqMember = m.seqMember AND pag2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
-	        ) AS matchCount
-	    FROM member m
-	    JOIN profile p ON m.seqMember = p.seqMember
-	    CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
-	    WHERE m.seqMember = #{targetSeq}
-	</select>
-	
-	<select id="getMyProfile" parameterType="int" resultType="com.tripto.dto.MatchDTO">
-	    SELECT 
-	        m.nickname,
-	        p.mbti,
-	        p.smoking,
-	        p.drinking,
-	        p.travelType,
-	        p.stepCount,   
-	        
-	        -- 내 다중 선택 항목들도 가져와야 자물쇠가 풀립니다.
-	        (SELECT LISTAGG(s.seqStay, ',') WITHIN GROUP (ORDER BY s.seqStay) 
-	         FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay WHERE ps.seqMember = m.seqMember) AS stayNames,
-	        (SELECT LISTAGG(l.seqLanguage, ',') WITHIN GROUP (ORDER BY l.seqLanguage) 
-	         FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage WHERE pl.seqMember = m.seqMember) AS languageNames,
-	        (SELECT LISTAGG(a.seqAgeGroup, ',') WITHIN GROUP (ORDER BY a.seqAgeGroup) 
-	         FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup WHERE pa.seqMember = m.seqMember) AS ageGroupNames
-	    FROM member m
-	    JOIN profile p ON m.seqMember = p.seqMember
-	    WHERE m.seqMember = #{loginSeq}
-	</select>
+    <select id="getMatchingList" parameterType="map"
+        resultType="com.tripto.dto.MatchDTO">
+        /* 랜덤 슬라이드용 매칭 리스트 조회 */
+        SELECT * FROM (
+        SELECT
+        m.seqMember AS
+        seqMember,
+        m.nickname AS nickname,
+        m.pic AS pic,
+        m.gender AS
+        gender,
+        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
+        p.mbti AS mbti,
+        p.smoking AS smoking,
+        p.drinking AS drinking,
+
+        --
+        8가지 성향 일치 개수 계산 (matchCount)
+        (
+        (CASE WHEN p.mbti = my.mbti THEN 1
+        ELSE 0 END) +
+        (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0
+        END) +
+        (CASE WHEN p.drinking = my.drinking THEN 1 ELSE 0 END) +
+        (CASE WHEN p.travelType = my.travelType THEN 1 ELSE 0 END) +
+        (CASE WHEN p.stepCount = my.stepCount THEN 1 ELSE 0 END) +
+        (CASE
+        WHEN EXISTS (SELECT 1 FROM profile_stay ps1 JOIN profile_stay
+        ps2 ON
+        ps1.seqStay = ps2.seqStay WHERE ps1.seqMember =
+        m.seqMember AND
+        ps2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END) +
+        (CASE WHEN EXISTS (SELECT 1 FROM profile_language pl1 JOIN
+        profile_language
+        pl2 ON pl1.seqLanguage = pl2.seqLanguage WHERE
+        pl1.seqMember =
+        m.seqMember AND pl2.seqMember = #{loginSeq}) THEN
+        1 ELSE 0 END)
+        +
+        (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group
+        pag1 JOIN
+        profile_age_group pag2 ON pag1.seqAgeGroup =
+        pag2.seqAgeGroup
+        WHERE pag1.seqMember = m.seqMember AND
+        pag2.seqMember =
+        #{loginSeq}) THEN 1 ELSE 0 END)
+        ) AS matchCount
+
+        FROM member m
+        JOIN profile p ON m.seqMember = p.seqMember
+
+        -- 로그인한
+        유저 정보와 비교하기 위한 CROSS JOIN
+        CROSS JOIN (SELECT * FROM profile WHERE
+        seqMember = #{loginSeq}) my
+
+        WHERE m.status = 0
+        -- 🚨 임시로 주석 처리:
+        DB의 type 데이터가 0이 아닐까봐 잠시 끕니다.
+        -- AND m.type = 0
+        AND m.seqMember !=
+        #{loginSeq} -- 본인 제외
+
+        -- 동적 필터 조건
+        <if test="mbti != null and mbti != ''"> AND p.mbti = #{mbti} </if>
+        <if test="smoking != null"> AND p.smoking = #{smoking} </if>
+        <if test="drinking != null"> AND p.drinking = #{drinking} </if>
+        <if test="travelType != null"> AND p.travelType = #{travelType} </if>
+        <if test="stepCount != null"> AND p.stepCount = #{stepCount} </if>
+
+        -- 1단계: 먼저 랜덤으로 섞습니다.
+        ORDER BY DBMS_RANDOM.VALUE
+
+        ) a -- 🚨 오라클의
+        깐깐함을 피하기 위해 'a'라는 별칭을 붙여주었습니다.
+
+        -- 2단계: 섞인 결과물 중 상단 10명만 가져옵니다.
+        WHERE ROWNUM &lt;= 10
+    </select>
+
+    <select id="getMatchDetail" parameterType="map"
+        resultType="com.tripto.dto.MatchDTO">
+        SELECT
+        m.seqMember,
+        m.nickname,
+        m.pic,
+        m.gender,
+        TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
+        p.mbti,
+        p.smoking,
+        p.drinking,
+        p.travelType,
+        p.stepCount,
+
+
+        -- 🌟 ERD 기반: 선호
+        숙소 (profile_stay + stay)
+        (SELECT LISTAGG(s.Name, ', ') WITHIN
+        GROUP (ORDER BY s.seqStay)
+        FROM profile_stay ps JOIN stay s ON
+        ps.seqStay = s.seqStay
+        WHERE ps.seqMember = m.seqMember) AS
+        stayNames,
+
+        -- 🌟 ERD 기반: 사용 가능 언어 (profile_language + language)
+        (SELECT LISTAGG(l.Name, ', ') WITHIN GROUP (ORDER BY
+        l.seqLanguage)
+        FROM profile_language pl JOIN language l ON
+        pl.seqLanguage = l.seqLanguage
+        WHERE pl.seqMember = m.seqMember)
+        AS languageNames,
+
+        -- 🌟 ERD 기반: 선호 연령대 (profile_age_group +
+        age_group)
+        (SELECT LISTAGG(a.Name, ', ') WITHIN GROUP (ORDER BY
+        a.seqAgeGroup)
+        FROM profile_age_group pa JOIN age_group a ON
+        pa.seqAgeGroup =
+        a.seqAgeGroup
+        WHERE pa.seqMember = m.seqMember)
+        AS ageGroupNames,
+
+        -- 8가지 성향 일치 개수 계산 (matchCount)
+        (
+        (CASE WHEN
+        p.mbti = my.mbti THEN 1 ELSE 0 END) +
+        (CASE WHEN p.smoking =
+        my.smoking THEN 1 ELSE 0 END) +
+        (CASE WHEN p.drinking =
+        my.drinking THEN 1 ELSE 0 END) +
+        (CASE WHEN p.travelType =
+        my.travelType THEN 1 ELSE 0 END) +
+        (CASE WHEN p.stepCount =
+        my.stepCount THEN 1 ELSE 0 END) +
+        (CASE WHEN EXISTS (SELECT 1
+        FROM profile_stay ps1 JOIN profile_stay ps2 ON
+        ps1.seqStay =
+        ps2.seqStay WHERE ps1.seqMember = m.seqMember AND
+        ps2.seqMember =
+        #{loginSeq}) THEN 1 ELSE 0 END) +
+        (CASE WHEN EXISTS (SELECT 1
+        FROM profile_language pl1 JOIN profile_language
+        pl2 ON
+        pl1.seqLanguage = pl2.seqLanguage WHERE pl1.seqMember =
+        m.seqMember AND pl2.seqMember = #{loginSeq}) THEN 1 ELSE 0 END)
+        +
+        (CASE WHEN EXISTS (SELECT 1 FROM profile_age_group pag1 JOIN
+        profile_age_group pag2 ON pag1.seqAgeGroup = pag2.seqAgeGroup
+        WHERE pag1.seqMember = m.seqMember AND pag2.seqMember =
+        #{loginSeq}) THEN 1 ELSE 0 END)
+        ) AS matchCount
+        FROM member m
+        JOIN
+        profile p ON m.seqMember = p.seqMember
+        CROSS JOIN (SELECT * FROM
+        profile WHERE seqMember = #{loginSeq}) my
+        WHERE m.seqMember =
+        #{targetSeq}
+    </select>
+
+    <select id="getMyProfile" parameterType="int"
+        resultType="com.tripto.dto.MatchDTO">
+        SELECT
+        m.nickname,
+        p.mbti,
+        p.smoking,
+        p.drinking,
+        p.travelType,
+        p.stepCount,
+
+        -- 내 다중 선택 항목들도 가져와야 자물쇠가 풀립니다.
+        (SELECT
+        LISTAGG(s.seqStay, ',') WITHIN GROUP (ORDER BY s.seqStay)
+        FROM
+        profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay WHERE
+        ps.seqMember = m.seqMember) AS stayNames,
+        (SELECT
+        LISTAGG(l.seqLanguage, ',') WITHIN GROUP (ORDER BY
+        l.seqLanguage)
+        FROM profile_language pl JOIN language l ON
+        pl.seqLanguage =
+        l.seqLanguage WHERE pl.seqMember = m.seqMember)
+        AS
+        languageNames,
+        (SELECT LISTAGG(a.seqAgeGroup, ',') WITHIN GROUP
+        (ORDER BY a.seqAgeGroup)
+        FROM profile_age_group pa JOIN age_group
+        a ON pa.seqAgeGroup =
+        a.seqAgeGroup WHERE pa.seqMember =
+        m.seqMember) AS ageGroupNames
+        FROM member m
+        JOIN profile p ON
+        m.seqMember = p.seqMember
+        WHERE m.seqMember = #{loginSeq}
+    </select>
+
+    <!-- 프로필 작성 또는 수정을 위한 쿼리 -->
+    <update id="upsertProfile"
+        parameterType="com.tripto.dto.MatchDTO">
+        MERGE INTO profile p
+        USING DUAL
+        ON (p.seqMember = #{seqMember})
+        WHEN MATCHED THEN
+        UPDATE SET
+        mbti = #{mbti},
+        smoking = #{smoking},
+        drinking = #{drinking},
+        stepCount = #{stepCount},
+        travelType = #{travelType}
+        <if test="coverPic != null and coverPic != ''">
+            , coverPic = #{coverPic}
+        </if>
+        WHEN NOT MATCHED THEN
+        INSERT (seqMember, mbti, smoking, drinking, stepCount, travelType, coverPic)
+        VALUES (#{seqMember}, #{mbti}, #{smoking}, #{drinking},
+        #{stepCount}, #{travelType}, NVL(#{coverPic, jdbcType=VARCHAR},
+        'default_cover.png'))
+    </update>
+
+    <delete id="deleteProfileStay" parameterType="int">
+        DELETE FROM
+        profile_stay WHERE seqMember = #{seqMember}
+    </delete>
+    <delete id="deleteProfileLanguage" parameterType="int">
+        DELETE FROM
+        profile_language WHERE seqMember = #{seqMember}
+    </delete>
+    <delete id="deleteProfileAgeGroup" parameterType="int">
+        DELETE FROM
+        profile_age_group WHERE seqMember = #{seqMember}
+    </delete>
+
+    <insert id="insertProfileStay" parameterType="map">
+        INSERT INTO profile_stay (seqProfileStay, seqMember, seqStay) 
+        VALUES (seqprofilestay.nextval, #{seqMember}, #{seqTarget})
+    </insert>
+    
+    <insert id="insertProfileLanguage" parameterType="map">
+        INSERT INTO profile_language (seqProfileLanguage, seqMember, seqLanguage) 
+        VALUES (seqprofilelanguage.nextval, #{seqMember}, #{seqTarget})
+    </insert>
+    
+    <insert id="insertProfileAgeGroup" parameterType="map">
+        INSERT INTO profile_age_group (seqProfileAgeGroup, seqMember, seqAgeGroup) 
+        VALUES (seqprofileagegroup.nextval, #{seqMember}, #{seqTarget})
+    </insert>
 
 </mapper>

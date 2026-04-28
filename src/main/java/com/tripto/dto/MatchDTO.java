@@ -8,30 +8,33 @@ import lombok.ToString;
 @Setter
 @ToString
 public class MatchDTO {
-    // 1. match Å×ÀÌºí ±âº» ÇÊµå
-    private Integer seqMatch;			//
-    private Integer seqMember;        	// ½ÅÃ»ÀÚ
-    private Integer seqMatchedUser;   	// ¸ÅÄª ´ë»óÀÚ
+    // 1. match í…Œì´ë¸” ê¸°ë³¸ í•„ë“œ
+    private Integer seqMatch;			
+    private Integer seqMember;        	// ì‹ ì²­ì
+    private Integer seqMatchedUser;   	// ë§¤ì¹­ ëŒ€ìƒì
     private String matchMessage;
     private String createDate;
 
-    // 2. ¸ÅÄª ¾Ë°í¸®Áò ¹× Ãâ·Â¿ë ÇÊµå
-    private int matchCount;       // 8°³ Ç×¸ñ Áß ÀÏÄ¡ÇÏ´Â °³¼ö (0~8)
+    // 2. ë§¤ì¹­ ì•Œê³ ë¦¬ì¦˜ ë° ì¶œë ¥ìš© í•„ë“œ
+    private int matchCount;       // 8ê°œ í•­ëª© ì¤‘ ì¼ì¹˜í•˜ëŠ” ê°œìˆ˜ (0~8)
     
-    // 3. »ó´ë¹æ ÇÁ·ÎÇÊ Á¤º¸
-    private String nickname;		// ´Ğ³×ÀÓ
-    private String pic;       		// ÇÁ·ÎÇÊ »çÁø
-    private Integer gender;       		// ³²¼º(0)/¿©¼º(1)
-    private Integer age;          		// ³ªÀÌ
+    // 3. ìƒëŒ€ë°© í”„ë¡œí•„ ì •ë³´
+    private String nickname;		// ë‹‰ë„¤ì„
+    private String pic;       		// í”„ë¡œí•„ ì‚¬ì§„
+    private Integer gender;       		// ë‚¨ì„±(0)/ì—¬ì„±(1)
+    private Integer age;          		// ë‚˜ì´
     private String mbti;			// MBTI
-    private Integer smoking;			// Èí¿¬(0)/ºñÈí¿¬(1)
-    private Integer drinking;			// À½ÁÖ ÀÚÁÖ(0)/À½ÁÖ °¡²û(1)/À½ÁÖ ¾ÈÇÔ(2)
-    private Integer travelType;			// 5Ãµº¸ ÀÌÇÏ(0)/5Ãµº¸ ÀÌ»ó 1¸¸º¸ ÀÌÇÏ(1), 1¸¸º¸ ÀÌ»ó(2)
-    private Integer stepCount;			// Á¤ÀûÀÎ(0)/¹«°üÇÔ(1)/È°µ¿ÀûÀÎ(2)
-    private String intro;			// ÀÚ±â¼Ò°³
+    private Integer smoking;			// í¡ì—°(0)/ë¹„í¡ì—°(1)
+    private Integer drinking;			// ìŒì£¼ ìì£¼(0)/ìŒì£¼ ê°€ë”(1)/ìŒì£¼ ì•ˆí•¨(2)
+    private Integer travelType;			// 5ì²œë³´ ì´í•˜(0)/5ì²œë³´ ì´ìƒ 1ë§Œë³´ ì´í•˜(1), 1ë§Œë³´ ì´ìƒ(2)
+    private Integer stepCount;			// ì •ì ì¸(0)/ë¬´ê´€í•¨(1)/í™œë™ì ì¸(2)
+    private String intro;			// ìê¸°ì†Œê°œ
 
-    // 4. ´ÙÁß ¼±ÅÃ Ç×¸ñ (LISTAGG·Î ÇÕÃÄÁø °á°ú)
-    private String stayNames;      	// ¼±È£ÇÏ´Â ¼÷¼Ò 
-    private String languageNames;  	// »ç¿ë°¡´É ¾ğ¾î
-    private String ageGroupNames;  	// ¼±È£ µ¿Çà ³ªÀÌ
+    // 4. ë‹¤ì¤‘ ì„ íƒ í•­ëª© (LISTAGGë¡œ í•©ì³ì§„ ê²°ê³¼)
+    private String stayNames;      	// ì„ í˜¸í•˜ëŠ” ìˆ™ì†Œ 
+    private String languageNames;  	// ì‚¬ìš©ê°€ëŠ¥ ì–¸ì–´
+    private String ageGroupNames;  	// ì„ í˜¸ ë™í–‰ ì—°ë ¹ëŒ€
+    
+    // 5. ë§ˆì´í˜ì´ì§€ ë°°ê²½ ì‚¬ì§„ (ì»¤ë²„ ì‚¬ì§„)
+    private String coverPic; 
 }
