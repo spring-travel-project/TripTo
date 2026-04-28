@@ -17,22 +17,26 @@
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
             <!-- 이미지 파일을 서버로 전송하기 위한 -->
             <!-- enctype="multipart/form-data" 태그 추가 -->
-            <form action="/member/join.do" method="POST" id="joinForm" enctype="multipart/form-data">
+            <form action="${pageContext.request.contextPath}/member/join.do?${_csrf.parameterName}=${_csrf.token}" method="POST" id="joinForm" enctype="multipart/form-data">
                 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">이름</span></label>
-                    <input type="text" name="name" placeholder="이름을 입력하세요" class="input input-bordered w-full" required />
+                    <input type="text" name="name" placeholder="이름을 입력하세요" class="input input-bordered w-full" />
                 </div>
 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">닉네임</span></label>
-                    <input type="text" name="nickname" placeholder="닉네임을 입력하세요" class="input input-bordered w-full" required />
+                    <div class="flex gap-2">
+                        <input type="text" name="nickname" id="userNickname" placeholder="닉네임을 입력하세요" class="input input-bordered w-full" required />
+                        <button type="button" class="btn btn-neutral shrink-0" onclick="checkNickname()">중복확인</button>
+                    </div>
+                    <label class="label"><span class="label-text-alt" id="nicknameCheckMsg">닉네임은 10자 이내로만 사용 가능합니다.</span></label>
                 </div>
 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">아이디</span></label>
                     <div class="flex gap-2">
-                        <input type="text" name="id" id="userId" placeholder="아이디를 입력하세요" class="input input-bordered w-full" required />
+                        <input type="text" name="id" id="userId" placeholder="아이디를 입력하세요" class="input input-bordered w-full" />
                         <button type="button" class="btn btn-neutral" onclick="checkId()">중복확인</button>
                     </div>
                     <label class="label"><span class="label-text-alt text-error" id="idCheckMsg"></span></label>
@@ -40,8 +44,8 @@
 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">비밀번호</span></label>
-                    <input type="password" name="pw" id="userPw" placeholder="비밀번호를 입력하세요" class="input input-bordered w-full mb-2" required />
-                    <input type="password" name="pwConfirm" id="userPwConfirm" placeholder="비밀번호를 다시 입력하세요" class="input input-bordered w-full" required />
+                    <input type="password" name="pw" id="userPw" placeholder="비밀번호를 입력하세요" class="input input-bordered w-full mb-2" />
+                    <input type="password" name="pwConfirm" id="userPwConfirm" placeholder="비밀번호를 다시 입력하세요" class="input input-bordered w-full" />
                     <label class="label"><span class="label-text-alt text-error" id="pwCheckMsg"></span></label>
                 </div>
 
@@ -49,7 +53,7 @@
                     <label class="label"><span class="label-text font-bold">이메일</span></label>
                     
                     <div class="flex gap-2 mb-2">
-                        <input type="email" name="email" id="emailInput" placeholder="이메일을 입력하세요" class="input input-bordered flex-1" required />
+                        <input type="email" name="email" id="emailInput" placeholder="이메일을 입력하세요" class="input input-bordered flex-1" />
                         <button type="button" id="sendBtn" class="btn btn-info text-white w-32 shrink-0" onclick="sendAuthCode()">인증번호 전송</button>
                     </div>
 
@@ -77,7 +81,7 @@
                             autocomplete="off"
                         />
                         <!-- 실제 폼에 전송되는 값 (선택 완료된 국가명 저장) -->
-                        <input type="hidden" name="region" id="regionValue" required />
+                        <input type="hidden" name="region" id="regionValue" />
                         
                         <!-- 자동완성 드롭다운 -->
                         <ul 
@@ -92,7 +96,7 @@
                 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">생년월일</span></label>
-                    <input type="date" name="birth" class="input input-bordered w-full" required />
+                    <input type="date" name="birth" class="input input-bordered w-full" />
                 </div>
                 
                 <div class="form-control mb-4">
@@ -298,7 +302,48 @@
         });
     }
     
-    // 4. 비밀번호 실시간 유효성 및 일치 검사
+    // 4. 닉네임 중복 확인
+    $('#userNickname').on('input', function() {
+        isNicknameChecked = false;
+        $('#nicknameCheckMsg').text("닉네임 중복확인이 필요합니다.").removeClass("text-success").addClass("text-error");
+    });
+
+    function checkNickname() { 
+        const nickname = $('#userNickname').val().trim();
+        const $msg = $('#nicknameCheckMsg');
+        const csrfToken = $("input[name='_csrf']").val();
+        
+        if(!nickname) {
+            showAlert("닉네임을 입력해주세요.");
+            $('#userNickname').focus();
+            return;
+        }
+
+        if(nickname.length > 10) {
+            $msg.text("닉네임은 10자 이내로만 사용 가능합니다.").removeClass("text-success").addClass("text-error");
+            return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "${pageContext.request.contextPath}/member/checkNickname.do",
+            data: { nickname: nickname, _csrf: csrfToken },
+            success: function(response) {
+                if(response === "AVAILABLE") {
+                    $msg.text("사용 가능한 닉네임입니다.").removeClass("text-error").addClass("text-success");
+                    isNicknameChecked = true; // ★ 체크 완료
+                } else if(response === "DUPLICATE") {
+                    $msg.text("이미 사용 중인 닉네임입니다.").removeClass("text-success").addClass("text-error");
+                    isNicknameChecked = false;
+                }
+            },
+            error: function() {
+                showAlert("서버 통신 오류가 발생했습니다.");
+            }
+        });
+    }
+    
+    // 5. 비밀번호 실시간 유효성 및 일치 검사
     $('#userPw, #userPwConfirm').on('keyup', function() {
         const pw = $('#userPw').val();
         const pwConfirm = $('#userPwConfirm').val();
@@ -325,12 +370,12 @@
                 $msg.text("비밀번호가 일치하지 않습니다.").removeClass("text-success").addClass("text-error");
             }
         } else {
-            $msg.text("안전한 비밀번호입니다. 아래에 한 번 더 입력해주세요.")
+            $msg.text("안전한 비밀번호입니다. 한 번 더 입력해주세요.")
                 .removeClass("text-error").addClass("text-success");
         }
     });
     
-    // 5. 거주 국가 선택을 위한
+    // 6. 거주 국가 선택을 위한
     // 전세계 국가 목록 (한글 검색 지원을 위해 한글명도 병기)
     const countries = [
         { name: "대한민국", en: "South Korea" },
@@ -455,7 +500,7 @@
         // 국가 더 추가 가능
     ];
 
-    // 거주 국가 자동완성 로직
+    // 6-1. 거주 국가 자동완성 로직
     const $regionSearch = $('#regionSearch');
     const $regionValue  = $('#regionValue');
     const $dropdown     = $('#regionDropdown');
@@ -508,13 +553,40 @@
             $dropdown.addClass('hidden');
         }
     });
+    
+    // 사용자가 목록에서 안 고르고 딴 데 클릭하면 엉뚱한 값 지우기
+    $regionSearch.on('blur', function() {
+        // hidden 값이 비어있다 = 목록에서 정상적으로 클릭하지 않았다
+        if (!$regionValue.val()) {
+            $(this).val(''); // 사용자 임의로 작성한 쓰레기값 초기화
+        }
+    });
 
-    // 폼 제출 전 국가 선택 검증 (직접 타이핑 차단)
+    // 폼 제출 전 검증
     $('#joinForm').on('submit', function(e) {
+    	// 닉네임 중복 확인
+    	if (!isNicknameChecked) {
+            e.preventDefault();
+            showAlert("닉네임 중복확인을 완료해주세요.");
+            $('#userNickname').focus();
+            return false;
+        }
+        
+    	// 아이디 중복 확인
+        if (!isIdChecked) {
+            e.preventDefault();
+            showAlert("아이디 중복확인을 완료해주세요.");
+            $('#userId').focus();
+            return false;
+        }
+        
+    	// 국가 선택 검증(직접 타이핑을 방지)
         if (!$regionValue.val()) {
             e.preventDefault();
-            $('#regionCheckMsg').removeClass('hidden');
+            showAlert("거주 국가를 자동완성 목록에서 선택해주세요.");
+            $regionSearch.val(''); // 엉뚱한 값 초기화
             $regionSearch.focus();
+            return false;
         }
     });
     

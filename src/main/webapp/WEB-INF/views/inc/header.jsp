@@ -25,7 +25,7 @@
         <div class="flex-1">
             <a href="${cp}/index.do" class="btn btn-ghost text-2xl font-bold text-primary gap-2 px-2 hover:bg-transparent">
                 <img src="${cp}/resources/img/trip_icon.png" alt="로고" class="w-8 h-8">
-                <span class="tracking-tight">trip</span>
+                <span class="tracking-tight">TripTo</span>
             </a>
             
             <sec:authorize access="isAuthenticated()">

@@ -64,4 +64,14 @@ public class MemberService {
 
 		dao.deactivateMember(name);
 	}
+	
+	// 마이페이지 -> 내 정보 설정 -> 닉네임 중복확인
+	public int checkNickname(String nickname) {
+		return dao.checkNickname(nickname);
+	}
+	
+	// 마이페이지 -> 내 정보 설정 -> 회원 정보 업데이트
+	public void updateMemberInfo(MemberDTO dto) {
+		dao.updateMemberInfo(dto);
+	}
 }
