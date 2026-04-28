@@ -1,23 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+<c:set var="cp" value="${pageContext.request.contextPath}" />
 <c:set var="uri" value="${not empty requestScope['javax.servlet.forward.request_uri'] ? requestScope['javax.servlet.forward.request_uri'] : pageContext.request.requestURI}" />
 
 <style>
-.nav-active {
-    font-weight: 800 !important;
-    color: #334155 !important;
+.nav-link {
+    color: #475569;
+    font-weight: 500;
+    transition: 0.2s;
 }
 
-.nav-active::after {
-    content: '';
-    position: absolute;
-    bottom: 0px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: #2563eb;
+.nav-link.active {
+    color: #422AD5;
+    font-weight: 800;
 }
 </style>
 
@@ -25,8 +23,8 @@
     <div class="navbar max-w-6xl mx-auto h-16 min-h-0 px-4">
         
         <div class="flex-1">
-            <a href="${pageContext.request.contextPath}/index.do" class="btn btn-ghost text-2xl font-bold text-primary gap-2 px-2 hover:bg-transparent">
-                <img src="${pageContext.request.contextPath}/resources/img/trip_icon.png" alt="로고" class="w-8 h-8">
+            <a href="${cp}/index.do" class="btn btn-ghost text-2xl font-bold text-primary gap-2 px-2 hover:bg-transparent">
+                <img src="${cp}/resources/img/trip_icon.png" alt="로고" class="w-8 h-8">
                 <span class="tracking-tight">trip</span>
             </a>
             
@@ -47,48 +45,84 @@
         <div class="flex-none h-full">
             <ul class="menu menu-horizontal px-1 h-full gap-1 font-semibold text-slate-600">
                 
-                <li><a href="${pageContext.request.contextPath}/travel/list.do" class="h-full flex items-center ${uri.contains('/travel/') ? 'active' : ''}">동행</a></li>
-                <li><a href="${pageContext.request.contextPath}/matching/list.do" class="h-full flex items-center ${uri.contains('/matching/') ? 'active' : ''}">매칭</a></li>
+                <li>
+                    <a href="${cp}/travel/list.do"
+                       class="nav-link h-full flex items-center ${fn:contains(uri, '/travel/') ? 'active' : ''}">
+                        동행
+                    </a>
+                </li>
+
+                <li>
+                    <a href="${cp}/matching/list.do"
+                       class="nav-link h-full flex items-center ${fn:contains(uri, '/matching/') ? 'active' : ''}">
+                        매칭
+                    </a>
+                </li>
                 
                 <li class="dropdown dropdown-hover h-full"> 
-                    <a href="${pageContext.request.contextPath}/board/list.do" 
-                       class="h-full flex items-center px-4 cursor-pointer ${uri.contains('/board/') ? 'active' : ''}">
+                    <a href="${cp}/board/list.do" 
+                       class="nav-link h-full flex items-center px-4 cursor-pointer ${fn:contains(uri, '/board/') ? 'active' : ''}">
                         커뮤니티
                     </a>
                     
                     <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-200 -left-4 top-full mt-0">
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=자유" class="whitespace-nowrap">자유 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=정보" class="whitespace-nowrap">정보 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=후기" class="whitespace-nowrap">후기 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=추천" class="whitespace-nowrap">추천 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=가이드" class="whitespace-nowrap">가이드 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=숙소" class="whitespace-nowrap">숙소 게시판</a></li>
-                        <li><a href="${pageContext.request.contextPath}/board/list.do?category=맛집" class="whitespace-nowrap">맛집 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=자유" class="whitespace-nowrap">자유 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=정보" class="whitespace-nowrap">정보 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=후기" class="whitespace-nowrap">후기 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=추천" class="whitespace-nowrap">추천 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=가이드" class="whitespace-nowrap">가이드 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=숙소" class="whitespace-nowrap">숙소 게시판</a></li>
+                        <li><a href="${cp}/board/list.do?category=맛집" class="whitespace-nowrap">맛집 게시판</a></li>
                     </ul>
                 </li>
 
-                <li><a href="${pageContext.request.contextPath}/chat/list" class="h-full flex items-center ${uri.contains('/chat/') ? 'active' : ''}">채팅</a></li>
+                <li>
+                    <a href="${cp}/chat/list"
+                       class="nav-link h-full flex items-center ${fn:contains(uri, '/chat') ? 'active' : ''}">
+                        채팅
+                    </a>
+                </li>
                 
                 <div class="divider divider-horizontal mx-1"></div>
 
                 <sec:authorize access="isAnonymous()">
-                    <li><a href="${pageContext.request.contextPath}/member/login.do" class="btn btn-ghost btn-sm h-full flex items-center">로그인</a></li>
-                    <li><a href="${pageContext.request.contextPath}/member/join.do" class="btn btn-primary btn-sm text-white">회원가입</a></li>
+                    <li>
+                        <a href="${cp}/member/login.do"
+                           class="nav-link btn btn-ghost btn-sm h-full flex items-center ${fn:contains(uri, '/member/login') ? 'active' : ''}">
+                            로그인
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${cp}/member/join.do" class="btn btn-primary btn-sm text-white">
+                            회원가입
+                        </a>
+                    </li>
                 </sec:authorize>
 
                 <sec:authorize access="isAuthenticated()">
-                    <li><a href="${pageContext.request.contextPath}/member/mypage.do" class="${uri.contains('/member/mypage') ? 'active' : ''}">마이페이지</a></li>
+                    <li>
+                        <a href="${cp}/member/mypage.do"
+                           class="nav-link h-full flex items-center ${fn:contains(uri, '/member/mypage') ? 'active' : ''}">
+                            마이페이지
+                        </a>
+                    </li>
                     
                     <li>
-                        <a href="#" onclick="document.getElementById('logoutForm').submit(); return false;" class="text-error">로그아웃</a>
+                        <a href="#" onclick="document.getElementById('logoutForm').submit(); return false;" class="text-error">
+                            로그아웃
+                        </a>
                         
-                        <form id="logoutForm" action="${pageContext.request.contextPath}/logout" method="POST" class="hidden">
+                        <form id="logoutForm" action="${cp}/logout" method="POST" class="hidden">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                         </form>
                     </li>
                     
                     <sec:authorize access="hasRole('ROLE_ADMIN')">
-                        <li><a href="${pageContext.request.contextPath}/admin/main" class="btn btn-outline btn-error btn-sm ml-2">관리자</a></li>
+                        <li>
+                            <a href="${cp}/admin/main" class="btn btn-outline btn-error btn-sm ml-2">
+                                관리자
+                            </a>
+                        </li>
                     </sec:authorize>
                 </sec:authorize>
             </ul>

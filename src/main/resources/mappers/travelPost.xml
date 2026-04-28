@@ -80,7 +80,8 @@
 	        CONTENT,
 	        VIEWCOUNT,
 	        STATUS,
-	        CREATEDATE
+	        CREATEDATE,
+	        THUMBNAILURL
 	    ) VALUES (
 	        #{seqTravelPost},
 	        #{seqMember},
@@ -88,7 +89,8 @@
 	        #{content},
 	        0,
 	        'NORMAL',
-	        SYSDATE
+	        SYSDATE,
+	        #{thumbnailUrl}
 	    )
 
     </insert>
@@ -163,7 +165,8 @@
         SET
             TITLE = #{title},
             CONTENT = #{content},
-            UPDATEDATE = SYSDATE
+            UPDATEDATE = SYSDATE,
+            THUMBNAILURL = #{thumbnailUrl}
         WHERE SEQTRAVELPOST = #{seqTravelPost}
     </update>
 
