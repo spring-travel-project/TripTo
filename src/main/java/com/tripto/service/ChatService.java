@@ -13,10 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.FileDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
-import java.text.SimpleDateFormat;
 
 @Service
 public class ChatService {
@@ -36,11 +36,7 @@ public class ChatService {
             int targetRoomId = selectedRoomId == null ? roomList.get(0).getRoomId() : selectedRoomId;
 
             for (ChatRoomDTO dto : roomList) {
-                if (dto.getRoomId() == targetRoomId) {
-                    dto.setActive(1);
-                } else {
-                    dto.setActive(0);
-                }
+                dto.setActive(dto.getRoomId() == targetRoomId ? 1 : 0);
             }
         }
 
@@ -76,10 +72,14 @@ public class ChatService {
 
         return chatDAO.insertMessage(dto) == 1;
     }
-    
- // 🌟 기존 메서드를 지우고 이 코드로 덮어씌우세요.
+
+    // 🌟 기존 메서드를 지우고 이 코드로 덮어씌우세요.
     public ChatMessageDTO saveSocketMessage(int roomId, int seqMember, String message, Integer seqFile) {
-        
+
+        if ((message == null || message.trim().isEmpty()) && seqFile == null) {
+            return null;
+        }
+
         ChatMessageDTO dto = new ChatMessageDTO();
         dto.setSeqMember(seqMember);
         dto.setSeqChattingroom(roomId);
@@ -87,46 +87,55 @@ public class ChatService {
 
         // 1. 공백/NULL 에러 방지 (기존 로직 유지)
         if ((message == null || message.trim().isEmpty()) && seqFile != null) {
-            dto.setDetail(" "); 
+            dto.setDetail(" ");
         } else {
-            dto.setDetail(message);
+            dto.setDetail(message.trim());
         }
 
         // 🌟 [추가] 실시간 전송을 위한 안 읽은 숫자 계산
         // 1:1 채팅이면 보통 2명이라 2-1 = 1이 찍힙니다.
-        int totalCount = chatDAO.getRoomMemberCount(roomId); 
-        dto.setUnreadCount(totalCount - 1); 
+        int totalCount = chatDAO.getRoomMemberCount(roomId);
+        dto.setUnreadCount(totalCount - 1);
 
         // 2. DB에 메시지 저장
         int result = chatDAO.insertMessage(dto);
-        if (result != 1) return null;
+
+        if (result != 1) {
+            return null;
+        }
 
         // 3. 브라우저로 돌려줄 응답 데이터 구성
         ChatMessageDTO saved = new ChatMessageDTO();
+        saved.setSeq(dto.getSeq());
         saved.setNickname(chatDAO.getNicknameByMemberId(seqMember));
         saved.setDetail(dto.getDetail());
         saved.setSeqFile(seqFile);
         saved.setSeqMember(seqMember);
+        saved.setSeqChattingroom(roomId);
         saved.setUnreadCount(dto.getUnreadCount()); // 🌟 계산된 숫자를 응답 DTO에 세팅!
-        
+
         // 시간 정보 추가 (브라우저에서 바로 띄워주기 위함)
         saved.setMessageTime(new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date()));
 
         if (seqFile != null && seqFile > 0) {
             saved.setSavedName(chatDAO.getFileNameBySeq(seqFile));
         }
-        
+
         return saved; // 이 데이터가 WebSocket을 타고 JSP의 appendMessage로 갑니다!
     }
-    
+
+    public ChatMessageDTO saveSocketMessage(int roomId, int seqMember, String message) {
+        return saveSocketMessage(roomId, seqMember, message, null);
+    }
+
     public String getNicknameByMemberId(int seqMember) {
         return chatDAO.getNicknameByMemberId(seqMember);
     }
-    
+
     public boolean exitRoom(int roomId, int userId) {
         return chatDAO.exitRoom(roomId, userId) == 1;
     }
-    
+
     public List<RoutineDTO> getRoutineList(int roomId) {
         chatDAO.updateExpiredRoutineStatus();
         return chatDAO.getRoutineList(roomId);
@@ -135,7 +144,7 @@ public class ChatService {
     public List<PollDTO> getPollList(int roomId) {
         return chatDAO.getPollList(roomId);
     }
-    
+
     public boolean insertPoll(PollDTO dto, List<String> pollContents) {
 
         if (dto.getPollTitle() == null || dto.getPollTitle().trim().isEmpty()) {
@@ -175,7 +184,7 @@ public class ChatService {
 
         return true;
     }
-    
+
     public PollDTO getPollDetail(int pollId) {
         return chatDAO.getPollDetail(pollId);
     }
@@ -183,7 +192,7 @@ public class ChatService {
     public List<PollContentDTO> getPollContentList(int pollId) {
         return chatDAO.getPollContentList(pollId);
     }
-    
+
     public boolean votePoll(int pollId, int pollContentId, int seqMember) {
 
         // ���� ��ǥ ���� ����
@@ -192,7 +201,7 @@ public class ChatService {
         // �� �׸����� ��ǥ
         return chatDAO.votePoll(pollContentId, seqMember) == 1;
     }
-    
+
     public boolean deletePoll(int pollId, int loginUserId) {
 
         // �ۼ��ڸ� ���� �����ϰ� �ϰ� ������ DAO���� �ۼ��� Ȯ��
@@ -208,10 +217,15 @@ public class ChatService {
 
         chatDAO.deletePollResultByPollId(pollId);
         chatDAO.deletePollContentByPollId(pollId);
+
         return chatDAO.deletePoll(pollId) == 1;
     }
-    
+
     public boolean insertRoutine(RoutineDTO dto) {
+        return insertRoutine(dto, null);
+    }
+
+    public boolean insertRoutine(RoutineDTO dto, List<MultipartFile> files) {
 
         if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
             return false;
@@ -223,7 +237,12 @@ public class ChatService {
 
         Integer seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
 
-        dto.setSeqTravelPost(seqTravelPost);
+        if (seqTravelPost != null) {
+            dto.setSeqTravelPost(seqTravelPost);
+        } else {
+            dto.setSeqTravelPost(0);
+        }
+
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
 
@@ -242,17 +261,69 @@ public class ChatService {
             chatDAO.insertLocation(dto);
         }
 
-        return chatDAO.insertRoutine(dto) == 1;
+        int routineResult = chatDAO.insertRoutine(dto);
+
+        if (routineResult != 1) {
+            return false;
+        }
+
+        if (files == null || files.isEmpty()) {
+            return true;
+        }
+
+        String uploadPath = "C:/upload/";
+
+        File uploadDir = new File(uploadPath);
+
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        for (MultipartFile file : files) {
+
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+
+            try {
+                String originalName = file.getOriginalFilename();
+                String savedName = UUID.randomUUID().toString() + "_" + originalName;
+
+                File dest = new File(uploadPath + savedName);
+                file.transferTo(dest);
+
+                FileDTO fileDTO = new FileDTO();
+                fileDTO.setOriginalName(originalName);
+                fileDTO.setSavedName(savedName);
+                fileDTO.setFilePath("/upload/" + savedName);
+                fileDTO.setFileSize(file.getSize());
+                fileDTO.setFileType(file.getContentType());
+
+                chatDAO.insertFile(fileDTO);
+
+                Map<String, Object> map = new HashMap<>();
+                map.put("seqFile", fileDTO.getSeq());
+                map.put("roomId", dto.getSeqChattingroom());
+                map.put("seqRoutine", dto.getSeq());
+
+                chatDAO.insertRoutineFile(map);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return true;
     }
-    
+
     public RoutineDTO getRoutineDetail(int routineId) {
         chatDAO.updateExpiredRoutineStatus();
         return chatDAO.getRoutineDetail(routineId);
     }
-    
- // 🌟 매칭 채팅방 생성 또는 가져오기 로직
+
+    // 🌟 매칭 채팅방 생성 또는 가져오기 로직
     public int createOrGetMatchingChatRoom(int me, int target) {
-        
+
         Map<String, Integer> map = new HashMap<>();
         map.put("me", me);
         map.put("target", target);
@@ -267,10 +338,10 @@ public class ChatService {
         // 2. 방이 없다면 새로 생성 (chattingroom 테이블)
         ChatRoomDTO newRoom = new ChatRoomDTO();
         newRoom.setCategory(1); // 1 = 매칭 카테고리
-        
+
         // DAO를 다녀오면 newRoom 객체 안에 새로 발급된 roomId(PK)가 채워집니다.
-        chatDAO.createChattingRoom(newRoom); 
-        
+        chatDAO.createChattingRoom(newRoom);
+
         int newRoomId = newRoom.getRoomId();
 
         // 3. 나를 이 채팅방에 참여시킴 (user_chat 테이블)
@@ -287,7 +358,7 @@ public class ChatService {
 
         return newRoomId; // 🌟 최종적으로 새로 만들어진 방 번호를 리턴
     }
-    
+
     public boolean deleteRoutine(int routineId, int loginUserId) {
 
         RoutineDTO routine = chatDAO.getRoutineDetail(routineId);
@@ -303,7 +374,7 @@ public class ChatService {
 
         return chatDAO.deleteRoutine(routineId) == 1;
     }
-    
+
     public boolean updateRoutine(RoutineDTO dto, int loginUserId) {
 
         RoutineDTO origin = chatDAO.getRoutineDetail(dto.getSeq());
@@ -326,7 +397,7 @@ public class ChatService {
 
         dto.setTitle(dto.getTitle().trim());
         dto.setDetail(dto.getDetail().trim());
-        
+
         try {
             if (dto.getdDayInput() != null && !dto.getdDayInput().trim().isEmpty()) {
                 dto.setdDay(new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dto.getdDayInput()));
@@ -346,12 +417,11 @@ public class ChatService {
 
         return chatDAO.updateRoutine(dto) == 1;
     }
-    
 
     public int uploadChatFile(MultipartFile file, int seqMember, int roomId) {
         // 🌟 1. 파일을 저장할 경로 (태훈님 설정에 맞게 수정하세요)
-    	String uploadPath = "C:\\upload\\chat"; 
-        
+        String uploadPath = "C:\\upload\\chat";
+
         // 폴더가 없으면 생성
         File dir = new File(uploadPath);
         if (!dir.exists()) {
@@ -385,17 +455,16 @@ public class ChatService {
             return -1; // 실패 시 -1 리턴
         }
     }
-    
 
     public void updateExpiredRoutineStatus() {
         chatDAO.updateExpiredRoutineStatus();
     }
-    
 
     public void updateReadStatus(int roomId, int loginUserId) {
         chatDAO.insertReadStatus(roomId, loginUserId);
     }
 
-    
-    
+    public List<FileDTO> getRoutineFileList(int routineId) {
+        return chatDAO.getRoutineFileList(routineId);
+    }
 }

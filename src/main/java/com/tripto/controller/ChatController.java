@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
+import com.tripto.dto.FileDTO;
 import com.tripto.dto.MemberDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
@@ -251,19 +252,20 @@ public class ChatController {
     }
     
     @PostMapping("/chat/routine/write")
-    public String routineWriteOk(RoutineDTO dto) {
+    public String routineWriteOk(RoutineDTO dto,
+                                 @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         dto.setSeqMember(loginUserId);
 
-        chatService.insertRoutine(dto);
+        chatService.insertRoutine(dto, files);
 
         return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
     }
@@ -274,18 +276,20 @@ public class ChatController {
             @RequestParam("routineId") int routineId,
             Model model) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         RoutineDTO routine = chatService.getRoutineDetail(routineId);
+        List<FileDTO> fileList = chatService.getRoutineFileList(routineId);
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("routine", routine);
+        model.addAttribute("fileList", fileList);
         model.addAttribute("loginUserId", loginUserId);
 
         return "chat/routineDetail";
