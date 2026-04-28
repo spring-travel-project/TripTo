@@ -26,7 +26,10 @@
                     <h1 class="travel-detail-title">${dto.title}</h1>
 
                     <div class="travel-detail-meta">
-                        <span>${dto.writerName}</span>
+                        <a href="${cp}/matching/detail?seqMember=${dto.seqMember}"
+						   style="font-weight:600; color:#334155;">
+						    ${dto.writerName}
+						</a>
                         <span>${dto.createDate}</span>
                         <span>조회 ${dto.viewCount}</span>
                     </div>
