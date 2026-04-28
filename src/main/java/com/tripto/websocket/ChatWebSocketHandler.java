@@ -29,21 +29,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // roomId �� ���� ���� ���
+    // roomId별 세션 관리
     private final Map<Integer, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
 
-    // sessionId -> roomId
+    // sessionId -> roomId 매핑
     private final Map<String, Integer> sessionRoomMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // ���Ḹ �Ϸ�. ���� room ����� ù ENTER �޽������� ó��
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
 
-    	ChatSocketMessageDTO socketMessage = objectMapper.readValue(textMessage.getPayload(), ChatSocketMessageDTO.class);
+        ChatSocketMessageDTO socketMessage = objectMapper.readValue(textMessage.getPayload(), ChatSocketMessageDTO.class);
 
         if (socketMessage.getType() == null || socketMessage.getRoomId() == null) {
             return;
@@ -52,15 +51,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         // 1. [ENTER] 사용자가 방에 들어왔을 때
         if ("ENTER".equals(socketMessage.getType())) {
             int roomId = socketMessage.getRoomId();
-            int seqMember = socketMessage.getSeqMember(); // 🌟 읽음 처리를 위해 회원 번호 필요
+            int seqMember = socketMessage.getSeqMember();
 
             roomSessions.computeIfAbsent(roomId, key -> Collections.synchronizedSet(new HashSet<>())).add(session);
             sessionRoomMap.put(session.getId(), roomId);
 
-            // 🌟 [추가] 1. DB 업데이트: 이 방의 안 읽은 메시지들을 내가 읽은 것으로 기록
+            // DB 업데이트: 안 읽은 메시지 읽음 처리
             chatService.updateReadStatus(roomId, seqMember);
 
-            // 🌟 [추가] 2. 실시간 신호: 방에 있는 다른 사람들에게 "누군가 들어와서 읽었으니 1 지워라!"라고 전송
+            // 실시간 READ 신호 전송
             ChatSocketMessageDTO readSignal = new ChatSocketMessageDTO();
             readSignal.setType("READ");
             readSignal.setRoomId(roomId);
@@ -80,9 +79,19 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
                 if (roomId == null || seqMember == null) return;
 
+                // 🌟 [핵심 수정] ORA-01400 에러 방지 로직
+                // 메시지 내용이 비어있는데 파일(사진)이 있는 경우 "(사진)"으로 텍스트를 채워줍니다.
+                if (message == null || message.trim().isEmpty()) {
+                    if (seqFile != null) {
+                        message = "(사진)"; 
+                    } else {
+                        return; // 파일도 없고 메시지도 없으면 저장하지 않음
+                    }
+                }
+
                 ChatMessageDTO saved = null;
                 try {
-                    // 🌟 서비스 내부에서 unreadCount가 계산되어 나옵니다.
+                    // 서비스 내부에서 DB 저장 및 unreadCount 계산
                     saved = chatService.saveSocketMessage(roomId, seqMember, message, seqFile);
                 } catch (Exception e) {
                     System.err.println("❌ DB 저장 중 에러: " + e.getMessage());
@@ -96,10 +105,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     response.setNickname(saved.getNickname());
                     response.setMessage(saved.getDetail());
                     response.setSeqFile(saved.getSeqFile());
-                    response.setSavedName(saved.getSavedName());
+                    response.setSavedName(saved.getSavedName()); // Cloudinary URL 포함됨
+                    response.setPartnerProfile(saved.getPartnerProfile()); // 🌟 프로필 사진 추가
                     response.setMessageTime(new SimpleDateFormat("HH:mm").format(new Date()));
-                    
-                    // 🌟 [추가] 3. 실시간 숫자: "이 메시지는 처음에 1(혹은 인원수-1)로 시작해!"라고 알려줌
                     response.setUnreadCount(saved.getUnreadCount());
 
                     String json = objectMapper.writeValueAsString(response);
@@ -111,17 +119,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         }
         
+        // 3. [EXIT] 방을 나갈 때
         if ("EXIT".equals(socketMessage.getType())) {
-
             Integer roomId = socketMessage.getRoomId();
-            Integer seqMember = socketMessage.getSeqMember();
-
             if (roomId == null) return;
 
             ChatSocketMessageDTO response = new ChatSocketMessageDTO();
             response.setType("EXIT");
             response.setRoomId(roomId);
-            response.setMessage("�� ���� ä�ù��� �������ϴ�.");
+            response.setMessage("상대방이 채팅방을 나갔습니다.");
 
             String json = objectMapper.writeValueAsString(response);
             broadcastToRoom(roomId, json);
@@ -130,17 +136,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private void broadcastToRoom(Integer roomId, String payload) throws Exception {
         Set<WebSocketSession> sessions = roomSessions.get(roomId);
-
-        if (sessions == null) {
-            return;
-        }
+        if (sessions == null) return;
 
         synchronized (sessions) {
             Iterator<WebSocketSession> iterator = sessions.iterator();
-
             while (iterator.hasNext()) {
                 WebSocketSession ws = iterator.next();
-
                 if (ws.isOpen()) {
                     ws.sendMessage(new TextMessage(payload));
                 } else {
@@ -153,13 +154,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Integer roomId = sessionRoomMap.remove(session.getId());
-
         if (roomId != null) {
             Set<WebSocketSession> sessions = roomSessions.get(roomId);
-
             if (sessions != null) {
                 sessions.remove(session);
-
                 if (sessions.isEmpty()) {
                     roomSessions.remove(roomId);
                 }

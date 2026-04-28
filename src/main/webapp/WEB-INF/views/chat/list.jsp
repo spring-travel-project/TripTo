@@ -45,13 +45,13 @@
                          <div class="flex gap-3">
                             <div class="w-14 h-14 rounded-full bg-slate-200 overflow-hidden shrink-0">
                                 <c:choose>
-                                    <c:when test="${not empty room.partnerProfile}">
-                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${room.partnerProfile}" class="w-full h-full object-cover">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover">
-                                    </c:otherwise>
-                                </c:choose>
+								    <c:when test="${msg.savedName.startsWith('http')}">
+								        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+								    </c:when>
+								    <c:otherwise>
+								        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+								    </c:otherwise>
+								</c:choose>
                             </div>
                             
                             <div class="min-w-0 flex-1">
@@ -192,129 +192,138 @@
    </main>
 
    <script>
-      const messageInput = document.getElementById('message');
-      const chatForm = document.getElementById('chatSendForm');
-      const chatMessageList = document.getElementById('chatMessageList');
-      const fileInput = document.getElementById('fileInput');
-      // 🌟 복구: 미리보기 관련 변수
-      const filePreviewArea = document.getElementById('filePreviewArea');
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
-   
-      const selectedRoomId = '${selectedRoomId}';
-      const loginUserId = '${loginUserId}'; 
-      const contextPath = '${pageContext.request.contextPath}';
-      const csrfHeader = '${_csrf.headerName}';
-      const csrfToken = '${_csrf.token}';
-      
-      let socket = null;
-      let selectedFile = null; // 🌟 복구: 선택된 파일 객체 저장용
-
-      function escapeHtml(str) { return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''; }
-      function scrollToBottom() { const area = document.querySelector('.chat-scroll.flex-1'); if (area) area.scrollTop = area.scrollHeight; }
-
-      // 🌟 이모티콘 추가 함수
-      window.addEmoji = (emoji) => {
-          messageInput.value += emoji;
-          document.getElementById('emojiPicker').classList.add('hidden');
-          messageInput.focus();
-      };
-
-      // 🌟 이모티콘 버튼 클릭 이벤트
-      document.getElementById('emojiToggleBtn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          document.getElementById('emojiPicker').classList.toggle('hidden');
-      });
-
-      function appendMessage(data, isMine) {
-          if (!chatMessageList) return;
-          let fileHtml = data.savedName ? `<img src="\${contextPath}/upload/chat/\${data.savedName}" class="rounded-lg max-w-full h-auto mb-2">` : '';
-          const unreadBadge = (data.unreadCount > 0) ? `<span class="unread-badge unread-count-label">\${data.unreadCount}</span>` : '';
-          
-          const profileImg = data.partnerProfile ? data.partnerProfile : 'pic.png';
-
-          let contentHtml = isMine ? `
-            <div class="flex items-end justify-end gap-2">
-                <div class="flex flex-col items-end min-w-fit">\${unreadBadge}<p class="text-[10px] text-slate-400">\${data.messageTime}</p></div>
-                <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">\${fileHtml} \${escapeHtml(data.message)}</div>
-            </div>` : `
-            <div class="flex items-end justify-start gap-2">
-                <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">\${fileHtml} \${escapeHtml(data.message)}</div>
-                <div class="flex flex-col items-start min-w-fit">\${unreadBadge}<p class="text-[10px] text-slate-400">\${data.messageTime}</p></div>
-            </div>`;
-
-          const html = `<div class="flex \${isMine ? 'justify-end' : 'items-start gap-3'}">
-                \${!isMine ? `<div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden"><img src="\${contextPath}/resources/upload/profile/\${profileImg}" class="w-full h-full object-cover"></div>` : ''}
-                <div class="max-w-[75%] \${isMine ? 'text-right' : ''}">\${!isMine ? `<p class="text-xs text-slate-500 mb-1 ml-1">\${data.nickname}</p>` : ''}\${contentHtml}</div>
-            </div>`;
-          chatMessageList.insertAdjacentHTML('beforeend', html);
-          scrollToBottom();
-      }
-   
-      function connectSocket() {
-         if (!selectedRoomId) return;
-         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-         socket = new WebSocket(`\${protocol}//\${location.host}\${contextPath}/chatSocket`);
-         socket.onopen = () => socket.send(JSON.stringify({ type: 'ENTER', roomId: Number(selectedRoomId), seqMember: Number(loginUserId) }));
-         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'READ') {
-                if (String(data.seqMember) !== String(loginUserId)) {
-                    document.querySelectorAll('.unread-count-label').forEach(badge => {
-                        let count = parseInt(badge.innerText);
-                        if (count > 1) badge.innerText = count - 1;
-                        else badge.remove();
-                    });
-                }
-            } else if (data.type === 'TALK') {
-                appendMessage(data, String(data.seqMember) === String(loginUserId));
-            }
-         };
-      }
-
-      document.getElementById('fileAttachBtn')?.addEventListener('click', () => fileInput.click());
-      
-      // 🌟 복구: 파일 첨부 미리보기 및 취소 로직
-      fileInput?.addEventListener('change', function() {
-          if (this.files && this.files[0]) {
-              selectedFile = this.files[0];
-              fileNameDisplay.textContent = selectedFile.name;
-              filePreviewArea.classList.remove('hidden');
-          }
-      });
-      document.getElementById('fileCancelBtn')?.addEventListener('click', () => {
-          selectedFile = null;
-          fileInput.value = '';
-          filePreviewArea.classList.add('hidden');
-      });
-
-      chatForm?.addEventListener('submit', async function (e) {
-         e.preventDefault();
-         const message = messageInput.value.trim();
-         
-         // 🌟 수정: 텍스트나 '선택된 파일'이 없으면 전송 막음
-         if (!message && !selectedFile) return;
-         
-         let seqFile = null;
-         if (selectedFile) {
-             const formData = new FormData();
-             formData.append("file", selectedFile);
-             formData.append("roomId", selectedRoomId);
-             const res = await fetch(`\${contextPath}/chat/uploadFile.do`, { method: 'POST', headers: { [csrfHeader]: csrfToken }, body: formData });
-             const json = await res.json();
-             if (json.success) seqFile = json.seqFile;
-         }
-         
-         socket.send(JSON.stringify({ type: 'TALK', roomId: Number(selectedRoomId), seqMember: Number(loginUserId), message: message, seqFile: seqFile }));
-         
-         // 🌟 복구: 전송 후 입력창 및 미리보기 초기화
-         messageInput.value = ''; 
-         fileInput.value = '';
-         selectedFile = null;
-         if (filePreviewArea) filePreviewArea.classList.add('hidden');
-      });
-
-      connectSocket();
-      scrollToBottom();
-   </script>
+	   const messageInput = document.getElementById('message');
+	   const chatForm = document.getElementById('chatSendForm');
+	   const chatMessageList = document.getElementById('chatMessageList');
+	   const fileInput = document.getElementById('fileInput');
+	   const filePreviewArea = document.getElementById('filePreviewArea');
+	   const fileNameDisplay = document.getElementById('fileNameDisplay');
+	
+	   const selectedRoomId = '${selectedRoomId}';
+	   const loginUserId = '${loginUserId}'; 
+	   const contextPath = '${pageContext.request.contextPath}';
+	   const csrfHeader = '${_csrf.headerName}';
+	   const csrfToken = '${_csrf.token}';
+	   
+	   let socket = null;
+	   let selectedFile = null;
+	
+	   function escapeHtml(str) { return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''; }
+	   function scrollToBottom() { const area = document.querySelector('.chat-scroll.flex-1'); if (area) area.scrollTop = area.scrollHeight; }
+	
+	   window.addEmoji = (emoji) => {
+	       messageInput.value += emoji;
+	       document.getElementById('emojiPicker').classList.add('hidden');
+	       messageInput.focus();
+	   };
+	
+	   document.getElementById('emojiToggleBtn')?.addEventListener('click', (e) => {
+	       e.stopPropagation();
+	       document.getElementById('emojiPicker').classList.toggle('hidden');
+	   });
+	
+	   // 🌟 실시간 메시지 출력 (Cloudinary 주소 체크 로직 포함)
+	   function appendMessage(data, isMine) {
+	       if (!chatMessageList) return;
+	       
+	       let fileHtml = '';
+	       if (data.savedName) {
+	           // 🌟 핵심: savedName이 http로 시작하면 클라우드 주소 그대로 사용, 아니면 로컬 경로 사용
+	           const imgSrc = data.savedName.startsWith('http') 
+	                        ? data.savedName 
+	                        : `\${contextPath}/upload/chat/\${data.savedName}`;
+	           
+	           fileHtml = `<div class="mb-2"><img src="\${imgSrc}" class="rounded-lg max-w-full h-auto shadow-sm cursor-pointer" onclick="window.open(this.src)"></div>`;
+	       }
+	
+	       const unreadBadge = (data.unreadCount > 0) ? `<span class="unread-badge unread-count-label">\${data.unreadCount}</span>` : '';
+	       
+	       // 프로필 이미지 경로 처리 (프로필도 클라우드라면 위와 같은 로직이 필요할 수 있습니다)
+	       const profileImgSrc = (data.partnerProfile && data.partnerProfile.startsWith('http'))
+	                           ? data.partnerProfile
+	                           : `\${contextPath}/resources/upload/profile/\${data.partnerProfile || 'pic.png'}`;
+	
+	       let contentHtml = isMine ? `
+	         <div class="flex items-end justify-end gap-2">
+	             <div class="flex flex-col items-end min-w-fit">\${unreadBadge}<p class="text-[10px] text-slate-400">\${data.messageTime}</p></div>
+	             <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">\${fileHtml} \${escapeHtml(data.message)}</div>
+	         </div>` : `
+	         <div class="flex items-end justify-start gap-2">
+	             <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">\${fileHtml} \${escapeHtml(data.message)}</div>
+	             <div class="flex flex-col items-start min-w-fit">\${unreadBadge}<p class="text-[10px] text-slate-400">\${data.messageTime}</p></div>
+	         </div>`;
+	
+	       const html = `<div class="flex \${isMine ? 'justify-end' : 'items-start gap-3'}">
+	             \${!isMine ? `<div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden"><img src="\${profileImgSrc}" class="w-full h-full object-cover"></div>` : ''}
+	             <div class="max-w-[75%] \${isMine ? 'text-right' : ''}">\${!isMine ? `<p class="text-xs text-slate-500 mb-1 ml-1">\${data.nickname}</p>` : ''}\${contentHtml}</div>
+	         </div>`;
+	       chatMessageList.insertAdjacentHTML('beforeend', html);
+	       scrollToBottom();
+	   }
+	
+	   function connectSocket() {
+	      if (!selectedRoomId) return;
+	      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+	      socket = new WebSocket(`\${protocol}//\${location.host}\${contextPath}/chatSocket`);
+	      socket.onopen = () => socket.send(JSON.stringify({ type: 'ENTER', roomId: Number(selectedRoomId), seqMember: Number(loginUserId) }));
+	      socket.onmessage = (event) => {
+	         const data = JSON.parse(event.data);
+	         if (data.type === 'READ') {
+	             if (String(data.seqMember) !== String(loginUserId)) {
+	                 document.querySelectorAll('.unread-count-label').forEach(badge => {
+	                     let count = parseInt(badge.innerText);
+	                     if (count > 1) badge.innerText = count - 1;
+	                     else badge.remove();
+	                 });
+	             }
+	         } else if (data.type === 'TALK') {
+	             appendMessage(data, String(data.seqMember) === String(loginUserId));
+	         }
+	      };
+	   }
+	
+	   document.getElementById('fileAttachBtn')?.addEventListener('click', () => fileInput.click());
+	   
+	   fileInput?.addEventListener('change', function() {
+	       if (this.files && this.files[0]) {
+	           selectedFile = this.files[0];
+	           fileNameDisplay.textContent = selectedFile.name;
+	           filePreviewArea.classList.remove('hidden');
+	       }
+	   });
+	
+	   document.getElementById('fileCancelBtn')?.addEventListener('click', () => {
+	       selectedFile = null;
+	       fileInput.value = '';
+	       filePreviewArea.classList.add('hidden');
+	   });
+	
+	   chatForm?.addEventListener('submit', async function (e) {
+	      e.preventDefault();
+	      const message = messageInput.value.trim();
+	      if (!message && !selectedFile) return;
+	      
+	      let seqFile = null;
+	      if (selectedFile) {
+	          const formData = new FormData();
+	          formData.append("file", selectedFile);
+	          formData.append("roomId", selectedRoomId);
+	          // Controller의 uploadFile.do가 Cloudinary에 올리고 seqFile을 리턴함
+	          const res = await fetch(`\${contextPath}/chat/uploadFile.do`, { method: 'POST', headers: { [csrfHeader]: csrfToken }, body: formData });
+	          const json = await res.json();
+	          if (json.success) seqFile = json.seqFile;
+	      }
+	      
+	      socket.send(JSON.stringify({ type: 'TALK', roomId: Number(selectedRoomId), seqMember: Number(loginUserId), message: message, seqFile: seqFile }));
+	      
+	      messageInput.value = ''; 
+	      fileInput.value = '';
+	      selectedFile = null;
+	      if (filePreviewArea) filePreviewArea.classList.add('hidden');
+	   });
+	
+	   connectSocket();
+	   scrollToBottom();
+	</script>
 </body>
 </html>
