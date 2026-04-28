@@ -23,7 +23,10 @@ public class RoutineDTO {
     private Double latitude;
     private Double longitude;
     private String mapProviderId;
-
+    private int status;
+    private String dDayDateText;
+    private String dDayInput;
+    
     public int getSeq() {
         return seq;
     }
@@ -159,4 +162,31 @@ public class RoutineDTO {
     public void setMapProviderId(String mapProviderId) {
         this.mapProviderId = mapProviderId;
     }
+    
+
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+    
+    public String getdDayDateText() {
+        return dDayDateText;
+    }
+
+    public void setdDayDateText(String dDayDateText) {
+        this.dDayDateText = dDayDateText;
+    }
+    
+    public String getdDayInput() {
+        return dDayInput;
+    }
+
+    public void setdDayInput(String dDayInput) {
+        this.dDayInput = dDayInput;
+    }
+    
 }
