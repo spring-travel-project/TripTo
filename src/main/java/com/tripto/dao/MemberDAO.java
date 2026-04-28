@@ -63,4 +63,14 @@ public class MemberDAO {
 	public void deactivateMember(String id) {
 		sql.update("member.deactivateMember", id);
 	}
+	
+	// 마이페이지 -> 내 정보 설정 -> 닉네임 중복확인
+	public int checkNickname(String nickname) {
+		return sql.selectOne("member.checkNickname", nickname);
+	}
+	
+	// 마이페이지 -> 내 정보 설정 -> 회원 정보 업데이트
+	public void updateMemberInfo(MemberDTO dto) {
+		sql.update("member.updateMemberInfo", dto);
+	}
 }
