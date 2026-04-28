@@ -175,7 +175,7 @@ public class BoardPostController {
         boolean isLogin = loginMember != null;
 
         boolean isWriter = isLogin
-                && Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
+                && loginMember.getSeqMember() == dto.getSeqMember();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -195,6 +195,10 @@ public class BoardPostController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);
         model.addAttribute("isRecommended", isRecommended);
+        
+        System.out.println("login seq = " + (loginMember != null ? loginMember.getSeqMember() : null));
+        System.out.println("post writer seq = " + dto.getSeqMember());
+        System.out.println("isWriter = " + isWriter);
 
         return "board/detail";
     }

@@ -144,12 +144,16 @@
                 </div>
                 
                 <!-- 🔥 채팅 버튼 추가 -->
-	            <div style="margin: 24px 0;">
-	                <button class="btn-chat-send"
-	                        onclick="location.href='${cp}/chat/start.do?seqMember=${dto.seqMember}'">
-	                    채팅 보내기
-	                </button>
-	            </div>
+	            <c:if test="${not isWriter}">
+				    <div style="margin:20px 0;">
+				        <button type="button"
+						        class="btn-travel-outline btn-travel-sm btn-chat-hover"
+						        style="width:100%; margin:20px 0;"
+						        onclick="location.href='${cp}/chat/start?targetSeq=${dto.seqMember}'">
+						    채팅 보내기
+						</button>
+				    </div>
+				</c:if>
 
                 <div class="travel-detail-actions">
 
