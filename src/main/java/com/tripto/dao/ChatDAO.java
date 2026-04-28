@@ -97,7 +97,7 @@ public class ChatDAO {
         return template.delete("chat.deletePoll", pollId);
     }
     
-    public int getTravelPostSeqByRoomId(int roomId) {
+    public Integer getTravelPostSeqByRoomId(int roomId) {
         return template.selectOne("chat.getTravelPostSeqByRoomId", roomId);
     }
 

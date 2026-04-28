@@ -79,9 +79,13 @@
 						<p class="text-base font-bold text-slate-900">
 							<c:out value="${routine.placeName}" />
 						</p>
-						<p class="text-sm text-slate-500 mt-1">
+						<p class="text-sm text-slate-500 mt-1 mb-4">
 							<c:out value="${routine.address}" />
 						</p>
+				
+						<div id="detailMap"
+						     class="w-full h-[360px] rounded-2xl border border-slate-200 bg-slate-100">
+						</div>
 					</div>
 				</c:if>
 
@@ -155,5 +159,39 @@
 		</div>
 
 	</main>
+	
+	<c:if test="${not empty routine.latitude and not empty routine.longitude}">
+		<script type="text/javascript"
+			src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1cf6e908ad168b1d10c9952edc015a7d&libraries=services">
+		</script>
+	
+		<script>
+			window.addEventListener('load', function () {
+				const lat = Number('${routine.latitude}');
+				const lng = Number('${routine.longitude}');
+	
+				const position = new kakao.maps.LatLng(lat, lng);
+	
+				const map = new kakao.maps.Map(document.getElementById('detailMap'), {
+					center: position,
+					level: 4
+				});
+	
+				const marker = new kakao.maps.Marker({
+					position: position,
+					map: map
+				});
+	
+				const infoWindow = new kakao.maps.InfoWindow({
+					content: '<div style="padding:8px 12px;font-size:13px;">'
+						+ '<strong><c:out value="${routine.placeName}" /></strong><br>'
+						+ '<span><c:out value="${routine.address}" /></span>'
+						+ '</div>'
+				});
+	
+				infoWindow.open(map, marker);
+			});
+		</script>
+	</c:if>
 </body>
 </html>
