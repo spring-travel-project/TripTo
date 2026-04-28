@@ -20,34 +20,61 @@
 
     <!-- Resolves views selected for rendering by @Controllers to .jsp resources 
         in the /WEB-INF/views directory -->
-    <beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <beans:property name="prefix" value="/WEB-INF/views/" />
+    <beans:bean
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <beans:property name="prefix"
+            value="/WEB-INF/views/" />
         <beans:property name="suffix" value=".jsp" />
     </beans:bean>
-    
+
     <!-- 파일 업로드 설정 -->
     <beans:bean id="multipartResolver"
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <beans:property name="defaultEncoding" value="UTF-8"/>
-		<beans:property name="maxUploadSize" value="536870912"/>
-		<beans:property name="maxInMemorySize" value="10485760"/>
+        <beans:property name="defaultEncoding"
+            value="UTF-8" />
+        <beans:property name="maxUploadSize"
+            value="536870912" />
+        <beans:property name="maxInMemorySize"
+            value="10485760" />
     </beans:bean>
-    
-    <context:component-scan base-package="com.tripto" />
 
-	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
-	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<beans:property name="prefix" value="/WEB-INF/views/" />
-		<beans:property name="suffix" value=".jsp" />
-	</beans:bean>
-	
-	<context:component-scan base-package="com.tripto" />
-	
-	<resources mapping="/resources/**" location="/resources/" />
-	
-	<resources mapping="/upload/**"
-           location="file:///C:/upload/" />
-	
-	
-	
+    <context:component-scan
+        base-package="com.tripto" />
+
+    <!-- Resolves views selected for rendering by @Controllers to .jsp resources 
+        in the /WEB-INF/views directory -->
+    <beans:bean
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <beans:property name="prefix"
+            value="/WEB-INF/views/" />
+        <beans:property name="suffix" value=".jsp" />
+    </beans:bean>
+
+    <context:component-scan
+        base-package="com.tripto" />
+
+    <resources mapping="/resources/**" location="/resources/" />
+
+    <resources mapping="/upload/**"
+        location="file:///C:/upload/" />
+    
+    <!-- 인터셉터가 어떤 주소를 감시할지 등록 -->
+    <beans:bean id="profileCheckInterceptor"
+        class="com.tripto.interceptor.ProfileCheckInterceptor" />
+
+    <interceptors>
+        <interceptor>
+            <mapping path="/matching/**" />
+            <mapping path="/travel/**" />
+            <mapping path="/chat/**" />
+            <mapping path="/board/**" />
+
+            <exclude-mapping
+                path="/member/needProfile.do" />
+            <exclude-mapping
+                path="/member/profileEdit.do" />
+            <beans:ref bean="profileCheckInterceptor" />
+        </interceptor>
+    </interceptors>
+
 </beans:beans>
