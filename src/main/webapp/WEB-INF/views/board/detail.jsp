@@ -27,7 +27,10 @@
                     <h1 class="board-detail-title">${dto.title}</h1>
 
                     <div class="board-detail-meta">
-                        <span>${dto.writerName}</span>
+                        <a href="${cp}/matching/detail?seqMember=${dto.seqMember}"
+						   style="font-weight:600; color:#334155;">
+						    ${dto.writerName}
+						</a>
                         <span>${dto.createDate}</span>
                         <span>조회 ${dto.viewCount}</span>
                     </div>
@@ -136,13 +139,17 @@
             </section>
             
             <!-- 🔥 채팅 버튼 추가 -->
-            <div style="margin: 24px 0;">
-                <button class="btn-chat-send"
-                        onclick="location.href='${cp}/chat/start.do?seqMember=${dto.seqMember}'">
-                    채팅 보내기
-                </button>
-            </div>
-
+            <c:if test="${not isWriter}">
+			    <div style="margin:20px 0;">
+			        <button type="button"
+					        class="btn-board-outline btn-board-sm btn-chat-hover"
+					        style="width:100%; margin:20px 0;"
+					        onclick="location.href='${cp}/chat/start?targetSeq=${dto.seqMember}'">
+					    채팅 보내기
+					</button>
+			    </div>
+			</c:if>
+			
             <div class="board-detail-actions">
 
                 <div class="board-detail-action-left" style="display:flex; gap:10px; align-items:center;">

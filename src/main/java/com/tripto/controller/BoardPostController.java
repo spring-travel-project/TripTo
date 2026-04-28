@@ -163,6 +163,12 @@ public class BoardPostController {
     @GetMapping("/board/detail.do")
     public String detail(@RequestParam int seqBoardPost,
                          Model model) {
+    	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "redirect:/member/login.do";
+        }
 
         BoardPostDTO dto = service.get(seqBoardPost, true);
 
@@ -175,9 +181,7 @@ public class BoardPostController {
         boolean isLogin = loginMember != null;
 
         boolean isWriter = isLogin
-                && Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                && loginMember.getSeqMember() == dto.getSeqMember();
 
         boolean isAdmin = auth != null
                 && auth.isAuthenticated()
@@ -195,6 +199,10 @@ public class BoardPostController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);
         model.addAttribute("isRecommended", isRecommended);
+        
+        System.out.println("login seq = " + (loginMember != null ? loginMember.getSeqMember() : null));
+        System.out.println("post writer seq = " + dto.getSeqMember());
+        System.out.println("isWriter = " + isWriter);
 
         return "board/detail";
     }
