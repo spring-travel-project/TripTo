@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+// 🌟 Cloudinary 전용 Import 추가
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.MemberDTO;
@@ -39,15 +43,15 @@ public class ChatController {
             @RequestParam(value = "category", required = false) Integer category,
             Model model) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
-    	
-    	if (roomId != null && roomId > 0) {
+        int loginUserId = loginMember.getSeqMember();
+        
+        if (roomId != null && roomId > 0) {
             chatService.updateReadStatus(roomId, loginUserId);
         }
 
@@ -88,13 +92,17 @@ public class ChatController {
             @RequestParam("message") String message,
             @RequestParam(value = "category", required = false) Integer category) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember(); 
+        int loginUserId = loginMember.getSeqMember(); 
+        
+        if ((message == null || message.trim().isEmpty())) {
+            message = "사진을 보냈습니다."; 
+        }
 
         chatService.insertMessage(roomId, loginUserId, message);
 
@@ -110,9 +118,9 @@ public class ChatController {
     public Map<String, Object> exitRoom(
             @RequestParam("roomId") int roomId) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         boolean result = chatService.exitRoom(roomId, loginUserId);
 
@@ -127,13 +135,13 @@ public class ChatController {
             @RequestParam("roomId") int roomId,
             Model model) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
         List<PollDTO> pollList = chatService.getPollList(roomId);
@@ -161,13 +169,13 @@ public class ChatController {
             PollDTO dto,
             @RequestParam("pollContents") List<String> pollContents) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         dto.setSeqMember(loginUserId);
 
@@ -197,7 +205,7 @@ public class ChatController {
         model.addAttribute("poll", poll);
         model.addAttribute("pollContentList", pollContentList);
 
-       
+        
         model.addAttribute("loginUserId", loginUserId);
 
         return "chat/pollDetail";
@@ -209,13 +217,13 @@ public class ChatController {
             @RequestParam("pollId") int pollId,
             @RequestParam("pollContentId") int pollContentId) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         chatService.votePoll(pollId, pollContentId, loginUserId);
 
@@ -227,13 +235,13 @@ public class ChatController {
             @RequestParam("roomId") int roomId,
             @RequestParam("pollId") int pollId) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         chatService.deletePoll(pollId, loginUserId);
 
@@ -253,13 +261,13 @@ public class ChatController {
     @PostMapping("/chat/routine/write")
     public String routineWriteOk(RoutineDTO dto) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         dto.setSeqMember(loginUserId);
 
@@ -274,13 +282,13 @@ public class ChatController {
             @RequestParam("routineId") int routineId,
             Model model) {
 
-    	MemberDTO loginMember = getLoginMember();
+        MemberDTO loginMember = getLoginMember();
 
-    	if (loginMember == null) {
-    	    return "redirect:/member/login.do";
-    	}
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
 
-    	int loginUserId = loginMember.getSeqMember();
+        int loginUserId = loginMember.getSeqMember();
 
         RoutineDTO routine = chatService.getRoutineDetail(routineId);
 
@@ -308,25 +316,20 @@ public class ChatController {
     @GetMapping("/chat/start")
     public String startChat(@RequestParam("targetSeq") int targetSeq) {
 
-        // 1. 옛날 이름 말고, 태훈님이 새로 만든 getLoginMember() 사용!
         MemberDTO loginMember = getLoginMember();
         
         if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        // 2. DTO에서 진짜 내 번호(int) 꺼내기
         int loginUserId = loginMember.getSeqMember();
 
-        // 3. 나 자신에게 채팅을 거는 경우 튕겨내기
         if (loginUserId == targetSeq) {
             return "redirect:/matching/detail?seqMember=" + targetSeq;
         }
 
-        // 4. 서비스 호출 (기존 방 찾기 or 새 방 만들기)
         int roomId = chatService.createOrGetMatchingChatRoom(loginUserId, targetSeq);
 
-        // 5. 방으로 이동
         return "redirect:/chat/list?roomId=" + roomId + "&category=1";
     }
     
@@ -389,6 +392,7 @@ public class ChatController {
                 + dto.getSeq();
     }
     
+    // 🌟🚨 Cloudinary 용으로 변경된 업로드 로직 🚨🌟
     @PostMapping("/chat/uploadFile.do")
     @ResponseBody
     public Map<String, Object> uploadFile(
@@ -405,19 +409,35 @@ public class ChatController {
                 return response;
             }
 
-            // ChatService에 만들어둔 uploadChatFile 호출
-            int seqFile = chatService.uploadChatFile(file, loginMember.getSeqMember(), roomId);
+            // 1. Cloudinary 설정 (가입 후 발급받은 키 3개를 꼭! 넣어주세요)
+            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", "dh5p4lvo2",
+                "api_key", "283127846695383",
+                "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
+                "secure", true
+            ));
+
+            // 2. Cloudinary로 파일 쏘기!
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            
+            // 3. 반환된 이미지의 "절대 주소(URL)" 가져오기
+            // 이 주소는 http://res.cloudinary.com/... 형태로 나옵니다.
+            String imageUrl = (String) uploadResult.get("secure_url");
+
+            // 4. 기존 ChatService 호출 로직 변경
+            // (태훈님의 chatService.uploadChatFile가 원래 어떤 파라미터를 받았는지에 따라
+            // 약간 수정이 필요할 수 있습니다. 아래 설명을 꼭 읽어주세요!)
+            int seqFile = chatService.uploadCloudinaryFile(file.getOriginalFilename(), imageUrl, loginMember.getSeqMember(), roomId);
             
             response.put("success", true);
-            response.put("seqFile", seqFile); // DB에 저장된 파일 번호를 JSP로 돌려줌
+            response.put("seqFile", seqFile);
             
         } catch (Exception e) {
             e.printStackTrace();
             response.put("success", false);
-            response.put("message", "파일 업로드 실패");
+            response.put("message", "파일 업로드 실패: " + e.getMessage());
         }
         
         return response;
     }
-    
 }
