@@ -134,14 +134,13 @@
                 <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
             <h3 class="font-bold text-2xl mb-6 text-slate-800">계정 설정</h3>
+            
             <div class="flex flex-col gap-3">
+                <button type="button" onclick="location.href='${pageContext.request.contextPath}/member/editInfo.do'" class="btn border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 w-full justify-start text-base h-14">👤 내 정보 수정 (기본 정보)</button>
                 <button type="button" onclick="openChangePwModal()" class="btn border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 w-full justify-start text-base h-14">🔒 비밀번호 변경</button>
                 <button type="button" onclick="openDeactivateModal()" class="btn border-slate-200 bg-white text-rose-500 hover:border-rose-500 hover:bg-rose-50 w-full justify-start text-base h-14">🚨 계정 탈퇴</button>
             </div>
-            <div class="modal-action">
-                <form method="dialog"><button class="btn btn-neutral w-full">돌아가기</button></form>
             </div>
-        </div>
     </dialog>
 
     <dialog id="changePwModal" class="modal">
