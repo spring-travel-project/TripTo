@@ -97,7 +97,7 @@ public class ChatDAO {
         return template.delete("chat.deletePoll", pollId);
     }
     
-    public int getTravelPostSeqByRoomId(int roomId) {
+    public Integer getTravelPostSeqByRoomId(int roomId) {
         return template.selectOne("chat.getTravelPostSeqByRoomId", roomId);
     }
 
@@ -150,6 +150,20 @@ public class ChatDAO {
 
     public int updateExpiredRoutineStatus() {
         return template.update("chat.updateExpiredRoutineStatus");
+    }
+    
+
+    public void insertReadStatus(int roomId, int loginUserId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("loginUserId", loginUserId);
+        
+        template.insert("chat.insertReadStatus", map);
+    }
+
+    public int getRoomMemberCount(int roomId) {
+        // user_chat 테이블에서 해당 방에 참여 중인 인원수를 가져옵니다.
+        return template.selectOne("chat.getRoomMemberCount", roomId);
     }
 
     

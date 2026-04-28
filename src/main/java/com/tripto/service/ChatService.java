@@ -85,30 +85,38 @@ public class ChatService {
         dto.setSeqChattingroom(roomId);
         dto.setSeqFile(seqFile);
 
-        // 🌟 이 부분이 핵심입니다!
-        // 메시지가 없거나 공백뿐인데 사진(seqFile)이 있다면, 공백 한 칸(" ")을 넣어 NULL 에러를 방지합니다.
+        // 1. 공백/NULL 에러 방지 (기존 로직 유지)
         if ((message == null || message.trim().isEmpty()) && seqFile != null) {
-            dto.setDetail(" "); // 빈 값이 아니라 공백 문자 하나를 넣음
+            dto.setDetail(" "); 
         } else {
             dto.setDetail(message);
         }
 
-        // 1. 메시지 저장
+        // 🌟 [추가] 실시간 전송을 위한 안 읽은 숫자 계산
+        // 1:1 채팅이면 보통 2명이라 2-1 = 1이 찍힙니다.
+        int totalCount = chatDAO.getRoomMemberCount(roomId); 
+        dto.setUnreadCount(totalCount - 1); 
+
+        // 2. DB에 메시지 저장
         int result = chatDAO.insertMessage(dto);
         if (result != 1) return null;
 
-        // 2. 응답 데이터 구성
+        // 3. 브라우저로 돌려줄 응답 데이터 구성
         ChatMessageDTO saved = new ChatMessageDTO();
         saved.setNickname(chatDAO.getNicknameByMemberId(seqMember));
         saved.setDetail(dto.getDetail());
         saved.setSeqFile(seqFile);
         saved.setSeqMember(seqMember);
+        saved.setUnreadCount(dto.getUnreadCount()); // 🌟 계산된 숫자를 응답 DTO에 세팅!
+        
+        // 시간 정보 추가 (브라우저에서 바로 띄워주기 위함)
+        saved.setMessageTime(new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date()));
 
         if (seqFile != null && seqFile > 0) {
             saved.setSavedName(chatDAO.getFileNameBySeq(seqFile));
         }
         
-        return saved;
+        return saved; // 이 데이터가 WebSocket을 타고 JSP의 appendMessage로 갑니다!
     }
     
     public String getNicknameByMemberId(int seqMember) {
@@ -213,7 +221,7 @@ public class ChatService {
             return false;
         }
 
-        int seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
+        Integer seqTravelPost = chatDAO.getTravelPostSeqByRoomId(dto.getSeqChattingroom());
 
         dto.setSeqTravelPost(seqTravelPost);
         dto.setTitle(dto.getTitle().trim());
@@ -381,6 +389,11 @@ public class ChatService {
 
     public void updateExpiredRoutineStatus() {
         chatDAO.updateExpiredRoutineStatus();
+    }
+    
+
+    public void updateReadStatus(int roomId, int loginUserId) {
+        chatDAO.insertReadStatus(roomId, loginUserId);
     }
 
     

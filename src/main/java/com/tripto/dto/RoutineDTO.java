@@ -7,7 +7,7 @@ public class RoutineDTO {
     private int seq;
     private int seqMember;
     private int seqChattingroom;
-    private int seqTravelPost;
+    private Integer seqTravelPost;
     private int seqLocation;
     private String title;
     private String detail;
@@ -51,11 +51,11 @@ public class RoutineDTO {
         this.seqChattingroom = seqChattingroom;
     }
 
-    public int getSeqTravelPost() {
+    public Integer getSeqTravelPost() {
         return seqTravelPost;
     }
 
-    public void setSeqTravelPost(int seqTravelPost) {
+    public void setSeqTravelPost(Integer seqTravelPost) {
         this.seqTravelPost = seqTravelPost;
     }
 

@@ -11,9 +11,27 @@ public class ChatMessageDTO {
     private String nickname;
     private int seqMember;
     private boolean mine;
+    private int unreadCount;
+    private String partnerProfile;
+
+    public String getPartnerProfile() {
+		return partnerProfile;
+	}
+
+	public void setPartnerProfile(String partnerProfile) {
+		this.partnerProfile = partnerProfile;
+	}
     
 
-    public String getSavedName() {
+    public int getUnreadCount() {
+		return unreadCount;
+	}
+
+	public void setUnreadCount(int unreadCount) {
+		this.unreadCount = unreadCount;
+	}
+
+	public String getSavedName() {
 		return savedName;
 	}
 

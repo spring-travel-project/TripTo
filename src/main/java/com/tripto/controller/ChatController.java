@@ -46,6 +46,10 @@ public class ChatController {
     	}
 
     	int loginUserId = loginMember.getSeqMember();
+    	
+    	if (roomId != null && roomId > 0) {
+            chatService.updateReadStatus(roomId, loginUserId);
+        }
 
         List<ChatRoomDTO> roomList = chatService.getRoomList(loginUserId, roomId, category);
 
