@@ -22,7 +22,6 @@
                 WHEN cr.category = 1 THEN '매칭'
             END AS displayCategory,
             
-            -- 🌟 파트너 닉네임과 프로필 사진
             partner.nickname AS partnerNickname, 
             partner.partnerProfile AS partnerProfile, 
             
@@ -56,8 +55,6 @@
             ) last_log
                 ON cr.seq = last_log.seqChattingroom
                 
-            -- =========================================================
-            -- 🌟 🚨 핵심 수정 부분: 방장이 아니라 나를 제외한 '상대방' 찾기
             LEFT JOIN (
                 SELECT
                     uc2.seqChattingroom,
@@ -65,11 +62,10 @@
                     MAX(m.pic) AS partnerProfile 
                 FROM user_chat uc2
                     INNER JOIN member m ON uc2.seqMember = m.seqMember
-                WHERE uc2.seqMember != #{seqMember} -- 나(로그인 유저)를 제외!
+                WHERE uc2.seqMember != #{seqMember} 
                 GROUP BY uc2.seqChattingroom
             ) partner
                 ON cr.seq = partner.seqChattingroom
-            -- =========================================================
             
         WHERE uc.seqMember = #{seqMember}
             AND uc.isActive = 1
