@@ -138,8 +138,19 @@ public class ChatDAO {
         return template.insert("chat.insertLocation", dto);
     }
     
+
+
+    public String getFileNameBySeq(int seqFile) {
+        return template.selectOne("chat.getFileNameBySeq", seqFile);
+    }
+
+	public int insertChatFile(Map<String, Object> map) {
+	    return template.insert("chat.insertChatFile", map);
+	}
+
     public int updateExpiredRoutineStatus() {
         return template.update("chat.updateExpiredRoutineStatus");
     }
+
     
 }
