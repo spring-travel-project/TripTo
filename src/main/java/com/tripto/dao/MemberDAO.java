@@ -32,11 +32,11 @@ public class MemberDAO {
 
 	// 아이디 찾기
 	public String findIdByNameAndEmail(Map<String, String> map) {
-		// mapper에게 member.findIdByNameAndEmail 쿼리 실행하라고 지시, 
+		// mapper에게 member.findIdByNameAndEmail 쿼리 실행하라고 지시,
 		// 쓸 데이터는 map이라고 넘김
 		return sql.selectOne("member.findIdByNameAndEmail", map);
 	}
-	
+
 	// 비밀번호 찾기
 	public int checkIdAndEmail(Map<String, String> map) {
 
@@ -47,10 +47,20 @@ public class MemberDAO {
 
 		sql.update("member.updatePw", map);
 	}
-	
+
 	// 현재 로그인한 회원의 정보를 마이페이지에 출력하기
 	public MemberDTO getMemberById(String id) {
 
 		return sql.selectOne("member.getMemberById", id);
+	}
+
+	// 현재 비밀번호 가져오기 (데이터 1개를 가져오므로 selectOne)
+	public String getCurrentPw(String id) {
+		return sql.selectOne("member.getCurrentPw", id);
+	}
+
+	// 계정 탈퇴 (데이터를 수정하므로 update)
+	public void deactivateMember(String id) {
+		sql.update("member.deactivateMember", id);
 	}
 }
