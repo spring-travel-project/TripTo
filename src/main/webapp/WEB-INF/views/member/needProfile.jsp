@@ -23,7 +23,7 @@
             </p>
 
             <div class="flex flex-col gap-3">
-                <button onclick="location.href='${pageContext.request.contextPath}/member/profileEdit.do'" class="btn btn-primary text-white w-full h-14 text-lg font-bold rounded-2xl shadow-md">
+                <button onclick="location.href='${pageContext.request.contextPath}/member/editProfile.do'" class="btn btn-primary text-white w-full h-14 text-lg font-bold rounded-2xl shadow-md">
                     예
                 </button>
                 <button onclick="location.href='${pageContext.request.contextPath}/index.do'" class="btn bg-slate-100 text-slate-500 border-none hover:bg-slate-200 w-full h-14 text-lg font-bold rounded-2xl">

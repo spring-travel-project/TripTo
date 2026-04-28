@@ -30,7 +30,7 @@
                 <div class="absolute inset-0 bg-black/10"></div>
                 
                 <div class="absolute top-8 right-12 z-10">
-                    <button onclick="location.href='${pageContext.request.contextPath}/member/profileEdit.do'" class="px-5 py-2.5 rounded-xl bg-white/90 hover:bg-white border border-slate-200 shadow-sm font-bold text-slate-700 text-sm transition-all hover:scale-105">
+                    <button onclick="location.href='${pageContext.request.contextPath}/member/editProfile.do'" class="px-5 py-2.5 rounded-xl bg-white/90 hover:bg-white border border-slate-200 shadow-sm font-bold text-slate-700 text-sm transition-all hover:scale-105">
                         <c:choose>
                             <c:when test="${empty profile}">프로필 작성</c:when>
                             <c:otherwise>프로필 수정</c:otherwise>

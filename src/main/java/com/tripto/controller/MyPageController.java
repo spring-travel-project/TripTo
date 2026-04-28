@@ -4,6 +4,7 @@ import java.io.File;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ public class MyPageController {
 	// 비밀번호 검증을 위해 의존 주입
 	@Autowired
 	private org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder;
-	
+
 	// 1. 마이페이지에 현재 로그인한 회원의 정보를 출력
 	@GetMapping("/mypage.do")
 	public String mypage(Principal principal, Model model) {
@@ -158,12 +159,61 @@ public class MyPageController {
 				e.printStackTrace();
 			}
 		}
-		// (사진을 안 올렸으면 jsp에서 picFile이 비어있으므로 동적 쿼리에 의해 pic 컬럼은 건드리지 않음!)
+		// (사진을 안 올렸으면 jsp에서 picFile이 비어있으므로 동적 쿼리에 의해 pic 컬럼은 건드리지 않음)
 
 		// 3) DB 업데이트 실행
 		memberService.updateMemberInfo(dto);
 
 		// 4) 수정 완료 후 다시 마이페이지 메인으로 부드럽게 복귀
+		return "redirect:/member/mypage.do";
+	}
+
+	// 6-1. 프로필 작성/수정 화면 띄우기 (GET)
+	@GetMapping("/editProfile.do")
+	public String editProfile(Principal principal, Model model) {
+		MemberDTO member = memberService.getMemberById(principal.getName());
+		MatchDTO profile = matchingService.getMyProfile(member.getSeqMember());
+
+		model.addAttribute("profile", profile); // 기존 데이터가 있으면 화면에 뿌려줌
+		return "member/editProfile";
+	}
+
+	// 6-2. 프로필 저장 완료 처리 (POST)
+	@PostMapping("/editProfile.do")
+	public String editProfileComplete(MatchDTO profileDto,
+			@RequestParam(value = "staySeqs", required = false) List<Integer> staySeqs,
+			@RequestParam(value = "languageSeqs", required = false) List<Integer> languageSeqs,
+			@RequestParam(value = "ageGroupSeqs", required = false) List<Integer> ageGroupSeqs,
+			@RequestParam("coverFile") MultipartFile coverFile, Principal principal) {
+
+		// 1) 로그인한 유저의 seqMember 가져와서 DTO에 세팅
+		MemberDTO member = memberService.getMemberById(principal.getName());
+		profileDto.setSeqMember(member.getSeqMember());
+
+		// 2) 배경 사진(Cover) 업로드 처리
+		if (!coverFile.isEmpty()) {
+			try {
+				String path = "C:/tripto_upload/cover/"; // 배경 사진 전용 폴더
+				File dir = new File(path);
+				if (!dir.exists())
+					dir.mkdirs();
+
+				String uuid = UUID.randomUUID().toString();
+				String savedName = uuid + "_" + coverFile.getOriginalFilename();
+
+				File target = new File(path, savedName);
+				coverFile.transferTo(target);
+
+				profileDto.setCoverPic(savedName); // DB에 넣을 파일명 세팅
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		// 3) 서비스 호출 (프로필 + 다중선택 배열 한 번에 넘기기)
+		matchingService.saveMyProfile(profileDto, staySeqs, languageSeqs, ageGroupSeqs);
+
+		// 4) 작성 완료 후 마이페이지로 이동
 		return "redirect:/member/mypage.do";
 	}
 }
