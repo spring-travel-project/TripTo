@@ -32,6 +32,21 @@
 					<h2 class="text-2xl font-bold text-slate-900">
 						<c:out value="${poll.pollTitle}" />
 					</h2>
+				
+					<div class="mt-3">
+						<c:choose>
+							<c:when test="${poll.pollClosed == 1}">
+								<span class="inline-flex items-center rounded-full bg-slate-200 text-slate-600 text-xs font-medium px-3 py-1">
+									종료
+								</span>
+							</c:when>
+							<c:otherwise>
+								<span class="inline-flex items-center rounded-full bg-violet-100 text-violet-700 text-xs font-medium px-3 py-1">
+									진행중
+								</span>
+							</c:otherwise>
+						</c:choose>
+					</div>
 				</div>
 
 				<div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-center">
@@ -56,24 +71,39 @@
 
 					<div class="space-y-3">
 						<c:forEach items="${pollContentList}" var="item">
-							<form method="post" action="${pageContext.request.contextPath}/chat/poll/vote">
-								
-								<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-								<input type="hidden" name="roomId" value="${roomId}">
-								<input type="hidden" name="pollId" value="${poll.seq}">
-								<input type="hidden" name="pollContentId" value="${item.seq}">
+							<c:choose>
+								<c:when test="${poll.pollClosed == 1}">
+									<div class="w-full flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-100 px-5 py-4 text-left">
+										<span class="font-semibold text-slate-500 truncate">
+											<c:out value="${item.pollContent}" />
+										</span>
 					
-								<button type="submit"
-									class="w-full flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 text-left hover:border-violet-300 hover:bg-violet-50 transition">
-									<span class="font-semibold text-slate-800 truncate">
-										<c:out value="${item.pollContent}" />
-									</span>
+										<span class="shrink-0 rounded-full bg-slate-200 text-slate-500 text-xs font-semibold px-3 py-1">
+											종료됨
+										</span>
+									</div>
+								</c:when>
 					
-									<span class="shrink-0 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold px-3 py-1">
-										투표하기
-									</span>
-								</button>
-							</form>
+								<c:otherwise>
+									<form method="post" action="${pageContext.request.contextPath}/chat/poll/vote">
+										<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+										<input type="hidden" name="roomId" value="${roomId}">
+										<input type="hidden" name="pollId" value="${poll.seq}">
+										<input type="hidden" name="pollContentId" value="${item.seq}">
+					
+										<button type="submit"
+											class="w-full flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 text-left hover:border-violet-300 hover:bg-violet-50 transition">
+											<span class="font-semibold text-slate-800 truncate">
+												<c:out value="${item.pollContent}" />
+											</span>
+					
+											<span class="shrink-0 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold px-3 py-1">
+												투표하기
+											</span>
+										</button>
+									</form>
+								</c:otherwise>
+							</c:choose>
 						</c:forEach>
 					</div>
 				</div>
@@ -118,7 +148,7 @@
 			</div>
 
 			<!-- 하단 버튼 -->
-			<c:if test="${poll.seqMember == 1}">
+			<c:if test="${poll.seqMember == loginUserId}">
 				<div class="flex justify-end">
 					<form method="post"
 						  action="${pageContext.request.contextPath}/chat/poll/delete"

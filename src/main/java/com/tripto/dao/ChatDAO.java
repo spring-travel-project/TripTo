@@ -138,4 +138,8 @@ public class ChatDAO {
         return template.insert("chat.insertLocation", dto);
     }
     
+    public int updateExpiredRoutineStatus() {
+        return template.update("chat.updateExpiredRoutineStatus");
+    }
+    
 }

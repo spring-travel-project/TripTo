@@ -46,9 +46,22 @@
 					<span class="inline-flex items-center rounded-full bg-sky-100 text-sky-700 text-xs font-medium px-2 py-0.5">
 						<c:out value="${routine.dDayText}" />
 					</span>
-					<span>
-						작성일 <c:out value="${routine.regdateText}" />
-					</span>
+					<div class="text-right">
+					    <p>
+					        작성일 <c:out value="${routine.regdateText}" />
+					    </p>
+					    <p>
+					        종료일
+					        <c:choose>
+					            <c:when test="${not empty routine.dDayDateText}">
+					                <c:out value="${routine.dDayDateText}" />
+					            </c:when>
+					            <c:otherwise>
+					                미정
+					            </c:otherwise>
+					        </c:choose>
+					    </p>
+					</div>
 				</div>
 			</div>
 
