@@ -28,11 +28,11 @@
             <form action="${pageContext.request.contextPath}/member/editInfo.do?${_csrf.parameterName}=${_csrf.token}" method="POST" id="editForm" enctype="multipart/form-data">
                 
                 <div class="flex flex-col items-center justify-center mb-8">
-                    <div class="w-28 h-28 rounded-full border-2 border-slate-200 overflow-hidden mb-3">
-                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty member.pic ? 'pic.png' : member.pic}" class="w-full h-full object-cover">
-                    </div>
-                    <label class="block text-sm font-bold text-slate-500 mb-2">새 프로필 사진 업로드 (선택)</label>
-                    <input type="file" name="picFile" class="file-input file-input-bordered file-input-sm w-full max-w-xs" accept="image/*" />
+    <div class="w-28 h-28 rounded-full border-2 border-slate-200 overflow-hidden mb-3">
+        <img id="profilePreview" src="${pageContext.request.contextPath}${empty member.pic or member.pic eq 'pic.png' ? '/resources/img/pic.png' : '/resources/upload/profile/' += member.pic}" class="w-full h-full object-cover">
+    </div>
+    <label class="block text-sm font-bold text-slate-500 mb-2">새 프로필 사진 업로드 (선택)</label>
+    <input type="file" name="picFile" class="file-input file-input-bordered file-input-sm w-full max-w-xs" accept="image/*" />
                 </div>
 
                 <div class="form-control mb-4">
@@ -83,25 +83,10 @@
         </div>
     </main>
     
-    <dialog id="customModal" class="modal">
-        <div class="modal-box text-center">
-            <h3 class="font-bold text-lg mb-2">알림</h3>
-            <p class="py-4 text-slate-600" id="modalMessage"></p>
-            <div class="modal-action justify-center mt-2">
-                <form method="dialog"><button class="btn btn-neutral w-24">확인</button></form>
-            </div>
-        </div>
-    </dialog>
-    
     <script>
     // 기존 닉네임 백업 (자신의 기존 닉네임은 중복 검사 패스하기 위함)
     const originalNickname = "${member.nickname}";
     let isNicknameChecked = true; // 초기 상태는 기존 닉네임이므로 true
-
-    function showAlert(msg) {
-        $('#modalMessage').text(msg);
-        document.getElementById('customModal').showModal();
-    }
 
     // 닉네임 변경 시 다시 중복확인 하도록 상태 변경
     $('#userNickname').on('input', function() {
@@ -152,6 +137,24 @@
             }
         });
     }
+    
+    // 내 정보 수정: 프로필 사진 미리보기 로직
+    $('input[name="picFile"]').on('change', function(event) {
+        const file = event.target.files[0]; // 유저가 선택한 파일 가져오기
+        
+        if (file) {
+            const reader = new FileReader();
+            
+            // 파일을 다 읽으면 실행
+            reader.onload = function(e) {
+                // 방금 HTML에 이름표 달아준 id="profilePreview"의 사진을 싹 교체!
+                $('#profilePreview').attr('src', e.target.result);
+            }
+            
+            // 파일 읽기 시작
+            reader.readAsDataURL(file);
+        }
+    });
 
     // 국가 자동완성 배열 (join.jsp 재활용)
     const countries = [
@@ -208,5 +211,6 @@
         }
     });
     </script>
+<%@ include file="/WEB-INF/views/inc/modal.jsp" %>
 </body>
 </html>

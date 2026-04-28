@@ -33,7 +33,7 @@
                 <div class="mb-12">
                     <label class="block text-lg font-bold text-slate-800 mb-4">📸 마이페이지 배경 사진 (선택)</label>
                     <div class="h-48 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <img id="coverPreview" src="${pageContext.request.contextPath}/resources/img/${empty profile.coverPic ? 'default_cover.png' : profile.coverPic}" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform group-hover:scale-105">
+                        <img id="coverPreview" src="${pageContext.request.contextPath}${empty profile.coverPic or profile.coverPic eq 'default_cover.png' ? '/resources/img/default_cover.png' : '/resources/upload/cover/' += profile.coverPic}" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform group-hover:scale-105">
                         <div class="absolute inset-0 bg-black/40 z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <span class="text-white font-bold mb-2">사진 변경하기</span>
                             <input type="file" name="coverFile" class="file-input file-input-bordered file-input-sm w-full max-w-xs" accept="image/*" />
@@ -45,7 +45,8 @@
 
                 <div class="mb-12">
                     <label class="block text-lg font-bold text-slate-800 mb-4">✨ 당신의 MBTI는 무엇인가요? <span class="text-red-500">*</span></label>
-                    <input type="text" name="mbti" value="${profile.mbti}" placeholder="예: ENFP" maxlength="4" class="input input-bordered w-full max-w-xs font-black text-xl uppercase tracking-widest text-blue-600" required />
+                    <input type="text" name="mbti" id="mbtiInput" value="${profile.mbti}" placeholder="예: ENFP" maxlength="4" class="input input-bordered w-full max-w-xs font-black text-xl uppercase tracking-widest text-blue-600" required 
+       oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase();" />
                 </div>
 
                 <div class="mb-12">
@@ -179,8 +180,46 @@
                     나의 여행 프로필 저장하기
                 </button>
             </form>
-
+        
         </div>
+        <script>
+        // 프로필 수정 페이지에서의 배경 사진 미리보기 로직
+        $('input[name="coverFile"]').on('change', function(event) {
+            const file = event.target.files[0]; // 유저가 선택한 파일 가져오기
+            
+            if (file) {
+                // 브라우저 내부에서 파일을 읽어주는 객체 생성
+                const reader = new FileReader();
+                
+                // 파일을 다 읽으면 실행될 작업 설정
+                reader.onload = function(e) {
+                    // 기존 이미지 태그(id="coverPreview")의 src를 
+                    // 방금 읽은 새 사진으로 교체
+                    $('#coverPreview').attr('src', e.target.result);
+                }
+                
+                // 선택한 파일을 문자열(Data URL) 형태로 쭈욱 읽어들임
+                reader.readAsDataURL(file);
+            }
+        });
+        // 폼 제출 전 MBTI 검증 로직
+        $('#profileForm').on('submit', function(e) {
+            // 입력된 MBTI 값을 가져옴
+            const mbtiValue = $('#mbtiInput').val();
+            
+            // MBTI 정규표현식: 첫글자 I/E, 두번째 N/S, 세번째 T/F, 네번째 P/J 만 허용
+            const mbtiRegex = /^[IE][NS][TF][PJ]$/;
+            
+            // 정규식 검사 통과 실패 시
+            if (!mbtiRegex.test(mbtiValue)) {
+                e.preventDefault(); // 폼 전송 강제 중지
+                showAlert("올바른 MBTI 형식이 아닙니다! (예: ENFP, ISTJ 등)");
+                $('#mbtiInput').focus(); // 입력칸으로 포커스 이동
+                return false;
+            }
+        });
+        </script>
     </main>
+<%@ include file="/WEB-INF/views/inc/modal.jsp" %>
 </body>
 </html>

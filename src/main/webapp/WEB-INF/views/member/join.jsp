@@ -126,27 +126,8 @@
         </div>
     </main>
     
-    <!-- 공통 모달(Modal) HTML 추가 -->
-    <dialog id="customModal" class="modal">
-        <div class="modal-box text-center">
-            <h3 class="font-bold text-lg mb-2">알림</h3>
-            <p class="py-4 text-slate-600" id="modalMessage">여기에 알림 메시지가 들어갑니다.</p>
-            <div class="modal-action justify-center mt-2">
-                <form method="dialog">
-                    <button class="btn btn-neutral w-24">확인</button>
-                </form>
-            </div>
-        </div>
-    </dialog>
-    
     <script>
     let timerInterval; // 타이머를 담을 변수
-    
-    // 공통 알림 모달 띄우기 함수
-    function showAlert(msg) {
-        $('#modalMessage').text(msg); // 모달 안의 글자 변경
-        document.getElementById('customModal').showModal(); // 모달 창 열기
-    }
 
     // 1. 이메일 인증번호 전송 (또는 재발송)
     function sendAuthCode() {
@@ -591,5 +572,6 @@
     });
     
     </script>
+<%@ include file="/WEB-INF/views/inc/modal.jsp" %>
 </body>
 </html>

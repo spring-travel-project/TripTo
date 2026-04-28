@@ -16,9 +16,9 @@
         <security:intercept-url
             pattern="/admin/**" access="hasRole('ROLE_ADMIN')" />
         <security:intercept-url
-            pattern="/teamtwo/user/mypage.do" access="isAuthenticated()" />
+            pattern="/member/mypage.do" access="isAuthenticated()" />
         <security:intercept-url
-            pattern="/teamtwo/chat/**" access="isAuthenticated()" />
+            pattern="/chat/**" access="isAuthenticated()" />
         <security:intercept-url pattern="/**"
             access="permitAll" />
 

@@ -66,6 +66,7 @@
             p.drinking,
             p.travelType,
             p.stepCount,
+            p.coverPic,
 
             /* 🌟 ERD 기반: 선호 숙소 (profile_stay + stay) */
             (SELECT LISTAGG(s.Name, ', ') WITHIN GROUP (ORDER BY s.seqStay)
@@ -99,7 +100,8 @@
         CROSS JOIN (SELECT * FROM profile WHERE seqMember = #{loginSeq}) my
         WHERE m.seqMember = #{targetSeq}
     </select>
-
+    
+    <!-- 내 프로필 정보를 가져오는 쿼리 -->
     <select id="getMyProfile" parameterType="int" resultType="com.tripto.dto.MatchDTO">
         SELECT
             m.nickname,
@@ -108,22 +110,24 @@
             p.drinking,
             p.travelType,
             p.stepCount,
+            p.coverPic,
 
-            /* 내 다중 선택 항목들도 가져와야 자물쇠가 풀립니다. */
-            (SELECT LISTAGG(s.seqStay, ',') WITHIN GROUP (ORDER BY s.seqStay)
+            /* 숫자(seq) 대신 이름(name)을 가져오도록 수정 */
+            (SELECT LISTAGG(s.name, ',') WITHIN GROUP (ORDER BY s.seqStay)
              FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay WHERE ps.seqMember = m.seqMember) AS stayNames,
              
-            (SELECT LISTAGG(l.seqLanguage, ',') WITHIN GROUP (ORDER BY l.seqLanguage)
+            (SELECT LISTAGG(l.name, ',') WITHIN GROUP (ORDER BY l.seqLanguage)
              FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage WHERE pl.seqMember = m.seqMember) AS languageNames,
              
-            (SELECT LISTAGG(a.seqAgeGroup, ',') WITHIN GROUP (ORDER BY a.seqAgeGroup)
+            (SELECT LISTAGG(a.name, ',') WITHIN GROUP (ORDER BY a.seqAgeGroup)
              FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup WHERE pa.seqMember = m.seqMember) AS ageGroupNames
              
         FROM member m
         JOIN profile p ON m.seqMember = p.seqMember
         WHERE m.seqMember = #{loginSeq}
     </select>
-
+    
+    <!-- 프로필을 수정하거나 작성하는 쿼리 -->
     <update id="upsertProfile" parameterType="com.tripto.dto.MatchDTO">
         MERGE INTO profile p
         USING DUAL
@@ -142,7 +146,13 @@
             INSERT (seqMember, mbti, smoking, drinking, stepCount, travelType, coverPic)
             VALUES (#{seqMember}, #{mbti}, #{smoking}, #{drinking}, #{stepCount}, #{travelType}, NVL(#{coverPic, jdbcType=VARCHAR}, 'default_cover.png'))
     </update>
-
+    
+    <!-- 다중 선택 항목들을 위한 delete, insert 쿼리문 -->
+    <!-- 사용자가 저장하기 버튼을 눌러서(POST 요청) --> 
+    <!-- 백엔드 서비스 로직(MatchingService)이 실행되면 -->
+    <!-- 회원번호(seqMember)로 등록된 데이터를 지움 -->
+    <!-- 사용자가 프로필 작성 or 수정 페이지에서 -->
+    <!-- 체크해서 최종적으로 넘겨준 값을 반복문을 통해 insert -->
     <delete id="deleteProfileStay" parameterType="int">
         DELETE FROM profile_stay WHERE seqMember = #{seqMember}
     </delete>

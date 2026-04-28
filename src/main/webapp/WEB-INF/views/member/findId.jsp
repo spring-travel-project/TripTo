@@ -51,27 +51,9 @@
         </div>
     </main>
 
-    <dialog id="customModal" class="modal">
-        <div class="modal-box text-center">
-            <h3 class="font-bold text-lg mb-2">알림</h3>
-            <p class="py-4 text-slate-600" id="modalMessage"></p>
-            <div class="modal-action justify-center mt-2">
-                <form method="dialog">
-                    <button class="btn btn-neutral w-24">확인</button>
-                </form>
-            </div>
-        </div>
-    </dialog>
-
     <script>
     let timerInterval;
     let isEmailVerified = false; // 인증 완료 여부 체크 변수
-
-    // 모달 띄우기 함수
-    function showAlert(msg) {
-        $('#modalMessage').text(msg);
-        document.getElementById('customModal').showModal();
-    }
 
     // 1. 인증번호 전송
     function sendAuthCode() {
@@ -232,5 +214,6 @@
         });
     }
     </script>
+<%@ include file="/WEB-INF/views/inc/modal.jsp" %>
 </body>
 </html>
