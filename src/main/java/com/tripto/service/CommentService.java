@@ -33,7 +33,9 @@ public class CommentService {
         if (writerSeq != currentSeqMember) {
             return 0;
         }
-
+        
+        dto.setSeqMember(currentSeqMember);
+        
         return dao.edit(dto);
     }
 
