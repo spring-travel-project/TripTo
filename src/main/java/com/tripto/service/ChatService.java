@@ -350,8 +350,47 @@ public class ChatService {
         return chatDAO.getChatRoomMembers(roomId);
     }
 
-    // 🌟 [복구 완료] 여행 게시글 상세에서 쓰이는 일정 장소 목록 가져오기
     public List<RoutineDTO> getRoutineLocationListByTravelPost(int seqTravelPost) {
         return chatDAO.getRoutineLocationListByTravelPost(seqTravelPost);
+    }
+
+    // 🌟 [통합 완료] 동행 게시글 전용 채팅방 생성 및 자동 입장
+    public int createOrGetTravelChatRoom(int seqTravelPost, int loginUserId) {
+
+        Integer roomId = chatDAO.findTravelRoom(seqTravelPost);
+
+        if (roomId != null) {
+            Map<String, Integer> map = new HashMap<>();
+            map.put("roomId", roomId);
+            map.put("userId", loginUserId);
+            chatDAO.insertUserChatIfNotExists(map);
+            return roomId;
+        }
+
+        TravelPostDTO post = chatDAO.getTravelPostForChat(seqTravelPost);
+        ChatRoomDTO room = new ChatRoomDTO();
+        room.setRoomName(post.getTitle());
+        room.setCategory(0);
+        room.setSeqTravelPost(seqTravelPost);
+
+        chatDAO.createTravelChatRoom(room);
+        int newRoomId = room.getRoomId();
+
+        Map<String, Integer> writerMap = new HashMap<>();
+        writerMap.put("roomId", newRoomId);
+        writerMap.put("userId", post.getSeqMember());
+        chatDAO.insertUserChatIfNotExists(writerMap);
+
+        Map<String, Integer> loginMap = new HashMap<>();
+        loginMap.put("roomId", newRoomId);
+        loginMap.put("userId", loginUserId);
+        chatDAO.insertUserChatIfNotExists(loginMap);
+
+        return newRoomId;
+    }
+
+    // 🌟 [통합 완료] 채팅방 멤버 여부 확인 (boolean 반환)
+    public boolean isRoomMember(int roomId, int seqMember) {
+        return chatDAO.isRoomMember(roomId, seqMember) > 0;
     }
 }

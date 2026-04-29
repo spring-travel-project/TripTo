@@ -40,11 +40,9 @@ public class ChatDAO {
     }
     
     public int exitRoom(int roomId, int userId) {
-
         Map<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("userId", userId);
-
         return template.update("chat.exitRoom", map);
     }
     
@@ -76,7 +74,6 @@ public class ChatDAO {
         Map<String, Object> map = new HashMap<>();
         map.put("pollId", pollId);
         map.put("seqMember", seqMember);
-
         return template.delete("chat.deletePreviousVote", map);
     }
 
@@ -84,7 +81,6 @@ public class ChatDAO {
         Map<String, Object> map = new HashMap<>();
         map.put("pollContentId", pollContentId);
         map.put("seqMember", seqMember);
-
         return template.insert("chat.votePoll", map);
     }
     
@@ -112,19 +108,14 @@ public class ChatDAO {
         return template.selectOne("chat.getRoutineDetail", routineId);
     }
 
-
-    // 1. 기존 매칭 채팅방 번호 찾기 (없으면 null 반환)
     public Integer findMatchingRoom(Map<String, Integer> map) {
-        // sqlSession 대신 template 사용
         return template.selectOne("chat.findMatchingRoom", map); 
     }
 
-    // 2. 새 채팅방 만들기 (INSERT)
     public void createChattingRoom(ChatRoomDTO newRoom) {
         template.insert("chat.createChattingRoom", newRoom);
     }
 
-    // 3. 만들어진 방에 유저 참여시키기 (INSERT)
     public void insertUserChat(Map<String, Integer> map) {
         template.insert("chat.insertUserChat", map);
     }
@@ -145,25 +136,22 @@ public class ChatDAO {
         return template.selectOne("chat.getFileNameBySeq", seqFile);
     }
 
-	public int insertChatFile(Map<String, Object> map) {
-	    return template.insert("chat.insertChatFile", map);
-	}
+    public int insertChatFile(Map<String, Object> map) {
+        return template.insert("chat.insertChatFile", map);
+    }
 
     public int updateExpiredRoutineStatus() {
         return template.update("chat.updateExpiredRoutineStatus");
     }
-    
 
     public void insertReadStatus(int roomId, int loginUserId) {
         Map<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("loginUserId", loginUserId);
-        
         template.insert("chat.insertReadStatus", map);
     }
 
     public int getRoomMemberCount(int roomId) {
-        // user_chat 테이블에서 해당 방에 참여 중인 인원수를 가져옵니다.
         return template.selectOne("chat.getRoomMemberCount", roomId);
     }
 
@@ -180,18 +168,16 @@ public class ChatDAO {
     }
     
     public ChatRoomDTO getRoomById(int roomId, int seqMember) {
-
         Map<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("seqMember", seqMember);
-
         return template.selectOne("chat.getRoomById", map);
     }
     
     public List<RoutineDTO> getRoutineLocationListByTravelPost(int seqTravelPost) {
         return template.selectList("chat.getRoutineLocationListByTravelPost", seqTravelPost);
     }
-        
+
     public Integer findTravelRoom(int seqTravelPost) {
         return template.selectOne("chat.findTravelRoom", seqTravelPost);
     }
@@ -208,17 +194,14 @@ public class ChatDAO {
         return template.insert("chat.insertUserChatIfNotExists", map);
     }
     
-    // 🌟 참여 신청 승인/거절 처리 (기존 sql -> template으로 수정)
     public int updateJoinRequest(Map<String, Object> map) {
         return template.update("chat.updateJoinRequest", map);
     }
 
-    // 🌟 특정 방에서의 내 권한(방장 여부) 가져오기 (기존 sql -> template으로 수정)
     public int getRoomAuth(Map<String, Object> map) {
         return template.selectOne("chat.getRoomAuth", map);
     }
     
- // 🌟 시스템 메시지 업데이트
     public void updateSystemMessage(Map<String, Object> map) {
         template.update("chat.updateSystemMessage", map);
     }
@@ -231,4 +214,12 @@ public class ChatDAO {
         return template.selectList("chat.getChatRoomMembers", roomId);
     }
     
+    // 🌟 방 참여 여부 확인 (권한 체크용)
+    public int isRoomMember(int roomId, int seqMember) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("seqMember", seqMember);
+        // XML에서 COUNT(*)를 수행하도록 쿼리가 작성되어 있어야 함
+        return template.selectOne("chat.isRoomMember", map);
+    }
 }

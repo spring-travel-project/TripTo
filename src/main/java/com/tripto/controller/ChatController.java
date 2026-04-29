@@ -48,14 +48,13 @@ public class ChatController {
             Model model) {
 
         MemberDTO loginMember = getLoginMember();
-
-        if (loginMember == null) {
-            return "redirect:/member/login.do";
-        }
+        if (loginMember == null) return "redirect:/member/login.do";
 
         int loginUserId = loginMember.getSeqMember();
-        
+
         if (roomId != null && roomId > 0) {
+            // 접근 권한 체크
+            if (!canAccessRoom(roomId, loginUserId)) return "redirect:/chat/list";
             chatService.updateReadStatus(roomId, loginUserId);
         }
 
@@ -70,23 +69,20 @@ public class ChatController {
         ChatRoomDTO selectedRoom = null;
 
         if (selectedRoomId != null && selectedRoomId > 0) {
+            if (!canAccessRoom(selectedRoomId, loginUserId)) return "redirect:/chat/list";
+
             messageList = chatService.getMessageList(selectedRoomId, loginUserId);
 
             for (ChatRoomDTO room : roomList) {
-                if (room.getRoomId() == selectedRoomId) {
+                if (room.getRoomId() == (int)selectedRoomId) {
                     selectedRoom = room;
                     break;
                 }
             }
-            
-            // 🌟 [충돌 해결: 통합 영역]
-            // 1. 내가 방장인지 권한 확인 (Head 코드)
-            int myAuth = chatService.getRoomAuth(selectedRoomId, loginUserId);
-            model.addAttribute("myAuth", myAuth);
 
-            // 2. 채팅방 멤버 목록 가져오기 (Dev 코드)
-            List<ChatMemberDTO> memberList = chatService.getChatRoomMembers(selectedRoomId);
-            model.addAttribute("memberList", memberList);
+            // 통합 로직: 방장 권한 + 멤버 목록
+            model.addAttribute("myAuth", chatService.getRoomAuth(selectedRoomId, loginUserId));
+            model.addAttribute("memberList", chatService.getChatRoomMembers(selectedRoomId));
         }
 
         model.addAttribute("roomList", roomList);
@@ -107,15 +103,18 @@ public class ChatController {
 
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        
+        int loginUserId = loginMember.getSeqMember();
+        if (!canAccessRoom(roomId, loginUserId)) return "redirect:/chat/list";
 
-        if (message == null || message.trim().isEmpty()) {
-            message = "사진을 보냈습니다."; 
-        }
+        String finalMsg = (message == null || message.trim().isEmpty()) ? "사진을 보냈습니다." : message;
+        if (finalMsg.length() > 1000) finalMsg = finalMsg.substring(0, 1000);
 
-        chatService.insertMessage(roomId, loginMember.getSeqMember(), message);
+        chatService.insertMessage(roomId, loginUserId, finalMsg);
 
-        if (category == null) return "redirect:/chat/list?roomId=" + roomId;
-        return "redirect:/chat/list?roomId=" + roomId + "&category=" + category;
+        String redirectUrl = "redirect:/chat/list?roomId=" + roomId;
+        if (category != null) redirectUrl += "&category=" + category;
+        return redirectUrl;
     }
 
     @PostMapping("/chat/exit")
@@ -123,23 +122,27 @@ public class ChatController {
     public Map<String, Object> exitRoom(@RequestParam("roomId") int roomId) {
         Map<String, Object> response = new HashMap<>();
         MemberDTO loginMember = getLoginMember();
-        
         if (loginMember == null) {
             response.put("success", false);
             response.put("message", "로그인이 필요합니다.");
             return response;
         }
-        
+
         int loginUserId = loginMember.getSeqMember();
+        if (!canAccessRoom(roomId, loginUserId)) {
+            response.put("success", false);
+            response.put("message", "접근 권한이 없습니다.");
+            return response;
+        }
+
+        // 방장 나가기 방지 로직 (NORMAL 상태일 때)
         int myAuth = chatService.getRoomAuth(roomId, loginUserId);
         ChatRoomDTO room = chatService.getRoomById(roomId, loginUserId);
-
-        // 🌟 방장 나기기 방지 로직 (게시글이 NORMAL일 때만 차단)
         if (myAuth == 0 && room != null && room.getCategory() == 0) {
             String postStatus = chatService.getPostStatusByRoomId(roomId);
             if (postStatus != null && postStatus.trim().equalsIgnoreCase("NORMAL")) {
                 response.put("success", false);
-                response.put("message", "모집 게시글이 게시판에 게시 중일 때는 채팅방을 나갈 수 없습니다.\n모집을 취소하려면 게시글을 먼저 삭제해주세요.");
+                response.put("message", "모집 게시글이 게시 중일 때는 채팅방을 나갈 수 없습니다.\n게시글을 먼저 삭제해주세요.");
                 return response;
             }
         }
@@ -153,6 +156,7 @@ public class ChatController {
     public String schedulePoll(@RequestParam("roomId") int roomId, Model model) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("routineList", chatService.getRoutineList(roomId));
@@ -165,6 +169,10 @@ public class ChatController {
 
     @GetMapping("/chat/poll/write")
     public String pollWrite(@RequestParam("roomId") int roomId, Model model) {
+        MemberDTO loginMember = getLoginMember();
+        if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
+
         model.addAttribute("roomId", roomId);
         return "chat/pollWrite";
     }
@@ -174,18 +182,23 @@ public class ChatController {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
 
-        dto.setSeqMember(loginMember.getSeqMember());
+        int loginUserId = loginMember.getSeqMember();
+        int roomId = dto.getSeqChattingroom();
+        if (!canAccessRoom(roomId, loginUserId)) return "redirect:/chat/list";
+
+        dto.setSeqMember(loginUserId);
         chatService.insertPoll(dto, pollContents);
 
-        String sysMsg = "<a href='/TripTo/chat/poll/detail?roomId=" + dto.getSeqChattingroom() 
+        String safeTitle = escapeHtml(dto.getPollTitle());
+        String sysMsg = "<a href='/TripTo/chat/poll/detail?roomId=" + roomId 
                       + "&pollId=" + dto.getSeq() + "' "
                       + "class='text-blue-600 underline font-bold hover:text-blue-800'>"
-                      + "📋 [투표] " + dto.getPollTitle() + "</a><br>새로운 투표가 등록되었습니다!";
+                      + "📋 [투표] " + safeTitle + "</a><br>새로운 투표가 등록되었습니다!";
         
-        chatService.insertMessage(dto.getSeqChattingroom(), 0, sysMsg);
-        chatWebSocketHandler.broadcastSystemMessage(dto.getSeqChattingroom(), sysMsg);
+        chatService.insertMessage(roomId, 0, sysMsg);
+        chatWebSocketHandler.broadcastSystemMessage(roomId, sysMsg);
 
-        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
+        return "redirect:/chat/schedulePoll?roomId=" + roomId;
     }
 
     @GetMapping("/chat/poll/detail")
@@ -193,10 +206,16 @@ public class ChatController {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
 
+        int loginUserId = loginMember.getSeqMember();
+        if (!canAccessRoom(roomId, loginUserId)) return "redirect:/chat/list";
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+        if (poll == null || poll.getSeqChattingroom() != roomId) return "redirect:/chat/schedulePoll?roomId=" + roomId;
+
         model.addAttribute("roomId", roomId);
-        model.addAttribute("poll", chatService.getPollDetail(pollId));
+        model.addAttribute("poll", poll);
         model.addAttribute("pollContentList", chatService.getPollContentList(pollId));
-        model.addAttribute("loginUserId", loginMember.getSeqMember());
+        model.addAttribute("loginUserId", loginUserId);
 
         return "chat/pollDetail";
     }
@@ -205,6 +224,10 @@ public class ChatController {
     public String votePoll(@RequestParam("roomId") int roomId, @RequestParam("pollId") int pollId, @RequestParam("pollContentId") int pollContentId) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+        if (poll == null || poll.getSeqChattingroom() != roomId) return "redirect:/chat/schedulePoll?roomId=" + roomId;
 
         chatService.votePoll(pollId, pollContentId, loginMember.getSeqMember());
         return "redirect:/chat/poll/detail?roomId=" + roomId + "&pollId=" + pollId;
@@ -214,6 +237,10 @@ public class ChatController {
     public String deletePoll(@RequestParam("roomId") int roomId, @RequestParam("pollId") int pollId) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+        if (poll == null || poll.getSeqChattingroom() != roomId) return "redirect:/chat/schedulePoll?roomId=" + roomId;
 
         chatService.deletePoll(pollId, loginMember.getSeqMember());
         return "redirect:/chat/schedulePoll?roomId=" + roomId;
@@ -221,6 +248,10 @@ public class ChatController {
 
     @GetMapping("/chat/routine/write")
     public String routineWrite(@RequestParam("roomId") int roomId, Model model) {
+        MemberDTO loginMember = getLoginMember();
+        if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
+
         model.addAttribute("roomId", roomId);
         return "chat/routineWrite";
     }
@@ -229,6 +260,7 @@ public class ChatController {
     public String routineWriteOk(RoutineDTO dto, @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(dto.getSeqChattingroom(), loginMember.getSeqMember())) return "redirect:/chat/list";
 
         dto.setSeqMember(loginMember.getSeqMember());
         chatService.insertRoutine(dto, files);
@@ -246,6 +278,7 @@ public class ChatController {
     public String routineDetail(@RequestParam("roomId") int roomId, @RequestParam("routineId") int routineId, Model model) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("routine", chatService.getRoutineDetail(routineId));
@@ -271,6 +304,7 @@ public class ChatController {
     public String deleteRoutine(@RequestParam("roomId") int roomId, @RequestParam("routineId") int routineId) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
 
         chatService.deleteRoutine(routineId, loginMember.getSeqMember());
         return "redirect:/chat/schedulePoll?roomId=" + roomId;
@@ -280,6 +314,7 @@ public class ChatController {
     public String routineEdit(@RequestParam("roomId") int roomId, @RequestParam("routineId") int routineId, Model model) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) return "redirect:/chat/list";
 
         RoutineDTO routine = chatService.getRoutineDetail(routineId);
         if (routine == null || routine.getSeqMember() != loginMember.getSeqMember()) {
@@ -295,6 +330,7 @@ public class ChatController {
     public String routineEditOk(RoutineDTO dto) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
+        if (!canAccessRoom(dto.getSeqChattingroom(), loginMember.getSeqMember())) return "redirect:/chat/list";
 
         chatService.updateRoutine(dto, loginMember.getSeqMember());
         return "redirect:/chat/routine/detail?roomId=" + dto.getSeqChattingroom() + "&routineId=" + dto.getSeq();
@@ -306,17 +342,14 @@ public class ChatController {
         Map<String, Object> response = new HashMap<>();
         try {
             MemberDTO loginMember = getLoginMember();
-            if (loginMember == null) {
+            if (loginMember == null || !canAccessRoom(roomId, loginMember.getSeqMember())) {
                 response.put("success", false);
-                response.put("message", "로그인이 필요합니다.");
+                response.put("message", "권한이 없습니다.");
                 return response;
             }
 
             Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", "dh5p4lvo2",
-                "api_key", "283127846695383",
-                "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
-                "secure", true
+                "cloud_name", "dh5p4lvo2", "api_key", "283127846695383", "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k", "secure", true
             ));
 
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
@@ -328,7 +361,7 @@ public class ChatController {
         } catch (Exception e) {
             e.printStackTrace();
             response.put("success", false);
-            response.put("message", "파일 업로드 실패: " + e.getMessage());
+            response.put("message", "파일 업로드 실패");
         }
         return response;
     }
@@ -338,27 +371,26 @@ public class ChatController {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
 
+        int loginUserId = loginMember.getSeqMember();
         TravelPostDTO post = chatService.getTravelPostForChat(seqTravelPost);
         Integer roomId = chatService.findTravelRoom(seqTravelPost);
 
-        if (roomId == null) {
-            return "redirect:/travel/list.do?message=" + java.net.URLEncoder.encode("채팅방이 존재하지 않습니다.");
-        }
+        if (roomId == null) return "redirect:/travel/list.do?message=" + java.net.URLEncoder.encode("채팅방이 존재하지 않습니다.");
 
-        if (post != null && post.getSeqMember() == loginMember.getSeqMember()) {
+        if (post != null && post.getSeqMember() == loginUserId) {
             return "redirect:/chat/list?roomId=" + roomId + "&category=0";
         }
 
         Map<String, Integer> map = new HashMap<>();
         map.put("roomId", roomId);
-        map.put("userId", loginMember.getSeqMember());
+        map.put("userId", loginUserId);
         
         if (chatService.insertUserChatIfNotExists(map) == 0) {
             return "redirect:/chat/list?message=" + java.net.URLEncoder.encode("이미 참여 신청을 했거나 참여 중인 방입니다.");
         }
 
         String joinMsg = loginMember.getNickname() + "님이 동행 참여를 신청했습니다. "
-                       + "<span data-applicant-seq='" + loginMember.getSeqMember() + "'></span>";
+                       + "<span data-applicant-seq='" + loginUserId + "'></span>";
         
         chatService.insertMessage(roomId, 0, joinMsg);
         if(chatWebSocketHandler != null) chatWebSocketHandler.broadcastSystemMessage(roomId, joinMsg);
@@ -380,12 +412,11 @@ public class ChatController {
             String action = (status == 1) ? "승인" : "거절";
             String finalMsg = "✅ " + applicantName + "님의 참여 요청이 " + action + "되었습니다.";
             chatService.updateSystemMessage(msgSeq, finalMsg);
-            
             result.put("success", true);
             result.put("msg", action + "되었습니다.");
         } else {
             result.put("success", false);
-            result.put("msg", "처리 중 오류가 발생했습니다.");
+            result.put("msg", "처리 중 오류 발생");
         }
         return result;
     }
@@ -395,7 +426,6 @@ public class ChatController {
     public Map<String, Object> applyCompanion(@RequestParam("seqTravelPost") int seqTravelPost) {
         Map<String, Object> result = new HashMap<>();
         MemberDTO loginMember = getLoginMember();
-
         if (loginMember == null) {
             result.put("success", false);
             result.put("message", "로그인이 필요합니다.");
@@ -415,18 +445,16 @@ public class ChatController {
         
         if (chatService.insertUserChatIfNotExists(map) == 0) {
             result.put("success", false);
-            result.put("message", "이미 참여 신청을 했거나 참여 중인 동행입니다.");
+            result.put("message", "이미 신청했거나 참여 중입니다.");
             return result;
         }
 
-        String joinMsg = loginMember.getNickname() + "님이 동행 참여를 신청했습니다. "
-                       + "<span data-applicant-seq='" + loginMember.getSeqMember() + "'></span>";
-        
+        String joinMsg = loginMember.getNickname() + "님이 참여를 신청했습니다. <span data-applicant-seq='" + loginMember.getSeqMember() + "'></span>";
         chatService.insertMessage(roomId, 0, joinMsg);
         if(chatWebSocketHandler != null) chatWebSocketHandler.broadcastSystemMessage(roomId, joinMsg);
 
         result.put("success", true);
-        result.put("message", "참여 신청이 완료되었습니다!\n방장의 승인 후 채팅방에 입장할 수 있습니다.");
+        result.put("message", "신청 완료! 승인을 기다려주세요.");
         return result;
     }
 
@@ -434,5 +462,15 @@ public class ChatController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) return null;
         return memberService.getMemberById(auth.getName());
+    }
+    
+    private boolean canAccessRoom(int roomId, int loginUserId) {
+        // chatService에 isRoomMember 메서드가 구현되어 있어야 함
+        return chatService.isRoomMember(roomId, loginUserId);
+    }
+    
+    private String escapeHtml(String str) {
+        if (str == null) return "";
+        return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
     }
 }

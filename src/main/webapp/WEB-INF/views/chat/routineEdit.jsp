@@ -43,7 +43,7 @@
 		</div>
 
 		<form method="post"
-		      action="${pageContext.request.contextPath}/chat/routine/edit"
+		      action="${pageContext.request.contextPath}/chat/routine/edit?${_csrf.parameterName}=${_csrf.token}"
 		      enctype="multipart/form-data"
 		      class="space-y-6">
 
