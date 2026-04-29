@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 // 🌟 Cloudinary 전용 Import 추가
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -75,6 +75,10 @@ public class ChatController {
                     break;
                 }
             }
+
+            // 멤버 목록
+            List<ChatMemberDTO> memberList = chatService.getChatRoomMembers(selectedRoomId);
+            model.addAttribute("memberList", memberList);
         }
 
         model.addAttribute("roomList", roomList);

@@ -68,6 +68,14 @@
 		    font-size: 10px;
 		    color: #94a3b8;
 		}
+		#memberModal div::-webkit-scrollbar {
+		    width: 6px;
+		}
+		
+		#memberModal div::-webkit-scrollbar-thumb {
+		    background: #cbd5f5;
+		    border-radius: 999px;
+		}
     </style>
 </head>
 
@@ -169,10 +177,16 @@
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}"
-                                   class="px-5 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition shadow-md">
-                                    일정/투표
-                                </a>
+
+							    <button type="button" id="memberListBtn"
+							            class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-100 transition shadow-sm">
+							        멤버
+							    </button>
+							
+							    <a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}"
+							       class="px-5 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition shadow-md">
+							        일정/투표
+							    </a>
 
                                 <button type="button" id="exitRoomBtn"
                                         class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">
@@ -307,6 +321,53 @@
             </section>
         </div>
     </div>
+    <div id="memberModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+	    <div class="w-[380px] max-w-[90vw] rounded-2xl bg-white shadow-2xl overflow-hidden">
+	        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+	            <h3 class="text-lg font-bold text-slate-800">채팅방 멤버</h3>
+	
+	            <button type="button" id="memberModalClose"
+	                    class="text-2xl leading-none text-slate-400 hover:text-slate-700">
+	                ×
+	            </button>
+	        </div>
+	
+	        <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto">
+	            <c:choose>
+	                <c:when test="${not empty memberList}">
+	                    <c:forEach items="${memberList}" var="member">
+	                        <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+	                            <div class="w-11 h-11 rounded-full bg-slate-200 overflow-hidden shrink-0">
+	                                <c:choose>
+	                                    <c:when test="${not empty member.profile}">
+	                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${member.profile}"
+	                                             class="w-full h-full object-cover">
+	                                    </c:when>
+	                                    <c:otherwise>
+	                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png"
+	                                             class="w-full h-full object-cover">
+	                                    </c:otherwise>
+	                                </c:choose>
+	                            </div>
+	
+	                            <div class="min-w-0">
+	                                <p class="text-sm font-semibold text-slate-800 truncate">
+	                                    ${member.nickname}
+	                                </p>
+	                            </div>
+	                        </div>
+	                    </c:forEach>
+	                </c:when>
+	
+	                <c:otherwise>
+	                    <p class="text-sm text-slate-500 text-center py-6">
+	                        멤버가 없습니다.
+	                    </p>
+	                </c:otherwise>
+	            </c:choose>
+	        </div>
+	    </div>
+	</div>
 </main>
 
 <script>
@@ -426,6 +487,20 @@
         chatMessageList.insertAdjacentHTML('beforeend', html);
         scrollToBottom();
     }
+    
+    document.getElementById('memberListBtn')?.addEventListener('click', function () {
+        document.getElementById('memberModal')?.classList.remove('hidden');
+    });
+
+    document.getElementById('memberModalClose')?.addEventListener('click', function () {
+        document.getElementById('memberModal')?.classList.add('hidden');
+    });
+
+    document.getElementById('memberModal')?.addEventListener('click', function (e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+        }
+    });
 
     function connectSocket() {
         if (!selectedRoomId) return;

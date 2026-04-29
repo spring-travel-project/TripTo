@@ -2,6 +2,7 @@ package com.tripto.controller;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.MemberDTO;
 import com.tripto.service.MailService;
 import com.tripto.service.MemberService;
@@ -306,5 +308,4 @@ public class MemberController {
 
 		return "redirect:/member/login.do";
 	}
-
 }

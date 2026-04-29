@@ -8,6 +8,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -192,6 +193,10 @@ public class ChatDAO {
 
     public void insertUserChatIfNotExists(Map<String, Integer> map) {
         template.insert("chat.insertUserChatIfNotExists", map);
+    }
+    
+    public List<ChatMemberDTO> getChatRoomMembers(int roomId) {
+        return template.selectList("chat.getChatRoomMembers", roomId);
     }
     
 }

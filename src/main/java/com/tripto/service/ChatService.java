@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -545,7 +546,10 @@ public class ChatService {
 
         return newRoomId;
     }
-
-    
+	
+    // 멤버 목록
+    public List<ChatMemberDTO> getChatRoomMembers(int roomId) {
+        return chatDAO.getChatRoomMembers(roomId);
+    }
     
 }
