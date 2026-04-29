@@ -467,4 +467,22 @@ public class ChatService {
     public List<FileDTO> getRoutineFileList(int routineId) {
         return chatDAO.getRoutineFileList(routineId);
     }
+    
+    public int uploadCloudinaryFile(String originalName, String imageUrl, int memberSeq, int roomId) {
+        
+        // 1. DB에 저장하기 위한 맵 생성
+        Map<String, Object> map = new HashMap<>();
+        map.put("orgName", originalName);
+        map.put("savedName", imageUrl); // 🌟 파일명 대신 'URL 주소'를 통째로 넣습니다.
+        map.put("filePath", "cloudinary"); // 경로는 구분하기 쉽게 클라우디너리로 표시
+        
+        // 2. chat.xml의 insertChatFile 호출 (이건 기존 쿼리 그대로 써도 됩니다)
+        chatDAO.insertChatFile(map);
+        
+        // 3. 방금 생성된 파일 번호(seqFile) 반환
+        return Integer.parseInt(map.get("seqFile").toString());
+    }
+
+    
+    
 }

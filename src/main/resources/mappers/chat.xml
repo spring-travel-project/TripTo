@@ -21,6 +21,10 @@
             END AS displayCategory,
             partner.nickname AS partnerNickname,
             partner.partnerProfile AS partnerProfile,
+            
+            partner.nickname AS partnerNickname, 
+            partner.partnerProfile AS partnerProfile, 
+            
             last_log.detail AS lastMessage,
             last_log.regdate AS regdate,
             CASE
@@ -50,6 +54,7 @@
                 WHERE rn = 1
             ) last_log
                 ON cr.seq = last_log.seqChattingroom
+                
             LEFT JOIN (
                 SELECT
                     uc2.seqChattingroom,
@@ -62,6 +67,12 @@
                 GROUP BY uc2.seqChattingroom
             ) partner
                 ON cr.seq = partner.seqChattingroom
+                    INNER JOIN member m ON uc2.seqMember = m.seqMember
+                WHERE uc2.seqMember != #{seqMember} 
+                GROUP BY uc2.seqChattingroom
+            ) partner
+                ON cr.seq = partner.seqChattingroom
+            
         WHERE uc.seqMember = #{seqMember}
           AND uc.isActive = 1
           <if test="category != null">
