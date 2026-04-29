@@ -462,10 +462,12 @@
             SELECT cr.seq
             FROM chattingroom cr
                 INNER JOIN user_chat uc1
-                    ON cr.seq = uc1.seqChattingroom AND uc1.seqMember = #{me}
-                INNER JOIN user_chat uc2
-                    ON cr.seq = uc2.seqChattingroom AND uc2.seqMember = #{target}
-            WHERE cr.category = 1
+                    ON cr.seq = uc1.seqChattingroom 
+                   AND uc1.seqMember = #{me} 
+                   AND uc1.isActive = 1  INNER JOIN user_chat uc2
+                    ON cr.seq = uc2.seqChattingroom 
+                   AND uc2.seqMember = #{target} 
+                   AND uc2.isActive = 1  WHERE cr.category = 1
         ) WHERE ROWNUM = 1
     </select>
 

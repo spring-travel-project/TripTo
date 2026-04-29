@@ -15,6 +15,7 @@ public class MatchDTO {
     private String matchMessage;
     private String createDate;
 
+
     // 2. 매칭 알고리즘 및 출력용 필드
     private int matchCount;       // 8개 항목 중 일치하는 개수 (0~8)
     

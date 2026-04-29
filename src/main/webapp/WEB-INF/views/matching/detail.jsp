@@ -52,6 +52,8 @@
                         
                         <h1 class="text-3xl lg:text-5xl font-black text-slate-900 mb-6 lg:mb-8 tracking-tight">${target.nickname}</h1>
                         
+                        <div class="w-full bg-slate-50 border border-slate-100 text-slate-600 text-[15px] leading-relaxed p-5 rounded-2xl mb-6 lg:mb-8 shadow-inner text-left whitespace-pre-wrap break-words"><c:out value="${empty target.intro ? '아직 자기소개를 작성하지 않았어요. 먼저 반갑게 인사를 건네보세요!' : target.intro}" /></div>
+                        
                         <button class="w-full bg-blue-600 text-white py-4 lg:py-5 rounded-2xl font-bold text-lg lg:text-xl hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3"
                                 onclick="location.href='${pageContext.request.contextPath}/chat/start?targetSeq=${target.seqMember}'">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 lg:w-7 lg:h-7">
@@ -157,16 +159,34 @@
                             <div class="text-5xl lg:text-7xl opacity-20">👟</div>
                         </div>
 
-                        <div class="p-5 lg:p-8 rounded-2xl lg:rounded-3xl border border-slate-100 bg-slate-50/50 space-y-2 lg:space-y-3">
-                            <span class="text-[10px] lg:text-xs font-black text-slate-300 uppercase tracking-widest">선호 숙소</span>
-                            <p class="text-lg lg:text-xl font-bold text-slate-700">${empty me.stayNames ? '🔒' : target.stayNames}</p>
+                        <div class="md:col-span-2 p-5 lg:p-8 rounded-2xl lg:rounded-3xl border-2 transition-all multi-match-card" 
+                             data-target="${target.stayNames}" data-me="${me.stayNames}">
+                            <div class="mb-3 flex justify-between items-center">
+                                <span class="text-[10px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">선호 숙소</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 tag-container">
+                                </div>
                         </div>
-                        <div class="p-5 lg:p-8 rounded-2xl lg:rounded-3xl border border-slate-100 bg-slate-50/50 space-y-2 lg:space-y-3">
-                            <span class="text-[10px] lg:text-xs font-black text-slate-300 uppercase tracking-widest">사용 언어</span>
-                            <p class="text-lg lg:text-xl font-bold text-slate-700">${empty me.languageNames ? '🔒' : target.languageNames}</p>
+                        
+                        <div class="p-5 lg:p-8 rounded-2xl lg:rounded-3xl border-2 transition-all multi-match-card" 
+                             data-target="${target.languageNames}" data-me="${me.languageNames}">
+                            <div class="mb-3 flex justify-between items-center">
+                                <span class="text-[10px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">사용 언어</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 tag-container">
+                                </div>
                         </div>
 
-                    </div>                    
+                        <div class="p-5 lg:p-8 rounded-2xl lg:rounded-3xl border-2 transition-all multi-match-card" 
+                             data-target="${target.ageGroupNames}" data-me="${me.ageGroupNames}">
+                            <div class="mb-3 flex justify-between items-center">
+                                <span class="text-[10px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">선호 연령대</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 tag-container">
+                                </div>
+                        </div>
+
+                    </div>                  
                 </div>
             </div>
         </div>
@@ -177,6 +197,49 @@
         if (alertMessage) {
             alert(alertMessage);
         }
+
+        // 🌟 다중 선택 항목(숙소, 언어, 연령대)의 텍스트를 배지로 바꾸고 일치하는지 비교하는 마법의 스크립트!
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.multi-match-card').forEach(card => {
+                const targetStr = card.dataset.target || '';
+                const meStr = card.dataset.me || '';
+
+                // 내 프로필이 아예 비공개(미입력) 상태인 경우
+                if (!meStr) {
+                     card.querySelector('.tag-container').innerHTML = '<span class="text-lg lg:text-xl font-bold text-slate-300">🔒 비공개</span>';
+                     card.classList.add('border-slate-100', 'bg-white');
+                     return;
+                }
+
+                // 문자열을 콤마(,) 기준으로 잘라서 배열로 만듦
+                const targetArr = targetStr.split(',').map(s => s.trim()).filter(Boolean);
+                const meArr = meStr.split(',').map(s => s.trim()).filter(Boolean);
+
+                let matchCount = 0;
+                let html = '';
+
+                // 상대방이 선택한 항목들을 하나씩 돌면서 내 거랑 비교
+                targetArr.forEach(t => {
+                    if (meArr.includes(t)) {
+                        matchCount++;
+                        // 겹치면 파란색 배지 + (일치) 텍스트
+                        html += `<span class="px-3 py-1.5 bg-blue-100 text-blue-600 font-bold rounded-lg text-sm">\${t} (일치)</span>`;
+                    } else {
+                        // 안 겹치면 회색 배지
+                        html += `<span class="px-3 py-1.5 bg-slate-100 text-slate-500 font-medium rounded-lg text-sm">\${t}</span>`;
+                    }
+                });
+
+                card.querySelector('.tag-container').innerHTML = html || '<span class="text-slate-400">선택한 항목이 없습니다.</span>';
+
+                // 하나라도 겹치면 카드 전체 테두리를 파란색으로!
+                if (matchCount > 0) {
+                    card.classList.add('border-blue-500', 'bg-blue-50/30');
+                } else {
+                    card.classList.add('border-slate-100', 'bg-white');
+                }
+            });
+        });
 
         function reportUser(seq, nickname) {
             if (confirm("[" + nickname + "] 사용자를 부적절한 활동으로 신고하시겠습니까?")) {
