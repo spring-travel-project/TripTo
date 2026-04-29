@@ -120,7 +120,7 @@
             0,
             'NORMAL',
             SYSDATE,
-	        #{thumbnailUrl}
+	        #{thumbnailUrl, jdbcType=VARCHAR}
         )
 
     </insert>
@@ -202,7 +202,7 @@
             TITLE = #{title},
             CONTENT = #{content},
             UPDATEDATE = SYSDATE,
-            THUMBNAILURL = #{thumbnailUrl}
+            THUMBNAILURL = #{thumbnailUrl, jdbcType=VARCHAR}
         WHERE SEQBOARDPOST = #{seqBoardPost}
     </update>
 
