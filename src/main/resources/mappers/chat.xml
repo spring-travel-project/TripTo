@@ -61,7 +61,8 @@
                     INNER JOIN member m
                         ON uc2.seqMember = m.seqMember
                 WHERE uc2.seqMember != #{seqMember}
-                  AND uc2.isActive = 1  GROUP BY uc2.seqChattingroom
+                  AND uc2.isActive = 1  
+                GROUP BY uc2.seqChattingroom
             ) partner
                 ON cr.seq = partner.seqChattingroom
             
@@ -429,6 +430,15 @@
         FROM user_chat uc
         INNER JOIN member m ON uc.seqMember = m.seqMember
         WHERE uc.seqChattingroom = #{roomId}
-          AND uc.isActive = 1  </select>
+          AND uc.isActive = 1  
+    </select>
+
+    <select id="isRoomMember" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM user_chat
+        WHERE seqChattingroom = #{roomId}
+          AND seqMember = #{seqMember}
+          AND isActive = 1
+    </select>
 
 </mapper>
