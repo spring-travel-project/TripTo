@@ -17,17 +17,14 @@
    <%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
    <main class="page-wrap">
-      <div class="mb-8">
-         <h1 class="section-title">채팅</h1>
-         <p class="section-desc">여행 동행자와 일정을 조율하고 대화를 나눠보세요.</p>
-      </div>
 
       <div class="content-card p-0 overflow-hidden">
-         <div class="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] h-[calc(100vh-230px)] min-h-[620px]">
+         <div class="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] h-[86vh] min-h-[700px]">
 
             <aside class="border-b lg:border-b-0 lg:border-r border-slate-200 bg-indigo-200 flex flex-col min-h-0">
                 <div class="p-5 border-b border-slate-200 bg-white shrink-0">
                    <h2 class="text-2xl font-bold tracking-tight mb-4">채팅 목록</h2>
+                   <p class="section-desc">여행 동행자와 일정을 조율하고 대화를 나눠보세요.</p>
                    <div class="flex flex-wrap gap-2">
                       <a href="${pageContext.request.contextPath}/chat/list" class="px-4 py-2 rounded-full text-sm font-medium transition ${empty category ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">전체</a>
                       <a href="${pageContext.request.contextPath}/chat/list?category=0" class="px-4 py-2 rounded-full text-sm font-medium transition ${category == 0 ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">동행</a>
