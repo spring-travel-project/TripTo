@@ -58,7 +58,23 @@
             margin-top: 6px;
             font-size: 10px;
             color: #94a3b8;
-        }
+        	position: absolute;
+        	right: -34px;
+        	bottom: 0;
+        	text-align: right;
+		    align-self: flex-end;
+		    margin-top: 4px;
+		    font-size: 10px;
+		    color: #94a3b8;
+		}
+		#memberModal div::-webkit-scrollbar {
+		    width: 6px;
+		}
+		
+		#memberModal div::-webkit-scrollbar-thumb {
+		    background: #cbd5f5;
+		    border-radius: 999px;
+		}
     </style>
 </head>
 
@@ -76,7 +92,7 @@
                     <div class="flex flex-wrap gap-2">
                         <a href="${pageContext.request.contextPath}/chat/list" class="px-4 py-2 rounded-full text-sm font-medium transition ${empty category ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">전체</a>
                         <a href="${pageContext.request.contextPath}/chat/list?category=0" class="px-4 py-2 rounded-full text-sm font-medium transition ${category == 0 ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">동행</a>
-                        <a href="${pageContext.request.contextPath}/chat/list?category=1" class="px-4 py-2 rounded-full text-sm font-medium transition ${category == 1 ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">매칭</a>
+                        <a href="${pageContext.request.contextPath}/chat/list?category=1" class="px-4 py-2 rounded-full text-sm font-medium transition ${category == 1 ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">개인</a>
                     </div>
                 </div>
 
@@ -133,15 +149,27 @@
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
                                     <h2 class="text-xl font-bold truncate">${selectedRoom.roomName}</h2>
                                     <span class="inline-flex items-center rounded-full ${selectedRoom.category == 0 ? 'bg-sky-100 text-sky-700' : 'bg-emerald-100 text-emerald-700'} text-xs font-medium px-2 py-0.5">
-                                        ${selectedRoom.category == 0 ? '동행' : '매칭'}
+                                        ${selectedRoom.category == 0 ? '동행' : '개인'}
                                     </span>
                                 </div>
                                 <p class="text-sm text-slate-500">${selectedRoom.partnerNickname}</p>
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}" class="px-5 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition shadow-md">일정/투표</a>
-                                <button type="button" id="exitRoomBtn" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">나가기</button>
+							    <button type="button" id="memberListBtn"
+							            class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-100 transition shadow-sm">
+							        멤버
+							    </button>
+							
+							    <a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}"
+							       class="px-5 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition shadow-md">
+							        일정/투표
+							    </a>
+
+                                <button type="button" id="exitRoomBtn"
+                                        class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">
+                                    나가기
+                                </button>
                             </div>
                         </div>
 
@@ -257,6 +285,53 @@
             </section>
         </div>
     </div>
+    <div id="memberModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+	    <div class="w-[380px] max-w-[90vw] rounded-2xl bg-white shadow-2xl overflow-hidden">
+	        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+	            <h3 class="text-lg font-bold text-slate-800">채팅방 멤버</h3>
+	
+	            <button type="button" id="memberModalClose"
+	                    class="text-2xl leading-none text-slate-400 hover:text-slate-700">
+	                ×
+	            </button>
+	        </div>
+	
+	        <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto">
+	            <c:choose>
+	                <c:when test="${not empty memberList}">
+	                    <c:forEach items="${memberList}" var="member">
+	                        <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+	                            <div class="w-11 h-11 rounded-full bg-slate-200 overflow-hidden shrink-0">
+	                                <c:choose>
+	                                    <c:when test="${not empty member.profile}">
+	                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${member.profile}"
+	                                             class="w-full h-full object-cover">
+	                                    </c:when>
+	                                    <c:otherwise>
+	                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png"
+	                                             class="w-full h-full object-cover">
+	                                    </c:otherwise>
+	                                </c:choose>
+	                            </div>
+	
+	                            <div class="min-w-0">
+	                                <p class="text-sm font-semibold text-slate-800 truncate">
+	                                    ${member.nickname}
+	                                </p>
+	                            </div>
+	                        </div>
+	                    </c:forEach>
+	                </c:when>
+	
+	                <c:otherwise>
+	                    <p class="text-sm text-slate-500 text-center py-6">
+	                        멤버가 없습니다.
+	                    </p>
+	                </c:otherwise>
+	            </c:choose>
+	        </div>
+	    </div>
+	</div>
 </main>
 
 <script>
@@ -368,6 +443,20 @@
 
         scrollToBottom();
     }
+    
+    document.getElementById('memberListBtn')?.addEventListener('click', function () {
+        document.getElementById('memberModal')?.classList.remove('hidden');
+    });
+
+    document.getElementById('memberModalClose')?.addEventListener('click', function () {
+        document.getElementById('memberModal')?.classList.add('hidden');
+    });
+
+    document.getElementById('memberModal')?.addEventListener('click', function (e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+        }
+    });
 
     function connectSocket() {
         if (!selectedRoomId) return;

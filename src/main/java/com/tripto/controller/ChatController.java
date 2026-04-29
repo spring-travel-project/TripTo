@@ -20,6 +20,7 @@ import com.tripto.websocket.ChatWebSocketHandler;
 // 🌟 Cloudinary 전용 Import 추가
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -77,6 +78,10 @@ public class ChatController {
                     break;
                 }
             }
+
+            // 멤버 목록
+            List<ChatMemberDTO> memberList = chatService.getChatRoomMembers(selectedRoomId);
+            model.addAttribute("memberList", memberList);
         }
 
         model.addAttribute("roomList", roomList);
@@ -106,8 +111,6 @@ public class ChatController {
         if ((message == null || message.trim().isEmpty())) {
             message = "사진을 보냈습니다."; 
         }
-
-        chatService.insertMessage(roomId, loginUserId, message);
 
         if (category == null) {
             return "redirect:/chat/list?roomId=" + roomId;

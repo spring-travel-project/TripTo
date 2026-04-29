@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
+import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -183,18 +184,6 @@ public class ChatService {
             }
         }
         
-        String message =
-        		"<div class='chat-system-msg'>" +
-    		        "<div>🧾 <b>[투표]</b> 새로운 투표가 등록되었습니다.</div>" +
-    		        "<a href='/TripTo/chat/poll/detail?roomId=" 
-    		            + dto.getSeqChattingroom() 
-    		            + "&pollId=" + dto.getSeq() + "'>" +
-    		            dto.getPollTitle() +
-    		        "</a>" +
-    		    "</div>";
-
-        insertMessage(dto.getSeqChattingroom(), dto.getSeqMember(), message);
-
         return true;
     }
 
@@ -280,18 +269,6 @@ public class ChatService {
         	return false;
         }
         
-        String message =
-        		"<div class='chat-system-msg'>" +
-    		        "<div>📅 <b>[일정]</b> 새로운 일정이 등록되었습니다.</div>" +
-    		        "<a href='/TripTo/chat/routine/detail?roomId=" 
-    		            + dto.getSeqChattingroom() 
-    		            + "&routineId=" + dto.getSeq() + "'>" +
-    		            dto.getTitle() +
-    		        "</a>" +
-    		    "</div>";
-
-        insertMessage(dto.getSeqChattingroom(), dto.getSeqMember(), message);
-
         if (files == null || files.isEmpty()) {
             return true;
         }
@@ -552,6 +529,9 @@ public class ChatService {
 
         return newRoomId;
     }
-    
-    
+	
+    // 멤버 목록
+    public List<ChatMemberDTO> getChatRoomMembers(int roomId) {
+        return chatDAO.getChatRoomMembers(roomId);
+    }
 }

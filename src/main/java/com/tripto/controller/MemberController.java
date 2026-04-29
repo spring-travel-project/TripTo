@@ -1,6 +1,7 @@
 package com.tripto.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
@@ -301,5 +302,4 @@ public class MemberController {
 
 		return "redirect:/member/login.do";
 	}
-
 }
