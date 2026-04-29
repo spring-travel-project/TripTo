@@ -247,85 +247,98 @@
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cf168dc299fb311b33c67ac55e3af698&libraries=services"></script>
 
 <script>
-    const mapBox = document.getElementById('detailMapBox');
-    const mapEl = document.getElementById('detailMap');
-    const emptyMapOverlay = document.getElementById('emptyMapOverlay');
+	const mapBox = document.getElementById('detailMapBox');
+	const mapEl = document.getElementById('detailMap');
+	const emptyMapOverlay = document.getElementById('emptyMapOverlay');
+	
+	const locations = [];
+	
+	
+	<c:forEach items="${locationList}" var="loc">
+	    <c:if test="${not empty loc.latitude and not empty loc.longitude}">
+	        locations.push({
+	            name: "${loc.placeName}",
+	            lat: Number("${loc.latitude}"),
+	            lng: Number("${loc.longitude}"),
+	            type: "post"
+	        });
+	    </c:if>
+	</c:forEach>
+	
+	
+	<c:forEach items="${routineLocationList}" var="loc">
+	    <c:if test="${not empty loc.latitude and not empty loc.longitude}">
+	        locations.push({
+	            name: "${loc.title}",
+	            lat: Number("${loc.latitude}"),
+	            lng: Number("${loc.longitude}"),
+	            type: "routine"
+	        });
+	    </c:if>
+	</c:forEach>
+	
+	console.log("전체 locations:", locations);
+	
+	mapBox.style.display = 'block';
+	
+	setTimeout(function () {
+	
+	    let center;
+	
+	    if (locations.length > 0) {
+	        center = new kakao.maps.LatLng(locations[0].lat, locations[0].lng);
+	        emptyMapOverlay.style.display = 'none';
+	    } else {
+	        center = new kakao.maps.LatLng(37.5665, 126.9780);
+	        emptyMapOverlay.style.display = 'flex';
+	    }
+	
+	    const map = new kakao.maps.Map(mapEl, {
+	        center: center,
+	        level: 5
+	    });
+	
+	    const bounds = new kakao.maps.LatLngBounds();
+	
+	    locations.forEach(function (loc) {
 
-    const locations = [];
+	        const position = new kakao.maps.LatLng(loc.lat, loc.lng);
 
-    const locationData = document.querySelector('.travel-location-data');
+	        const marker = new kakao.maps.Marker({
+	            map: map,
+	            position: position
+	        });
 
-    if (locationData) {
-        const lat = Number(locationData.dataset.latitude);
-        const lng = Number(locationData.dataset.longitude);
+	        new kakao.maps.CustomOverlay({
+	            map: map,
+	            position: position,
+	            content:
+	                '<div style="' +
+	                    'background:white;' +
+	                    'padding:4px 8px;' +
+	                    'border-radius:8px;' +
+	                    'font-size:12px;' +
+	                    'font-weight:600;' +
+	                    'box-shadow:0 2px 6px rgba(0,0,0,0.2);' +
+	                    'white-space:nowrap;' +
+	                '">' +
+	                loc.name +
+	                '</div>',
+	            yAnchor: 1.8 //  마커 위로 올리기
+	        });
 
-        if (!isNaN(lat) && !isNaN(lng)) {
-            locations.push({
-                name: locationData.dataset.placeName || '대표 장소',
-                lat: lat,
-                lng: lng
-            });
-        }
-    }
-
-    <c:forEach items="${locationList}" var="loc">
-        <c:if test="${not empty loc.latitude and not empty loc.longitude}">
-            locations.push({
-                name: "${loc.placeName}",
-                lat: Number("${loc.latitude}"),
-                lng: Number("${loc.longitude}")
-            });
-        </c:if>
-    </c:forEach>
-
-    mapBox.style.display = 'block';
-
-    setTimeout(function () {
-        let center;
-
-        if (locations.length > 0) {
-            center = new kakao.maps.LatLng(locations[0].lat, locations[0].lng);
-            emptyMapOverlay.style.display = 'none';
-        } else {
-            center = new kakao.maps.LatLng(37.5665, 126.9780);
-            emptyMapOverlay.style.display = 'flex';
-        }
-
-        const map = new kakao.maps.Map(mapEl, {
-            center: center,
-            level: 5
-        });
-
-        const bounds = new kakao.maps.LatLngBounds();
-
-        locations.forEach(function (loc) {
-            const position = new kakao.maps.LatLng(loc.lat, loc.lng);
-
-            new kakao.maps.Marker({
-                map: map,
-                position: position
-            });
-
-            new kakao.maps.CustomOverlay({
-                map: map,
-                position: position,
-                content: '<div class="map-marker-label">' + loc.name + '</div>',
-                yAnchor: 2.3
-            });
-
-            labelOverlay.setMap(map);
-
-            bounds.extend(position);
-        });
-
-        map.relayout();
-
-        if (locations.length > 1) {
-            map.setBounds(bounds);
-        } else {
-            map.setCenter(center);
-        }
-    }, 100);
+	        bounds.extend(position);
+	    });
+	
+	    map.relayout();
+	
+	    if (locations.length > 1) {
+	        map.setBounds(bounds);
+	    } else {
+	        map.setCenter(center);
+	    }
+	
+	}, 100);
 
     function toggleCommentEdit(seq) {
         const content = document.getElementById('comment-content-' + seq);

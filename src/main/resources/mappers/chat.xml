@@ -17,7 +17,7 @@
             cr.category,
             CASE
                 WHEN cr.category = 0 THEN '동행'
-                WHEN cr.category = 1 THEN '매칭'
+                WHEN cr.category = 1 THEN '개인'
             END AS displayCategory,
             partner.nickname AS partnerNickname,
             partner.partnerProfile AS partnerProfile,
@@ -61,7 +61,7 @@
                     INNER JOIN member m
                         ON uc2.seqMember = m.seqMember
                 WHERE uc2.seqMember != #{seqMember}
-                  AND uc2.isActive = 1   GROUP BY uc2.seqChattingroom
+                  AND uc2.isActive = 1  GROUP BY uc2.seqChattingroom
             ) partner
                 ON cr.seq = partner.seqChattingroom
             
@@ -100,71 +100,32 @@
     </select>
 
     <select id="getNicknameByMemberId" parameterType="int" resultType="string">
-        SELECT nickname
-        FROM member
-        WHERE seqMember = #{seqMember}
+        SELECT nickname FROM member WHERE seqMember = #{seqMember}
     </select>
 
     <insert id="insertMessage" parameterType="com.tripto.dto.ChatMessageDTO">
         <selectKey keyProperty="seq" resultType="int" order="BEFORE">
             SELECT seqChatLog.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO chat_log (
-            seq,
-            seqFile,
-            seqMember,
-            seqChattingroom,
-            detail,
-            regdate
-        ) VALUES (
-            #{seq},
-            #{seqFile, jdbcType=NUMERIC},
-            #{seqMember},
-            #{seqChattingroom},
-            #{detail},
-            SYSDATE
-        )
+        INSERT INTO chat_log (seq, seqFile, seqMember, seqChattingroom, detail, regdate)
+        VALUES (#{seq}, #{seqFile, jdbcType=NUMERIC}, #{seqMember}, #{seqChattingroom}, #{detail}, SYSDATE)
     </insert>
 
     <update id="exitRoom" parameterType="map">
-        UPDATE user_chat
-        SET isActive = 0
-        WHERE seqChattingroom = #{roomId}
-          AND seqMember = #{userId}
+        UPDATE user_chat SET isActive = 0 WHERE seqChattingroom = #{roomId} AND seqMember = #{userId}
     </update>
 
     <insert id="insertExitMessage" parameterType="map">
-        INSERT INTO chat_log (
-            seq,
-            seqMember,
-            seqChattingroom,
-            detail,
-            regdate
-        ) VALUES (
-            seqChatLog.NEXTVAL,
-            #{userId},
-            #{roomId},
-            '사용자가 채팅방을 나갔습니다.',
-            SYSDATE
-        )
+        INSERT INTO chat_log (seq, seqMember, seqChattingroom, detail, regdate)
+        VALUES (seqChatLog.NEXTVAL, #{userId}, #{roomId}, '사용자가 채팅방을 나갔습니다.', SYSDATE)
     </insert>
 
     <select id="getRoutineList" parameterType="int" resultType="com.tripto.dto.RoutineDTO">
         SELECT
-            r.seq,
-            r.seqMember,
-            r.seqChattingroom,
-            r.seqTravelPost,
-            r.seqLocation,
-            r.title,
-            TO_CHAR(r.detail) AS detail,
-            r.regdate,
-            r.dDay,
-            r.status,
+            r.seq, r.seqMember, r.seqChattingroom, r.seqTravelPost, r.seqLocation, r.title,
+            TO_CHAR(r.detail) AS detail, r.regdate, r.dDay, r.status,
             TO_CHAR(r.dDay, 'YYYY-MM-DD') AS dDayDateText,
-            m.nickname AS writerNickname,
-            TO_CHAR(r.regdate, 'MM-DD') AS regdateText,
+            m.nickname AS writerNickname, TO_CHAR(r.regdate, 'MM-DD') AS regdateText,
             CASE
                 WHEN r.status = 1 THEN '종료'
                 WHEN r.dDay IS NULL THEN '예정'
@@ -172,72 +133,39 @@
                 WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
                 ELSE '종료'
             END AS dDayText,
-            l.placeName,
-            l.address,
-            l.latitude,
-            l.longitude,
-            l.mapProviderId,
-            rf.filePath,
-            rf.fileType
+            l.placeName, l.address, l.latitude, l.longitude, l.mapProviderId,
+            rf.filePath, rf.fileType
         FROM routine r
-            INNER JOIN member m
-                ON r.seqMember = m.seqMember
-            LEFT JOIN location l
-                ON r.seqLocation = l.seqLocation
+            INNER JOIN member m ON r.seqMember = m.seqMember
+            LEFT JOIN location l ON r.seqLocation = l.seqLocation
             LEFT JOIN (
                 SELECT seqRoutine, filePath, fileType
                 FROM (
-                    SELECT
-                        rf.seqRoutine,
-                        f.filePath,
-                        f.fileType,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY rf.seqRoutine
-                            ORDER BY rf.seq ASC
-                        ) AS rn
+                    SELECT rf.seqRoutine, f.filePath, f.fileType,
+                           ROW_NUMBER() OVER (PARTITION BY rf.seqRoutine ORDER BY rf.seq ASC) AS rn
                     FROM routine_file rf
-                        INNER JOIN files f
-                            ON rf.seqFile = f.seq
-                )
-                WHERE rn = 1
-            ) rf
-                ON r.seq = rf.seqRoutine
+                    INNER JOIN files f ON rf.seqFile = f.seq
+                ) WHERE rn = 1
+            ) rf ON r.seq = rf.seqRoutine
         WHERE r.seqChattingroom = #{roomId}
         ORDER BY r.dDay ASC NULLS LAST, r.regdate DESC
     </select>
 
     <select id="getPollList" parameterType="int" resultType="com.tripto.dto.PollDTO">
         SELECT
-            p.seq,
-            p.seqChattingroom,
-            p.seqMember,
-            p.pollTitle,
-            p.pollEnddate,
-            p.polldetail,
-            m.nickname AS writerNickname,
-            TO_CHAR(p.pollEnddate, 'MM-DD HH24:MI') AS enddateText,
-            CASE
-                WHEN p.pollEnddate &lt; SYSDATE THEN '종료'
-                ELSE '진행중'
-            END AS pollStatusText,
-            CASE
-                WHEN p.pollEnddate &lt; SYSDATE THEN 1
-                ELSE 0
-            END AS pollClosed,
+            p.seq, p.seqChattingroom, p.seqMember, p.pollTitle, p.pollEnddate, p.polldetail,
+            m.nickname AS writerNickname, TO_CHAR(p.pollEnddate, 'MM-DD HH24:MI') AS enddateText,
+            CASE WHEN p.pollEnddate &lt; SYSDATE THEN '종료' ELSE '진행중' END AS pollStatusText,
+            CASE WHEN p.pollEnddate &lt; SYSDATE THEN 1 ELSE 0 END AS pollClosed,
             NVL(pr.participantCount, 0) AS participantCount
         FROM poll p
-            INNER JOIN member m
-                ON p.seqMember = m.seqMember
+            INNER JOIN member m ON p.seqMember = m.seqMember
             LEFT JOIN (
-                SELECT
-                    pc.seqPoll,
-                    COUNT(DISTINCT pr.seqMember) AS participantCount
+                SELECT pc.seqPoll, COUNT(DISTINCT pr.seqMember) AS participantCount
                 FROM poll_content pc
-                    LEFT JOIN poll_result pr
-                        ON pc.seq = pr.seqPollContent
+                LEFT JOIN poll_result pr ON pc.seq = pr.seqPollContent
                 GROUP BY pc.seqPoll
-            ) pr
-                ON p.seq = pr.seqPoll
+            ) pr ON p.seq = pr.seqPoll
         WHERE p.seqChattingroom = #{roomId}
         ORDER BY p.pollEnddate ASC
     </select>
@@ -246,177 +174,83 @@
         <selectKey keyProperty="seq" resultType="int" order="BEFORE">
             SELECT seqPoll.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO poll (
-            seq,
-            seqChattingroom,
-            seqMember,
-            pollTitle,
-            pollEnddate,
-            polldetail
-        ) VALUES (
-            #{seq},
-            #{seqChattingroom},
-            #{seqMember},
-            #{pollTitle},
-            TO_DATE(REPLACE(#{pollEnddateInput}, 'T', ' '), 'YYYY-MM-DD HH24:MI'),
-            #{polldetail}
-        )
+        INSERT INTO poll (seq, seqChattingroom, seqMember, pollTitle, pollEnddate, polldetail)
+        VALUES (#{seq}, #{seqChattingroom}, #{seqMember}, #{pollTitle}, 
+                TO_DATE(REPLACE(#{pollEnddateInput}, 'T', ' '), 'YYYY-MM-DD HH24:MI'), #{polldetail})
     </insert>
 
     <insert id="insertPollContent" parameterType="map">
-        INSERT INTO poll_content (
-            seq,
-            seqPoll,
-            pollContent
-        ) VALUES (
-            seqPollContent.NEXTVAL,
-            #{seqPoll},
-            #{pollContent}
-        )
+        INSERT INTO poll_content (seq, seqPoll, pollContent)
+        VALUES (seqPollContent.NEXTVAL, #{seqPoll}, #{pollContent})
     </insert>
 
     <select id="getPollDetail" parameterType="int" resultType="com.tripto.dto.PollDTO">
         SELECT
-            p.seq,
-            p.seqChattingroom,
-            p.seqMember,
-            p.pollTitle,
-            p.pollEnddate,
-            p.polldetail,
-            m.nickname AS writerNickname,
-            TO_CHAR(p.pollEnddate, 'YYYY-MM-DD HH24:MI') AS enddateText,
-            CASE
-                WHEN p.pollEnddate &lt; SYSDATE THEN '종료'
-                ELSE '진행중'
-            END AS pollStatusText,
-            CASE
-                WHEN p.pollEnddate &lt; SYSDATE THEN 1
-                ELSE 0
-            END AS pollClosed,
+            p.seq, p.seqChattingroom, p.seqMember, p.pollTitle, p.pollEnddate, p.polldetail,
+            m.nickname AS writerNickname, TO_CHAR(p.pollEnddate, 'YYYY-MM-DD HH24:MI') AS enddateText,
+            CASE WHEN p.pollEnddate &lt; SYSDATE THEN '종료' ELSE '진행중' END AS pollStatusText,
+            CASE WHEN p.pollEnddate &lt; SYSDATE THEN 1 ELSE 0 END AS pollClosed,
             NVL(pr.totalParticipantCount, 0) AS totalParticipantCount
         FROM poll p
-            INNER JOIN member m
-                ON p.seqMember = m.seqMember
+            INNER JOIN member m ON p.seqMember = m.seqMember
             LEFT JOIN (
-                SELECT
-                    pc.seqPoll,
-                    COUNT(DISTINCT pr.seqMember) AS totalParticipantCount
+                SELECT pc.seqPoll, COUNT(DISTINCT pr.seqMember) AS totalParticipantCount
                 FROM poll_content pc
-                    LEFT JOIN poll_result pr
-                        ON pc.seq = pr.seqPollContent
+                LEFT JOIN poll_result pr ON pc.seq = pr.seqPollContent
                 GROUP BY pc.seqPoll
-            ) pr
-                ON p.seq = pr.seqPoll
+            ) pr ON p.seq = pr.seqPoll
         WHERE p.seq = #{pollId}
     </select>
 
     <select id="getPollContentList" parameterType="int" resultType="com.tripto.dto.PollContentDTO">
-        SELECT
-            pc.seq,
-            pc.seqPoll,
-            pc.pollContent,
-            COUNT(pr.seq) AS voteCount
+        SELECT pc.seq, pc.seqPoll, pc.pollContent, COUNT(pr.seq) AS voteCount
         FROM poll_content pc
-            LEFT JOIN poll_result pr
-                ON pc.seq = pr.seqPollContent
+        LEFT JOIN poll_result pr ON pc.seq = pr.seqPollContent
         WHERE pc.seqPoll = #{pollId}
-        GROUP BY
-            pc.seq,
-            pc.seqPoll,
-            pc.pollContent
+        GROUP BY pc.seq, pc.seqPoll, pc.pollContent
         ORDER BY pc.seq ASC
     </select>
 
     <insert id="votePoll" parameterType="map">
-        INSERT INTO poll_result (
-            seq,
-            seqPollContent,
-            seqMember
-        ) VALUES (
-            seqPollResult.NEXTVAL,
-            #{pollContentId},
-            #{seqMember}
-        )
+        INSERT INTO poll_result (seq, seqPollContent, seqMember)
+        VALUES (seqPollResult.NEXTVAL, #{pollContentId}, #{seqMember})
     </insert>
 
     <delete id="deletePreviousVote" parameterType="map">
-        DELETE FROM poll_result
-        WHERE seqMember = #{seqMember}
-          AND seqPollContent IN (
-              SELECT seq
-              FROM poll_content
-              WHERE seqPoll = #{pollId}
-          )
+        DELETE FROM poll_result WHERE seqMember = #{seqMember}
+        AND seqPollContent IN (SELECT seq FROM poll_content WHERE seqPoll = #{pollId})
     </delete>
 
     <delete id="deletePollResultByPollId" parameterType="int">
-        DELETE FROM poll_result
-        WHERE seqPollContent IN (
-            SELECT seq
-            FROM poll_content
-            WHERE seqPoll = #{pollId}
-        )
+        DELETE FROM poll_result WHERE seqPollContent IN (SELECT seq FROM poll_content WHERE seqPoll = #{pollId})
     </delete>
 
     <delete id="deletePollContentByPollId" parameterType="int">
-        DELETE FROM poll_content
-        WHERE seqPoll = #{pollId}
+        DELETE FROM poll_content WHERE seqPoll = #{pollId}
     </delete>
 
     <delete id="deletePoll" parameterType="int">
-        DELETE FROM poll
-        WHERE seq = #{pollId}
+        DELETE FROM poll WHERE seq = #{pollId}
     </delete>
 
     <select id="getTravelPostSeqByRoomId" parameterType="int" resultType="int">
-        SELECT seqTravelPost
-        FROM chattingroom
-        WHERE seq = #{roomId}
+        SELECT seqTravelPost FROM chattingroom WHERE seq = #{roomId}
     </select>
 
     <insert id="insertRoutine" parameterType="com.tripto.dto.RoutineDTO">
         <selectKey keyProperty="seq" resultType="int" order="BEFORE">
             SELECT seqRoutine.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO routine (
-            seq,
-            seqMember,
-            seqChattingroom,
-            seqTravelPost,
-            seqLocation,
-            title,
-            detail,
-            regdate,
-            dDay
-        ) VALUES (
-            #{seq},
-            #{seqMember},
-            #{seqChattingroom},
-            #{seqTravelPost, jdbcType=NUMERIC},
-            #{seqLocation, jdbcType=NUMERIC},
-            #{title},
-            #{detail},
-            SYSDATE,
-            #{dDay, jdbcType=DATE}
-        )
+        INSERT INTO routine (seq, seqMember, seqChattingroom, seqTravelPost, seqLocation, title, detail, regdate, dDay)
+        VALUES (#{seq}, #{seqMember}, #{seqChattingroom}, #{seqTravelPost, jdbcType=NUMERIC}, 
+                #{seqLocation, jdbcType=NUMERIC}, #{title}, #{detail}, SYSDATE, #{dDay, jdbcType=DATE})
     </insert>
 
     <select id="getRoutineDetail" parameterType="int" resultType="com.tripto.dto.RoutineDTO">
         SELECT
-            r.seq,
-            r.seqMember,
-            r.seqChattingroom,
-            r.seqTravelPost,
-            r.seqLocation,
-            r.title,
-            TO_CHAR(r.detail) AS detail,
-            r.regdate,
-            r.dDay,
-            r.status,
-            TO_CHAR(r.dDay, 'YYYY-MM-DD') AS dDayDateText,
-            m.nickname AS writerNickname,
+            r.seq, r.seqMember, r.seqChattingroom, r.seqTravelPost, r.seqLocation, r.title,
+            TO_CHAR(r.detail) AS detail, r.regdate, r.dDay, r.status,
+            TO_CHAR(r.dDay, 'YYYY-MM-DD') AS dDayDateText, m.nickname AS writerNickname,
             TO_CHAR(r.regdate, 'YYYY-MM-DD HH24:MI') AS regdateText,
             CASE
                 WHEN r.status = 1 THEN '종료'
@@ -425,36 +259,19 @@
                 WHEN TRUNC(r.dDay) - TRUNC(SYSDATE) > 0 THEN 'D-' || TO_CHAR(TRUNC(r.dDay) - TRUNC(SYSDATE))
                 ELSE '종료'
             END AS dDayText,
-            l.placeName,
-            l.address,
-            l.latitude,
-            l.longitude,
-            l.mapProviderId,
-            rf.filePath,
-            rf.fileType
+            l.placeName, l.address, l.latitude, l.longitude, l.mapProviderId, rf.filePath, rf.fileType
         FROM routine r
-            INNER JOIN member m
-                ON r.seqMember = m.seqMember
-            LEFT JOIN location l
-                ON r.seqLocation = l.seqLocation
+            INNER JOIN member m ON r.seqMember = m.seqMember
+            LEFT JOIN location l ON r.seqLocation = l.seqLocation
             LEFT JOIN (
                 SELECT seqRoutine, filePath, fileType
                 FROM (
-                    SELECT
-                        rf.seqRoutine,
-                        f.filePath,
-                        f.fileType,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY rf.seqRoutine
-                            ORDER BY rf.seq ASC
-                        ) AS rn
+                    SELECT rf.seqRoutine, f.filePath, f.fileType,
+                           ROW_NUMBER() OVER (PARTITION BY rf.seqRoutine ORDER BY rf.seq ASC) AS rn
                     FROM routine_file rf
-                        INNER JOIN files f
-                            ON rf.seqFile = f.seq
-                )
-                WHERE rn = 1
-            ) rf
-                ON r.seq = rf.seqRoutine
+                    INNER JOIN files f ON rf.seqFile = f.seq
+                ) WHERE rn = 1
+            ) rf ON r.seq = rf.seqRoutine
         WHERE r.seq = #{routineId}
     </select>
 
@@ -462,13 +279,9 @@
         SELECT seq FROM (
             SELECT cr.seq
             FROM chattingroom cr
-                INNER JOIN user_chat uc1
-                    ON cr.seq = uc1.seqChattingroom 
-                   AND uc1.seqMember = #{me} 
-                   AND uc1.isActive = 1  INNER JOIN user_chat uc2
-                    ON cr.seq = uc2.seqChattingroom 
-                   AND uc2.seqMember = #{target} 
-                   AND uc2.isActive = 1  WHERE cr.category = 1
+            INNER JOIN user_chat uc1 ON cr.seq = uc1.seqChattingroom AND uc1.seqMember = #{me} AND uc1.isActive = 1
+            INNER JOIN user_chat uc2 ON cr.seq = uc2.seqChattingroom AND uc2.seqMember = #{target} AND uc2.isActive = 1
+            WHERE cr.category = 1
         ) WHERE ROWNUM = 1
     </select>
 
@@ -476,279 +289,129 @@
         <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
             SELECT seqChattingroom.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO chattingroom (
-            seq,
-            name,
-            category,
-            seqTravelPost
-        ) VALUES (
-            #{roomId},
-            NULL,
-            #{category},
-            NULL
-        )
+        INSERT INTO chattingroom (seq, name, category, seqTravelPost)
+        VALUES (#{roomId}, NULL, #{category}, NULL)
     </insert>
 
     <insert id="insertUserChat" parameterType="map">
-        INSERT INTO user_chat (
-            seq,
-            seqChattingroom,
-            seqMember,
-            auth,
-            isActive
-        ) VALUES (
-            seqUserChat.NEXTVAL,
-            #{roomId},
-            #{userId},
-            0,
-            1
-        )
+        INSERT INTO user_chat (seq, seqChattingroom, seqMember, auth, isActive)
+        VALUES (seqUserChat.NEXTVAL, #{roomId}, #{userId}, 0, 1)
     </insert>
 
     <delete id="deleteRoutine" parameterType="int">
-        DELETE FROM routine
-        WHERE seq = #{routineId}
+        DELETE FROM routine WHERE seq = #{routineId}
     </delete>
 
     <insert id="insertLocation" parameterType="com.tripto.dto.RoutineDTO">
         <selectKey keyProperty="seqLocation" resultType="int" order="BEFORE">
             SELECT seqLocation.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO location (
-            seqLocation,
-            placeName,
-            address,
-            latitude,
-            longitude,
-            mapProviderId
-        ) VALUES (
-            #{seqLocation},
-            #{placeName},
-            #{address},
-            #{latitude},
-            #{longitude},
-            #{mapProviderId}
-        )
+        INSERT INTO location (seqLocation, placeName, address, latitude, longitude, mapProviderId)
+        VALUES (#{seqLocation}, #{placeName}, #{address}, #{latitude}, #{longitude}, #{mapProviderId})
     </insert>
 
     <update id="updateRoutine" parameterType="com.tripto.dto.RoutineDTO">
-        UPDATE routine
-        SET
-            title = #{title},
-            detail = #{detail},
-            seqLocation = #{seqLocation}
-        WHERE seq = #{seq}
+        UPDATE routine SET title = #{title}, detail = #{detail}, seqLocation = #{seqLocation} WHERE seq = #{seq}
     </update>
 
     <insert id="insertChatFile" parameterType="map">
         <selectKey keyProperty="seqFile" resultType="int" order="BEFORE">
             SELECT seqFile.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO files (
-            seq,
-            originalName,
-            savedName,
-            filePath,
-            createDate
-        ) VALUES (
-            #{seqFile},
-            #{orgName},
-            #{savedName},
-            #{filePath},
-            SYSDATE
-        )
+        INSERT INTO files (seq, originalName, savedName, filePath, createDate)
+        VALUES (#{seqFile}, #{orgName}, #{savedName}, #{filePath}, SYSDATE)
     </insert>
 
     <select id="getFileNameBySeq" parameterType="int" resultType="String">
-        SELECT savedName
-        FROM files
-        WHERE seq = #{seqFile}
+        SELECT savedName FROM files WHERE seq = #{seqFile}
     </select>
 
     <update id="updateExpiredRoutineStatus">
-        UPDATE routine
-        SET status = 1
-        WHERE status = 0
-          AND dDay IS NOT NULL
-          AND TRUNC(dDay) &lt; TRUNC(SYSDATE)
+        UPDATE routine SET status = 1 WHERE status = 0 AND dDay IS NOT NULL AND TRUNC(dDay) &lt; TRUNC(SYSDATE)
     </update>
 
     <insert id="insertReadStatus" parameterType="map">
-        INSERT INTO chat_read_status (
-            seq,
-            seqMember,
-            seqChatLog
-        )
-        SELECT
-            seqChatReadStatus.NEXTVAL,
-            #{loginUserId},
-            cl.seq
+        INSERT INTO chat_read_status (seq, seqMember, seqChatLog)
+        SELECT seqChatReadStatus.NEXTVAL, #{loginUserId}, cl.seq
         FROM chat_log cl
-        WHERE cl.seqChattingroom = #{roomId}
-          AND cl.seqMember != #{loginUserId}
-          AND cl.seq NOT IN (
-              SELECT seqChatLog
-              FROM chat_read_status
-              WHERE seqMember = #{loginUserId}
-          )
+        WHERE cl.seqChattingroom = #{roomId} AND cl.seqMember != #{loginUserId}
+        AND cl.seq NOT IN (SELECT seqChatLog FROM chat_read_status WHERE seqMember = #{loginUserId})
     </insert>
 
     <select id="getRoomMemberCount" parameterType="int" resultType="int">
-        SELECT COUNT(*)
-        FROM user_chat
-        WHERE seqChattingroom = #{roomId}
-          AND isActive = 1   
+        SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = #{roomId} AND isActive = 1
     </select>
 
     <insert id="insertFile" parameterType="com.tripto.dto.FileDTO">
         <selectKey keyProperty="seq" resultType="int" order="BEFORE">
             SELECT SEQFILE.NEXTVAL FROM dual
         </selectKey>
-
-        INSERT INTO files (
-            seq,
-            originalName,
-            savedName,
-            filePath,
-            fileSize,
-            fileType,
-            createDate
-        ) VALUES (
-            #{seq},
-            #{originalName},
-            #{savedName},
-            #{filePath},
-            #{fileSize},
-            #{fileType},
-            SYSDATE
-        )
+        INSERT INTO files (seq, originalName, savedName, filePath, fileSize, fileType, createDate)
+        VALUES (#{seq}, #{originalName}, #{savedName}, #{filePath}, #{fileSize}, #{fileType}, SYSDATE)
     </insert>
 
     <insert id="insertRoutineFile" parameterType="map">
-        INSERT INTO routine_file (
-            seq,
-            seqFile,
-            seqChattingroom,
-            seqRoutine
-        ) VALUES (
-            SEQROUTINEFILE.NEXTVAL,
-            #{seqFile},
-            #{roomId},
-            #{seqRoutine}
-        )
+        INSERT INTO routine_file (seq, seqFile, seqChattingroom, seqRoutine)
+        VALUES (SEQROUTINEFILE.NEXTVAL, #{seqFile}, #{roomId}, #{seqRoutine})
     </insert>
 
     <select id="getRoutineFileList" parameterType="int" resultType="com.tripto.dto.FileDTO">
-        SELECT
-            f.seq,
-            f.originalName,
-            f.savedName,
-            f.filePath,
-            f.fileSize,
-            f.fileType
+        SELECT f.seq, f.originalName, f.savedName, f.filePath, f.fileSize, f.fileType
         FROM routine_file rf
-            INNER JOIN files f
-                ON rf.seqFile = f.seq
+        INNER JOIN files f ON rf.seqFile = f.seq
         WHERE rf.seqRoutine = #{routineId}
         ORDER BY rf.seq ASC
     </select>
     
     <select id="getRoomById" parameterType="map" resultType="com.tripto.dto.ChatRoomDTO">
-	    SELECT
-	        cr.seq AS roomId,
-	        cr.name AS roomName,
-	        cr.category,
-	        uc.isActive
-	    FROM chattingroom cr
-	        INNER JOIN user_chat uc
-	            ON cr.seq = uc.seqChattingroom
-	    WHERE cr.seq = #{roomId}
-	      AND uc.seqMember = #{seqMember}
-	      AND uc.isActive = 1
-	</select>
-	
-	<select id="findTravelRoom" parameterType="int" resultType="Integer">
-	    SELECT seq
-	    FROM chattingroom
-	    WHERE seqTravelPost = #{seqTravelPost}
-	      AND category = 0
-	</select>
-	
-	<select id="getTravelPostForChat"
-	        parameterType="int"
-	        resultType="com.tripto.dto.TravelPostDTO">
-	    SELECT
-	        seqTravelPost,
-	        seqMember,
-	        title
-	    FROM travel_post
-	    WHERE seqTravelPost = #{seqTravelPost}
-	</select>
+        SELECT cr.seq AS roomId, cr.name AS roomName, cr.category, uc.isActive
+        FROM chattingroom cr
+        INNER JOIN user_chat uc ON cr.seq = uc.seqChattingroom
+        WHERE cr.seq = #{roomId} AND uc.seqMember = #{seqMember} AND uc.isActive = 1
+    </select>
+    
+    <select id="getRoutineLocationListByTravelPost" parameterType="int" resultType="com.tripto.dto.RoutineDTO">
+        SELECT r.seq, r.title, l.placeName, l.address, l.latitude, l.longitude
+        FROM routine r
+        INNER JOIN chattingroom cr ON r.seqChattingroom = cr.seq
+        INNER JOIN location l ON r.seqLocation = l.seqLocation
+        WHERE cr.seqTravelPost = #{seqTravelPost} AND r.seqLocation IS NOT NULL
+        ORDER BY r.dDay ASC NULLS LAST, r.regdate ASC
+    </select>
 
-	<insert id="createTravelChatRoom"
-	        parameterType="com.tripto.dto.ChatRoomDTO">
-	    <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
-	        SELECT seqChattingroom.NEXTVAL FROM dual
-	    </selectKey>
-	
-	    INSERT INTO chattingroom (
-	        seq,
-	        name,
-	        category,
-	        seqTravelPost
-	    ) VALUES (
-	        #{roomId},
-	        #{roomName},
-	        #{category},
-	        #{seqTravelPost, jdbcType=NUMERIC}
-	    )
-	</insert>
-	
-	<insert id="insertUserChatIfNotExists" parameterType="map">
-	    INSERT INTO user_chat (
-	        seq, 
-	        seqMember, 
-	        seqChattingroom, 
-	        auth, 
-	        isActive
-	    )
-	    SELECT
-	        seqUserChat.NEXTVAL, 
-	        #{userId}, 
-	        #{roomId}, 
-	        1, 
-	        2   FROM dual
-	    WHERE NOT EXISTS (
-	        SELECT 1 
-	        FROM user_chat 
-	        WHERE seqChattingroom = #{roomId} 
-	          AND seqMember = #{userId}
-	    )
-	</insert>
-	
-	
-	
-	<update id="updateJoinRequest" parameterType="map">
-	    UPDATE user_chat 
-	    SET isActive = #{status} 
-	    WHERE seqChattingroom = #{roomId} 
-	      AND seqMember = #{applicantSeq}
-	</update>
-	
-	<select id="getRoomAuth" parameterType="map" resultType="int">
-        SELECT auth 
-        FROM user_chat 
-        WHERE seqChattingroom = #{roomId} 
-          AND seqMember = #{seqMember}
+    <select id="findTravelRoom" parameterType="int" resultType="Integer">
+        SELECT seq FROM chattingroom WHERE seqTravelPost = #{seqTravelPost} AND category = 0
+    </select>
+    
+    <select id="getTravelPostForChat" parameterType="int" resultType="com.tripto.dto.TravelPostDTO">
+        SELECT seqTravelPost, seqMember, title FROM travel_post WHERE seqTravelPost = #{seqTravelPost}
+    </select>
+
+    <insert id="createTravelChatRoom" parameterType="com.tripto.dto.ChatRoomDTO">
+        <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+            SELECT seqChattingroom.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO chattingroom (seq, name, category, seqTravelPost)
+        VALUES (#{roomId}, #{roomName}, #{category}, #{seqTravelPost, jdbcType=NUMERIC})
+    </insert>
+    
+    <insert id="insertUserChatIfNotExists" parameterType="map">
+        INSERT INTO user_chat (seq, seqMember, seqChattingroom, auth, isActive)
+        SELECT seqUserChat.NEXTVAL, #{userId}, #{roomId}, 1, 2 FROM dual
+        WHERE NOT EXISTS (SELECT 1 FROM user_chat WHERE seqChattingroom = #{roomId} AND seqMember = #{userId})
+    </insert>
+    
+    <update id="updateJoinRequest" parameterType="map">
+        UPDATE user_chat SET isActive = #{status} 
+        WHERE seqChattingroom = #{roomId} AND seqMember = #{applicantSeq}
+    </update>
+    
+    <select id="getRoomAuth" parameterType="map" resultType="int">
+        SELECT auth FROM user_chat WHERE seqChattingroom = #{roomId} AND seqMember = #{seqMember}
     </select>
     
     <update id="updateSystemMessage" parameterType="map">
-        UPDATE chat_log
-        SET detail = #{finalMsg}
-        WHERE seq = #{msgSeq}
+        UPDATE chat_log SET detail = #{finalMsg} WHERE seq = #{msgSeq}
     </update>
     
     <select id="getPostStatusByRoomId" parameterType="int" resultType="string">
@@ -757,5 +420,15 @@
         JOIN travel_post tp ON cr.seqTravelPost = tp.seqTravelPost
         WHERE cr.seq = #{roomId}
     </select>
+    
+    <select id="getChatRoomMembers" parameterType="int" resultType="com.tripto.dto.ChatMemberDTO">
+        SELECT
+            m.seqMember,
+            m.nickname,
+            m.pic AS profile
+        FROM user_chat uc
+        INNER JOIN member m ON uc.seqMember = m.seqMember
+        WHERE uc.seqChattingroom = #{roomId}
+          AND uc.isActive = 1  </select>
 
 </mapper>

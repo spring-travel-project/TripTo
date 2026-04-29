@@ -14,12 +14,46 @@
       .chat-scroll::-webkit-scrollbar-track { background: transparent; }
       .unread-badge { color: #facc15; font-weight: bold; font-size: 11px; margin-bottom: 2px; line-height: 1; }
       
-      /* 승인/거절 버튼 스타일 */
+      /* 🌟 승인/거절 버튼 스타일 (HEAD) */
       .btn-group-request { display: flex; gap: 8px; justify-content: center; margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 10px; }
       .btn-approve { background: #0ea5e9; color: white; padding: 6px 16px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; transition: background 0.2s; }
       .btn-approve:hover { background: #0284c7; }
       .btn-reject { background: #f43f5e; color: white; padding: 6px 16px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; transition: background 0.2s; }
       .btn-reject:hover { background: #e11d48; }
+
+      /* 🌟 시스템 알림 스타일 (DEV) */
+      .chat-system-row {
+          position: relative;
+          width: fit-content;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin: 20px auto;
+          max-width: 80%;
+          clear: both;
+      }
+      .chat-system-msg {
+          background: #f1f5f9;
+          color: #475569;
+          padding: 12px 20px;
+          border-radius: 16px;
+          font-size: 13px;
+          line-height: 1.6;
+          text-align: center;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+          border: 1px solid #e2e8f0;
+      }
+      .chat-system-msg a {
+          display: inline-block;
+          margin-top: 4px;
+          color: #2563eb;
+          font-weight: 700;
+          text-decoration: underline;
+      }
+      
+      /* 멤버 모달 스크롤바 스타일 */
+      #memberModal div::-webkit-scrollbar { width: 6px; }
+      #memberModal div::-webkit-scrollbar-thumb { background: #cbd5f5; border-radius: 999px; }
    </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -29,10 +63,11 @@
       <div class="content-card p-0 overflow-hidden">
          <div class="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] h-[86vh] min-h-[700px]">
 
+            <%-- 사이드바: 채팅 목록 --%>
             <aside class="border-b lg:border-b-0 lg:border-r border-slate-200 bg-indigo-200 flex flex-col min-h-0">
                 <div class="p-5 border-b border-slate-200 bg-white shrink-0">
                    <h2 class="text-2xl font-bold tracking-tight mb-4">채팅 목록</h2>
-                   <p class="section-desc">여행 동행자와 일정을 조율하고 대화를 나눠보세요.</p>
+                   <p class="text-sm text-slate-500 mb-4">여행 동행자와 일정을 조율하고 대화를 나눠보세요.</p>
                    <div class="flex flex-wrap gap-2">
                       <a href="${pageContext.request.contextPath}/chat/list" class="px-4 py-2 rounded-full text-sm font-medium transition ${empty category ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">전체</a>
                       <a href="${pageContext.request.contextPath}/chat/list?category=0" class="px-4 py-2 rounded-full text-sm font-medium transition ${category == 0 ? 'bg-slate-900 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100'}">동행</a>
@@ -87,6 +122,7 @@
                 </div>
             </aside>
 
+            <%-- 메인 채팅창 영역 --%>
             <section class="flex flex-col min-w-0 min-h-0 bg-white">
                <c:choose>
                   <c:when test="${not empty selectedRoom}">
@@ -102,24 +138,20 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
+                           <%-- 멤버 버튼 (DEV) --%>
+                           <button type="button" id="memberListBtn"
+                                   class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-100 transition shadow-sm">
+                               멤버
+                           </button>
+                           
                            <a href="${pageContext.request.contextPath}/chat/schedulePoll?roomId=${selectedRoomId}"
                               class="px-5 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition shadow-md">
                               일정/투표
                            </a>
-                           <c:choose>
-						        <%-- 방장일 때 --%>
-						        <c:when test="${myAuth == 0}">
-						            <button type="button" id="exitRoomBtn" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">
-									    나가기
-									</button>
-						        </c:when>
-						        <%-- 일반 참여자일 때 --%>
-						        <c:otherwise>
-						            <button type="button" id="exitRoomBtn" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">
-						                나가기
-						            </button>
-						        </c:otherwise>
-						    </c:choose>
+                           
+                           <button type="button" id="exitRoomBtn" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition shadow-sm">
+                              나가기
+                           </button>
                         </div>
                      </div>
 
@@ -127,13 +159,12 @@
                         <div id="chatMessageList" class="space-y-5">
                             <c:forEach items="${messageList}" var="msg">
                                 <c:choose>
-                                    <%-- 시스템 메시지 처리 영역 --%>
+                                    <%-- 시스템 메시지 처리 --%>
                                     <c:when test="${msg.seqMember == 0}">
-                                        <div class="flex justify-center my-5 w-full clear-both" id="sys-msg-${msg.seq}">
-                                            <div class="bg-slate-200 text-slate-600 px-6 py-3 rounded-2xl text-xs text-center shadow-sm leading-relaxed max-w-[80%]">
+                                        <div class="chat-system-row" id="sys-msg-${msg.seq}">
+                                            <div class="chat-system-msg">
                                                 <c:out value="${msg.detail}" escapeXml="false" />
                                                 
-                                                <%-- 방장(myAuth=0)이고 메시지에 신청자 데이터가 있을 때 버튼 출력 --%>
                                                 <c:if test="${myAuth == 0 && fn:contains(msg.detail, 'data-applicant-seq')}">
                                                     <div class="btn-group-request">
                                                         <button onclick="processJoinRequest(${selectedRoomId}, this, 1, ${msg.seq})" class="btn-approve">승인</button>
@@ -144,7 +175,7 @@
                                         </div>
                                     </c:when>
 
-                                    <%-- 일반 메시지 처리 영역 --%>
+                                    <%-- 일반 메시지 처리 --%>
                                     <c:otherwise>
                                         <div class="flex ${msg.mine ? 'justify-end' : 'items-start gap-3'}">
                                             <c:if test="${!msg.mine}">
@@ -175,14 +206,7 @@
                                                         </div>
                                                         <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
                                                             <c:if test="${not empty msg.savedName}">
-                                                                <c:choose>
-                                                                    <c:when test="${msg.savedName.startsWith('http')}">
-                                                                        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
-                                                                    </c:otherwise>
-                                                                </c:choose>
+                                                                <img src="${msg.savedName.startsWith('http') ? msg.savedName : pageContext.request.contextPath.concat('/upload/chat/').concat(msg.savedName)}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
                                                             </c:if>
                                                             <c:out value="${msg.detail}" />
                                                         </div>
@@ -191,14 +215,7 @@
                                                     <c:if test="${!msg.mine}">
                                                         <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
                                                             <c:if test="${not empty msg.savedName}">
-                                                                <c:choose>
-                                                                    <c:when test="${msg.savedName.startsWith('http')}">
-                                                                        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
-                                                                    </c:otherwise>
-                                                                </c:choose>
+                                                                <img src="${msg.savedName.startsWith('http') ? msg.savedName : pageContext.request.contextPath.concat('/upload/chat/').concat(msg.savedName)}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
                                                             </c:if>
                                                             <c:out value="${msg.detail}" />
                                                         </div>
@@ -221,10 +238,8 @@
                      <div class="border-t border-slate-200 p-4 bg-white relative shrink-0">
                         <form id="chatSendForm" class="flex items-end gap-3">
                            <input type="hidden" name="roomId" value="${selectedRoomId}">
-
                            <button type="button" id="fileAttachBtn" class="w-11 h-11 rounded-xl border border-slate-300 bg-white text-xl flex justify-center items-center hover:bg-slate-100">📎</button>
                            <input type="file" id="fileInput" class="hidden" accept="image/*" />
-
                            <div class="relative">
                                <button type="button" id="emojiToggleBtn" class="w-11 h-11 rounded-xl border border-slate-300 bg-white text-xl flex justify-center items-center hover:bg-slate-100">😀</button>
                                <div id="emojiPicker" class="hidden absolute bottom-full left-0 mb-2 w-64 p-3 bg-white border border-slate-200 rounded-xl shadow-lg grid grid-cols-6 gap-2 text-2xl z-50">
@@ -236,7 +251,6 @@
                                    <span class="cursor-pointer hover:scale-125 transition-transform" onclick="addEmoji('🙏')">🙏</span>
                                </div>
                            </div>
-
                            <div class="flex-1 relative">
                                <div id="filePreviewArea" class="hidden absolute bottom-full left-0 mb-2 p-2 bg-white border border-slate-200 rounded-lg shadow-md flex items-center gap-2">
                                    <span id="fileNameDisplay" class="text-xs font-medium text-slate-600 truncate max-w-[150px]"></span>
@@ -244,7 +258,6 @@
                                </div>
                                <textarea id="message" name="message" rows="1" placeholder="메시지를 입력하세요." class="w-full resize-none rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"></textarea>
                            </div>
-
                            <button type="submit" class="h-11 px-5 rounded-xl bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600 transition shrink-0">전송</button>
                         </form>
                      </div>
@@ -261,6 +274,35 @@
             </section>
          </div>
       </div>
+
+      <%-- 멤버 목록 모달 (DEV) --%>
+      <div id="memberModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+          <div class="w-[380px] max-w-[90vw] rounded-2xl bg-white shadow-2xl overflow-hidden">
+              <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+                  <h3 class="text-lg font-bold text-slate-800">채팅방 멤버</h3>
+                  <button type="button" id="memberModalClose" class="text-2xl leading-none text-slate-400 hover:text-slate-700">×</button>
+              </div>
+              <div class="p-5 space-y-3 max-h-[420px] overflow-y-auto">
+                  <c:choose>
+                      <c:when test="${not empty memberList}">
+                          <c:forEach items="${memberList}" var="member">
+                              <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                                  <div class="w-11 h-11 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                                      <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty member.profile ? member.profile : 'pic.png'}" class="w-full h-full object-cover">
+                                  </div>
+                                  <div class="min-w-0">
+                                      <p class="text-sm font-semibold text-slate-800 truncate">${member.nickname}</p>
+                                  </div>
+                              </div>
+                          </c:forEach>
+                      </c:when>
+                      <c:otherwise>
+                          <p class="text-sm text-slate-500 text-center py-6">멤버가 없습니다.</p>
+                      </c:otherwise>
+                  </c:choose>
+              </div>
+          </div>
+      </div>
    </main>
 
    <script>
@@ -273,7 +315,7 @@
 
       const selectedRoomId = '${selectedRoomId}';
       const loginUserId = '${loginUserId}';
-      const myAuth = '${myAuth}'; // 내가 방장인지 여부 확인용 변수
+      const myAuth = '${myAuth}';
       const contextPath = '${pageContext.request.contextPath}';
       const csrfHeader = '${_csrf.headerName}';
       const csrfToken = '${_csrf.token}';
@@ -291,21 +333,16 @@
                   el.textContent = temp.textContent || temp.innerText || '아직 메시지가 없습니다.';
               }
           });
+          scrollToBottom();
       });
 
       function escapeHtml(str) {
-          return str ? str.replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;')
-              .replace(/'/g, '&#39;') : '';
+          return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
       }
 
       function scrollToBottom() {
           const area = document.getElementById('chatScrollArea');
-          if (area) {
-              area.scrollTop = area.scrollHeight;
-          }
+          if (area) area.scrollTop = area.scrollHeight;
       }
 
       window.addEmoji = (emoji) => {
@@ -332,42 +369,23 @@
                       <button onclick="processJoinRequest(\${selectedRoomId}, this, 0, \${data.seq})" class="btn-reject">거절</button>
                   </div>`;
               }
-
               const sysHtml = `
-              <div class="flex justify-center my-5 w-full clear-both" id="sys-msg-\${data.seq}">
-                  <div class="bg-slate-200 text-slate-600 px-6 py-3 rounded-2xl text-xs text-center shadow-sm leading-relaxed max-w-[80%]">
-                      \${data.message}
-                      \${btnHtml}
-                  </div>
+              <div class="chat-system-row" id="sys-msg-\${data.seq}">
+                  <div class="chat-system-msg">\${data.message}\${btnHtml}</div>
               </div>`;
               chatMessageList.insertAdjacentHTML('beforeend', sysHtml);
               scrollToBottom();
-              
-              const sidebarPreview = document.querySelector(`a[href*="roomId=\${data.roomId}"] .last-message-preview`);
-              if (sidebarPreview) {
-                  let temp = document.createElement('div');
-                  temp.innerHTML = data.message.replace(/<br\s*[\/]?>/gi, ' ');
-                  sidebarPreview.textContent = temp.textContent || temp.innerText;
-              }
               return; 
           }
 
           let fileHtml = '';
           if (data.savedName) {
-              const imgSrc = data.savedName.startsWith('http') 
-                           ? data.savedName 
-                           : `\${contextPath}/upload/chat/\${data.savedName}`;
-              
+              const imgSrc = data.savedName.startsWith('http') ? data.savedName : `\${contextPath}/upload/chat/\${data.savedName}`;
               fileHtml = `<div class="mb-2"><img src="\${imgSrc}" class="rounded-lg max-w-full h-auto shadow-sm cursor-pointer" onclick="window.open(this.src)"></div>`;
           }
 
-          const unreadBadge = (data.unreadCount > 0)
-              ? `<span class="unread-badge unread-count-label">\${data.unreadCount}</span>`
-              : '';
-
-          const profileImgSrc = (data.partnerProfile && data.partnerProfile.startsWith('http'))
-                              ? data.partnerProfile
-                              : `\${contextPath}/resources/upload/profile/\${data.partnerProfile || 'pic.png'}`;
+          const unreadBadge = (data.unreadCount > 0) ? `<span class="unread-badge unread-count-label">\${data.unreadCount}</span>` : '';
+          const profileImgSrc = (data.partnerProfile && data.partnerProfile.startsWith('http')) ? data.partnerProfile : `\${contextPath}/resources/upload/profile/\${data.partnerProfile || 'pic.png'}`;
 
           let contentHtml = isMine ? `
             <div class="flex items-end justify-end gap-2">
@@ -389,184 +407,75 @@
 
           chatMessageList.insertAdjacentHTML('beforeend', html);
           scrollToBottom();
-
-          const sidebarPreview = document.querySelector(`a[href*="roomId=\${data.roomId}"] .last-message-preview`);
-          if (sidebarPreview) {
-              sidebarPreview.textContent = data.message || "사진을 보냈습니다.";
-          }
       }
 
       function connectSocket() {
          if (!selectedRoomId) return;
-
          const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
          socket = new WebSocket(`\${protocol}//\${location.host}\${contextPath}/chatSocket`);
-
-         socket.onopen = () => socket.send(JSON.stringify({
-             type: 'ENTER',
-             roomId: Number(selectedRoomId),
-             seqMember: Number(loginUserId)
-         }));
-
+         socket.onopen = () => socket.send(JSON.stringify({ type: 'ENTER', roomId: Number(selectedRoomId), seqMember: Number(loginUserId) }));
          socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-
             if (data.type === 'READ') {
                 if (String(data.seqMember) !== String(loginUserId)) {
                     document.querySelectorAll('.unread-count-label').forEach(badge => {
                         let count = parseInt(badge.innerText);
-                        if (count > 1) badge.innerText = count - 1;
-                        else badge.remove();
+                        if (count > 1) badge.innerText = count - 1; else badge.remove();
                     });
                 }
-            } else if (data.type === 'TALK') {
-                appendMessage(data, String(data.seqMember) === String(loginUserId));
-            }
+            } else if (data.type === 'TALK') { appendMessage(data, String(data.seqMember) === String(loginUserId)); }
          };
       }
 
+      // 모달 제어 (DEV)
+      document.getElementById('memberListBtn')?.addEventListener('click', () => document.getElementById('memberModal')?.classList.remove('hidden'));
+      document.getElementById('memberModalClose')?.addEventListener('click', () => document.getElementById('memberModal')?.classList.add('hidden'));
+      document.getElementById('memberModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+
       document.getElementById('fileAttachBtn')?.addEventListener('click', () => fileInput.click());
-
-      fileInput?.addEventListener('change', function() {
-          if (this.files && this.files[0]) {
-              selectedFile = this.files[0];
-              fileNameDisplay.textContent = selectedFile.name;
-              filePreviewArea.classList.remove('hidden');
-          }
-      });
-
-      document.getElementById('fileCancelBtn')?.addEventListener('click', () => {
-          selectedFile = null;
-          fileInput.value = '';
-          filePreviewArea.classList.add('hidden');
-      });
+      fileInput?.addEventListener('change', function() { if (this.files && this.files[0]) { selectedFile = this.files[0]; fileNameDisplay.textContent = selectedFile.name; filePreviewArea.classList.remove('hidden'); } });
+      document.getElementById('fileCancelBtn')?.addEventListener('click', () => { selectedFile = null; fileInput.value = ''; filePreviewArea.classList.add('hidden'); });
 
       chatForm?.addEventListener('submit', async function (e) {
          e.preventDefault();
-
          const message = messageInput.value.trim();
-
          if (!message && !selectedFile) return;
-
          let seqFile = null;
-
          if (selectedFile) {
-             const formData = new FormData();
-             formData.append("file", selectedFile);
-             formData.append("roomId", selectedRoomId);
-
-             const res = await fetch(`\${contextPath}/chat/uploadFile.do`, {
-                 method: 'POST',
-                 headers: {
-                     [csrfHeader]: csrfToken
-                 },
-                 body: formData
-             });
-
-             const json = await res.json();
-
-             if (json.success) {
-                 seqFile = json.seqFile;
-             }
+             const formData = new FormData(); formData.append("file", selectedFile); formData.append("roomId", selectedRoomId);
+             const res = await fetch(`\${contextPath}/chat/uploadFile.do`, { method: 'POST', headers: { [csrfHeader]: csrfToken }, body: formData });
+             const json = await res.json(); if (json.success) seqFile = json.seqFile;
          }
-
-         socket.send(JSON.stringify({
-             type: 'TALK',
-             roomId: Number(selectedRoomId),
-             seqMember: Number(loginUserId),
-             message: message,
-             seqFile: seqFile
-         }));
-
-         messageInput.value = '';
-         fileInput.value = '';
-         selectedFile = null;
-
-         if (filePreviewArea) {
-             filePreviewArea.classList.add('hidden');
-         }
+         socket.send(JSON.stringify({ type: 'TALK', roomId: Number(selectedRoomId), seqMember: Number(loginUserId), message: message, seqFile: seqFile }));
+         messageInput.value = ''; fileInput.value = ''; selectedFile = null;
+         if (filePreviewArea) filePreviewArea.classList.add('hidden');
       });
       
       document.getElementById('exitRoomBtn')?.addEventListener('click', function () {
-
-          if (!selectedRoomId) {
-              alert('선택된 채팅방이 없습니다.');
-              return;
-          }
-
-          if (!confirm('채팅방을 나가시겠습니까?')) {
-              return;
-          }
-
-          fetch(contextPath + '/chat/exit', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  [csrfHeader]: csrfToken
-              },
-              body: 'roomId=' + encodeURIComponent(selectedRoomId)
-          })
-          .then(function(res) {
-              return res.json();
-          })
-          .then(function(data) {
-              if (data.success) {
-                  if (socket) {
-                      socket.close();
-                  }
-
-                  alert('채팅방에서 나갔습니다.');
-                  location.href = contextPath + '/chat/list';
-              } else {
-                  alert('채팅방 나가기에 실패했습니다.');
-              }
-          })
-          .catch(function(err) {
-              console.error(err);
-              alert('채팅방 나가기 중 오류가 발생했습니다.');
-          });
-
+          if (!selectedRoomId) return alert('선택된 채팅방이 없습니다.');
+          if (!confirm('채팅방을 나가시겠습니까?')) return;
+          fetch(contextPath + '/chat/exit', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken }, body: 'roomId=' + encodeURIComponent(selectedRoomId) })
+          .then(res => res.json()).then(data => {
+              if (data.success) { if (socket) socket.close(); alert('채팅방에서 나갔습니다.'); location.href = contextPath + '/chat/list'; }
+              else alert(data.message || '채팅방 나가기에 실패했습니다.');
+          }).catch(err => alert('처리 중 오류가 발생했습니다.'));
       });
 
-      // 🌟 승인/거절 버튼 처리용 AJAX 함수
       window.processJoinRequest = function(roomId, btn, status, msgSeq) {
           const parentDiv = document.getElementById('sys-msg-' + msgSeq);
           const marker = parentDiv.querySelector('[data-applicant-seq]');
           if (!marker) return;
-
           const applicantSeq = marker.getAttribute('data-applicant-seq');
           const actionText = status === 1 ? '승인' : '거절';
-
           if (!confirm(`신청을 \${actionText}하시겠습니까?`)) return;
-
-          fetch(`\${contextPath}/chat/processRequest.do`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  [csrfHeader]: csrfToken
-              },
-              // 🌟 여기에 msgSeq 추가 완료!
-              body: `roomId=\${roomId}&applicantSeq=\${applicantSeq}&status=\${status}&msgSeq=\${msgSeq}`
-          })
-          .then(res => res.json())
-          .then(data => {
-              if (data.success) {
-                  alert(data.msg);
-                  // 승인/거절 처리 완료 후 버튼 영역을 텍스트로 교체
-                  parentDiv.querySelector('.btn-group-request').innerHTML = 
-                      `<p class="text-xs font-bold \${status === 1 ? 'text-sky-600' : 'text-rose-600'} mt-2">요청이 처리되었습니다.</p>`;
-              } else {
-                  alert(data.msg);
-              }
-          })
-          .catch(err => {
-              console.error(err);
-              alert('처리 중 오류가 발생했습니다.');
-          });
+          fetch(`\${contextPath}/chat/processRequest.do`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken }, body: `roomId=\${roomId}&applicantSeq=\${applicantSeq}&status=\${status}&msgSeq=\${msgSeq}` })
+          .then(res => res.json()).then(data => {
+              if (data.success) { alert(data.msg); parentDiv.querySelector('.btn-group-request').innerHTML = `<p class="text-xs font-bold \${status === 1 ? 'text-sky-600' : 'text-rose-600'} mt-2">요청이 처리되었습니다.</p>`; }
+              else alert(data.msg);
+          }).catch(err => alert('처리 중 오류가 발생했습니다.'));
       };
 
       connectSocket();
-      scrollToBottom();
    </script>
 </body>
 </html>
