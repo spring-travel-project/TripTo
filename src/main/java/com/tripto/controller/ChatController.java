@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import com.tripto.websocket.ChatWebSocketHandler;
 
 // 🌟 Cloudinary 전용 Import 추가
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-
 import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
@@ -37,6 +37,8 @@ public class ChatController {
     private ChatService chatService;
     @Autowired
     private MemberService memberService;
+    @Autowired
+    private ChatWebSocketHandler chatWebSocketHandler;
     
     @GetMapping("/chat/list")
     public String list(
@@ -165,6 +167,7 @@ public class ChatController {
         return "chat/pollWrite";
     }
 
+    // 🌟 투표 작성 완료 시 시스템 메시지 발송 로직 추가 🌟
     @PostMapping("/chat/poll/write")
     public String pollWriteOk(
             PollDTO dto,
@@ -177,10 +180,22 @@ public class ChatController {
         }
 
         int loginUserId = loginMember.getSeqMember();
-
         dto.setSeqMember(loginUserId);
 
+        // 1. 투표 내용 DB 저장
         chatService.insertPoll(dto, pollContents);
+
+        // 2. 시스템 메시지(회원번호: 0) 강제 전송
+        // (주의: MyBatis에서 insert 후 새로 생성된 pollId를 DTO에 담아준다고 가정합니다)
+        // 만약 DTO의 제목 필드명이 title이 아니라면 dto.getTitle()을 dto.get이름()으로 변경하세요.
+        String sysMsg = "<a href='/TripTo/chat/poll/detail?roomId=" + dto.getSeqChattingroom() 
+                      + "&pollId=" + dto.getSeq() + "' "
+                      + "class='text-blue-600 underline font-bold hover:text-blue-800'>"
+                      + "📋 [투표] " + dto.getPollTitle() + "</a><br>새로운 투표가 등록되었습니다!";
+        
+        chatService.insertMessage(dto.getSeqChattingroom(), 0, sysMsg);
+        
+        chatWebSocketHandler.broadcastSystemMessage(dto.getSeqChattingroom(), sysMsg);
 
         return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
     }
@@ -205,7 +220,6 @@ public class ChatController {
         model.addAttribute("roomId", roomId);
         model.addAttribute("poll", poll);
         model.addAttribute("pollContentList", pollContentList);
-
         
         model.addAttribute("loginUserId", loginUserId);
 
@@ -259,6 +273,7 @@ public class ChatController {
         return "chat/routineWrite";
     }
     
+    // 🌟 일정 작성 완료 시 시스템 메시지 발송 로직 추가 🌟
     @PostMapping("/chat/routine/write")
     public String routineWriteOk(RoutineDTO dto,
                                  @RequestParam(value = "files", required = false) List<MultipartFile> files) {
@@ -270,10 +285,19 @@ public class ChatController {
         }
 
         int loginUserId = loginMember.getSeqMember();
-
         dto.setSeqMember(loginUserId);
 
+        // 1. 일정 DB 저장
         chatService.insertRoutine(dto, files);
+
+        // 2. 시스템 메시지(회원번호: 0) 강제 전송
+        // RoutineDTO의 번호가 getSeq() 이고 제목이 getTitle() 이라고 가정합니다.
+        String sysMsg = "<a href='/TripTo/chat/routine/detail?roomId=" + dto.getSeqChattingroom() 
+                      + "&routineId=" + dto.getSeq() + "' "
+                      + "class='text-emerald-600 underline font-bold hover:text-emerald-800'>"
+                      + "📅 [일정] " + dto.getTitle() + "</a><br>새로운 일정이 등록되었습니다!";
+        
+        chatService.insertMessage(dto.getSeqChattingroom(), 0, sysMsg);
 
         return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
     }
@@ -429,8 +453,6 @@ public class ChatController {
             String imageUrl = (String) uploadResult.get("secure_url");
 
             // 4. 기존 ChatService 호출 로직 변경
-            // (태훈님의 chatService.uploadChatFile가 원래 어떤 파라미터를 받았는지에 따라
-            // 약간 수정이 필요할 수 있습니다. 아래 설명을 꼭 읽어주세요!)
             int seqFile = chatService.uploadCloudinaryFile(file.getOriginalFilename(), imageUrl, loginMember.getSeqMember(), roomId);
             
             response.put("success", true);
