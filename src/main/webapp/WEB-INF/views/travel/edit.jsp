@@ -141,6 +141,13 @@
 	            map: map,
 	            position: position
 	        });
+
+	        labelOverlay = new kakao.maps.CustomOverlay({
+	            map: map,
+	            position: position,
+	            content: '<div class="map-marker-label">' + placeName + '</div>',
+	            yAnchor: 2.3
+	        });
 	
 	        document.getElementById('placeName').value = placeName;
 	        document.getElementById('address').value = address;

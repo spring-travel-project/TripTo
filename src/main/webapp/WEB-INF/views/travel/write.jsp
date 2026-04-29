@@ -120,13 +120,28 @@
             map.setCenter(position);
             map.setLevel(3);
 
+            let labelOverlay = null;
+
             if (marker) {
                 marker.setMap(null);
             }
 
+            if (labelOverlay) {
+                labelOverlay.setMap(null);
+            }
+
+            // 마커
             marker = new kakao.maps.Marker({
                 map: map,
                 position: position
+            });
+
+            // 라벨
+            labelOverlay = new kakao.maps.CustomOverlay({
+                map: map,
+                position: position,
+                content: '<div class="map-marker-label">' + place.place_name + '</div>',
+                yAnchor: 2.3
             });
 
             document.getElementById('placeName').value = place.place_name;

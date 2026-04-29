@@ -301,9 +301,17 @@
 
             new kakao.maps.Marker({
                 map: map,
-                position: position,
-                title: loc.name
+                position: position
             });
+
+            new kakao.maps.CustomOverlay({
+                map: map,
+                position: position,
+                content: '<div class="map-marker-label">' + loc.name + '</div>',
+                yAnchor: 2.3
+            });
+
+            labelOverlay.setMap(map);
 
             bounds.extend(position);
         });
