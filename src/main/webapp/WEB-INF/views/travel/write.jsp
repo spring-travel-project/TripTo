@@ -56,9 +56,11 @@
 
                 <div id="map" style="width:100%; height:360px; margin-top:12px; border-radius:14px;"></div>
 
-                <div id="selectedPlaceBox" style="margin-top:10px;">
-                    선택된 장소가 없습니다.
-                </div>
+                <div id="selectedPlaceBox" class="selected-place empty">
+				    <div class="place-info">
+				        <div class="place-name">장소를 선택해주세요</div>
+				    </div>
+				</div>
 
                 <input type="hidden" id="placeName" name="placeName">
                 <input type="hidden" id="address" name="address">
@@ -194,6 +196,21 @@
 
         document.getElementById('content').value = html + locationHtml;
     });
+    
+    function updateSelectedPlace(name, address) {
+        const box = document.getElementById("selectedPlaceBox");
+
+        box.classList.remove("empty");
+
+        box.innerHTML = `
+            <div class="place-icon">📍</div>
+            <div class="place-info">
+                <div class="place-title">선택된 장소</div>
+                <div class="place-name">${name}</div>
+                <div class="place-address">${address}</div>
+            </div>
+        `;
+    }
 </script>
 
 </body>
