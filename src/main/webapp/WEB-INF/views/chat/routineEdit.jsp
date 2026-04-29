@@ -5,6 +5,31 @@
 <head>
 	<meta charset="UTF-8">
 	<title>TripTo | 일정 수정</title>
+	
+	<style>
+		.file-item {
+		    display: inline-flex;
+		    align-items: center;
+		    gap: 8px;
+		    margin-left: 10px;
+		
+		    padding: 0;
+		    background: transparent;
+		    border-radius: 0;
+		
+		    font-size: 14px;
+		    color: #334155;
+		    font-weight: 500;
+		}
+		
+		.file-remove {
+		    cursor: pointer;
+		    color: #ef4444;
+		    font-weight: bold;
+		    margin-left: 4px;
+		}
+	</style>
+	
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -17,10 +42,10 @@
 			<p class="section-desc">채팅방에 공유한 여행 일정을 수정하세요.</p>
 		</div>
 
-		<div class="content-card card-pad">
-			<form method="post"
-			      action="${pageContext.request.contextPath}/chat/routine/edit"
-			      class="space-y-6">
+		<form method="post"
+		      action="${pageContext.request.contextPath}/chat/routine/edit"
+		      enctype="multipart/form-data"
+		      class="space-y-6">
 
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 				<input type="hidden" name="seq" value="${routine.seq}">
@@ -116,6 +141,30 @@
 						<input type="hidden" id="latitude" name="latitude" value="${routine.latitude}">
 						<input type="hidden" id="longitude" name="longitude" value="${routine.longitude}">
 						<input type="hidden" id="mapProviderId" name="mapProviderId" value="${routine.mapProviderId}">
+					</div>
+					
+					<div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-6 shadow-sm">
+					    <label class="block text-sm font-semibold text-slate-700 mb-3">
+					        첨부파일
+					    </label>
+					
+					    <input type="file"
+					           id="fileInput"
+					           name="files"
+					           multiple
+					           style="display:none;"
+					           onchange="showSelectedFiles(this)">
+					
+					    <label for="fileInput"
+					           class="inline-flex cursor-pointer items-center px-4 py-2 rounded-lg bg-sky-100 text-sky-700 text-sm font-semibold hover:bg-sky-200 transition">
+					        파일 선택
+					    </label>
+					
+					    <div id="fileList" class="flex flex-col gap-2 text-sm text-slate-700"></div>
+					
+					    <p class="mt-3 text-xs text-slate-400">
+					        여러 개 파일 업로드 가능합니다.
+					    </p>
 					</div>
 				</div>
 
@@ -241,6 +290,62 @@
 				.replace(/>/g, '&gt;')
 				.replace(/"/g, '&quot;')
 				.replace(/'/g, '&#39;');
+		}
+		
+		let selectedFiles = [];
+
+		function showSelectedFiles(input) {
+		    const newFiles = Array.from(input.files);
+
+		    newFiles.forEach(file => {
+		        selectedFiles.push(file);
+		    });
+
+		    const dt = new DataTransfer();
+
+		    selectedFiles.forEach(file => {
+		        dt.items.add(file);
+		    });
+
+		    input.files = dt.files;
+
+		    renderFileList(input);
+		}
+
+		function renderFileList(input) {
+		    const fileList = document.getElementById('fileList');
+		    fileList.innerHTML = '';
+
+		    selectedFiles.forEach((file, index) => {
+		        const item = document.createElement('span');
+		        item.className = 'file-item';
+
+		        const name = document.createElement('span');
+		        name.textContent = file.name;
+
+		        const remove = document.createElement('span');
+		        remove.className = 'file-remove';
+		        remove.textContent = '✕';
+
+		        remove.onclick = () => {
+		            selectedFiles.splice(index, 1);
+
+		            const dt = new DataTransfer();
+
+		            selectedFiles.forEach(file => {
+		                dt.items.add(file);
+		            });
+
+		            input.files = dt.files;
+		            renderFileList(input);
+		        };
+
+		        item.appendChild(name);
+		        item.appendChild(remove);
+		        fileList.appendChild(item);
+		    });
+
+		    input.value = '';
 		}
 	</script>
 	

@@ -17,7 +17,7 @@
             cr.category,
             CASE
                 WHEN cr.category = 0 THEN '동행'
-                WHEN cr.category = 1 THEN '매칭'
+                WHEN cr.category = 1 THEN '개인'
             END AS displayCategory,
             partner.nickname AS partnerNickname,
             partner.partnerProfile AS partnerProfile,

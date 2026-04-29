@@ -7,18 +7,27 @@
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 	
 	<style>
-	.file-item {
-	    display: inline-flex;
-	    align-items: center;
-	    gap: 8px;
-	    margin-left: 10px;
-	}
-	
-	.file-remove {
-	    cursor: pointer;
-	    color: #ef4444;
-	    font-weight: bold;
-	}
+		.file-item {
+		    display: inline-flex;
+		    align-items: center;
+		    gap: 8px;
+		    margin-left: 10px;
+		    padding: 0;
+		    background: transparent;
+		    border-radius: 0;
+		    font-size: 14px;
+		    color: #334155;
+		    font-weight: 500;
+		}
+		
+		.file-remove {
+		    cursor: pointer;
+		    color: #ef4444;
+		    font-weight: bold;
+		    margin-left: 4px;
+		    border: 0;
+		    background: transparent;
+		}
 	</style>
 
 </head>
@@ -123,26 +132,24 @@
 					</p>
 				</div>
 
-				<div class="rounded-2xl bg-slate-50 px-5 py-6">
-				    <p class="text-sm font-semibold text-slate-700 mb-2">첨부파일</p>
+				<div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-6 shadow-sm">
+				    <p class="text-sm font-semibold text-slate-700 mb-3">첨부파일</p>
 				
-				    <div class="flex items-center gap-3">
-				        <input type="file"
-				               id="fileInput"
-				               name="files"
-				               multiple
-				               style="display:none;"
-				               onchange="showSelectedFiles(this)">
+				    <input type="file"
+				           id="fileInput"
+				           name="files"
+				           multiple
+				           style="display:none;"
+				           onchange="showSelectedFiles(this)">
 				
-				        <label for="fileInput"
-				               class="cursor-pointer px-4 py-2 rounded-lg bg-sky-100 text-sky-700 text-sm font-semibold hover:bg-sky-200">
-				            파일 선택
-				        </label>
+				    <label for="fileInput"
+				           class="inline-flex cursor-pointer px-4 py-2 rounded-lg bg-sky-100 text-sky-700 text-sm font-semibold hover:bg-sky-200 transition">
+				        파일 선택
+				    </label>
 				
-				        <div id="fileList" class="flex items-center gap-3 text-sm text-slate-700"></div>
-				    </div>
+				    <div id="fileList" class="mt-3 flex flex-col items-start gap-2 text-sm text-slate-700"></div>
 				
-				    <p class="mt-2 text-xs text-slate-400">
+				    <p class="mt-3 text-xs text-slate-400">
 				        여러 개 파일 업로드 가능합니다.
 				    </p>
 				</div>
@@ -266,17 +273,16 @@
 		let filesArray = [];
 
 		function showSelectedFiles(input) {
-		    const fileListDiv = document.getElementById('fileList');
+		    const newFiles = Array.from(input.files);
 
-		    filesArray = filesArray.concat(Array.from(input.files));
-
-		    const dt = new DataTransfer();
-		    filesArray.forEach(function(file) {
-		        dt.items.add(file);
+		    newFiles.forEach(function(file) {
+		        filesArray.push(file);
 		    });
-		    input.files = dt.files;
 
+		    syncFileInput(input);
 		    renderFiles();
+
+		    input.value = '';
 		}
 
 		function renderFiles() {
@@ -287,10 +293,19 @@
 		        const item = document.createElement('span');
 		        item.className = 'file-item';
 
-		        item.innerHTML =
-		            '<span>' + file.name + '</span>' +
-		            '<button type="button" class="file-remove" onclick="removeFile(' + index + ')">×</button>';
+		        const name = document.createElement('span');
+		        name.textContent = file.name;
 
+		        const remove = document.createElement('button');
+		        remove.type = 'button';
+		        remove.className = 'file-remove';
+		        remove.textContent = '×';
+		        remove.onclick = function() {
+		            removeFile(index);
+		        };
+
+		        item.appendChild(name);
+		        item.appendChild(remove);
 		        fileListDiv.appendChild(item);
 		    });
 		}
@@ -300,14 +315,18 @@
 
 		    filesArray.splice(index, 1);
 
+		    syncFileInput(fileInput);
+		    renderFiles();
+		}
+
+		function syncFileInput(input) {
 		    const dt = new DataTransfer();
+
 		    filesArray.forEach(function(file) {
 		        dt.items.add(file);
 		    });
 
-		    fileInput.files = dt.files;
-
-		    renderFiles();
+		    input.files = dt.files;
 		}
 	</script>
 </body>
