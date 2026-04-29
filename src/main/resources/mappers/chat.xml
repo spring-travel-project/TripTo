@@ -53,17 +53,17 @@
                 ON cr.seq = last_log.seqChattingroom
                 
             LEFT JOIN (
-			    SELECT
-			        uc2.seqChattingroom,
-			        MAX(m.nickname) AS nickname,
-			        MAX(m.pic) AS partnerProfile
-			    FROM user_chat uc2
-			        INNER JOIN member m
-			            ON uc2.seqMember = m.seqMember
-			    WHERE uc2.seqMember != #{seqMember}
-			    GROUP BY uc2.seqChattingroom
-			) partner
-			    ON cr.seq = partner.seqChattingroom
+                SELECT
+                    uc2.seqChattingroom,
+                    MAX(m.nickname) AS nickname,
+                    MAX(m.pic) AS partnerProfile
+                FROM user_chat uc2
+                    INNER JOIN member m
+                        ON uc2.seqMember = m.seqMember
+                WHERE uc2.seqMember != #{seqMember}
+                  AND uc2.isActive = 1   GROUP BY uc2.seqChattingroom
+            ) partner
+                ON cr.seq = partner.seqChattingroom
             
         WHERE uc.seqMember = #{seqMember}
           AND uc.isActive = 1
@@ -76,28 +76,28 @@
     </select>
 
     <select id="getMessageList" parameterType="map" resultType="com.tripto.dto.ChatMessageDTO">
-	    SELECT
-	        cl.seq,
-	        cl.detail,
-	        cl.seqMember,
-	        cl.seqChattingroom,
-	        cl.regdate,
-	        TO_CHAR(cl.regdate, 'HH24:MI') AS messageTime,
-	        NVL(m.nickname, '시스템') AS nickname, m.pic AS partnerProfile,
-	        f.savedName,
-	        (SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = cl.seqChattingroom)
-	        - (SELECT COUNT(*) FROM chat_read_status WHERE seqChatLog = cl.seq) - 1 AS unreadCount,
-	        CASE
-	            WHEN cl.seqMember = #{loginUserId} THEN 1
-	            ELSE 0
-	        END AS mine
-	    FROM chat_log cl
-	        LEFT JOIN member m ON cl.seqMember = m.seqMember
-	        LEFT JOIN files f
-	            ON cl.seqFile = f.seq
-	    WHERE cl.seqChattingroom = #{roomId}
-	    ORDER BY cl.seq ASC
-	</select>
+        SELECT
+            cl.seq,
+            cl.detail,
+            cl.seqMember,
+            cl.seqChattingroom,
+            cl.regdate,
+            TO_CHAR(cl.regdate, 'HH24:MI') AS messageTime,
+            NVL(m.nickname, '시스템') AS nickname, m.pic AS partnerProfile,
+            f.savedName,
+            (SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = cl.seqChattingroom AND isActive = 1)
+            - (SELECT COUNT(*) FROM chat_read_status WHERE seqChatLog = cl.seq) - 1 AS unreadCount,
+            CASE
+                WHEN cl.seqMember = #{loginUserId} THEN 1
+                ELSE 0
+            END AS mine
+        FROM chat_log cl
+            LEFT JOIN member m ON cl.seqMember = m.seqMember
+            LEFT JOIN files f
+                ON cl.seqFile = f.seq
+        WHERE cl.seqChattingroom = #{roomId}
+        ORDER BY cl.seq ASC
+    </select>
 
     <select id="getNicknameByMemberId" parameterType="int" resultType="string">
         SELECT nickname
@@ -600,6 +600,7 @@
         SELECT COUNT(*)
         FROM user_chat
         WHERE seqChattingroom = #{roomId}
+          AND isActive = 1   
     </select>
 
     <insert id="insertFile" parameterType="com.tripto.dto.FileDTO">
@@ -708,25 +709,53 @@
 	
 	<insert id="insertUserChatIfNotExists" parameterType="map">
 	    INSERT INTO user_chat (
-	        seq,
-	        seqMember,
-	        seqChattingroom,
-	        auth,
+	        seq, 
+	        seqMember, 
+	        seqChattingroom, 
+	        auth, 
 	        isActive
 	    )
 	    SELECT
-	        seqUserChat.NEXTVAL,
-	        #{userId},
-	        #{roomId},
-	        1,
-	        1
-	    FROM dual
+	        seqUserChat.NEXTVAL, 
+	        #{userId}, 
+	        #{roomId}, 
+	        1, 
+	        2   FROM dual
 	    WHERE NOT EXISTS (
-	        SELECT 1
-	        FROM user_chat
-	        WHERE seqChattingroom = #{roomId}
+	        SELECT 1 
+	        FROM user_chat 
+	        WHERE seqChattingroom = #{roomId} 
 	          AND seqMember = #{userId}
 	    )
 	</insert>
+	
+	
+	
+	<update id="updateJoinRequest" parameterType="map">
+	    UPDATE user_chat 
+	    SET isActive = #{status} 
+	    WHERE seqChattingroom = #{roomId} 
+	      AND seqMember = #{applicantSeq}
+	</update>
+	
+	<select id="getRoomAuth" parameterType="map" resultType="int">
+        SELECT auth 
+        FROM user_chat 
+        WHERE seqChattingroom = #{roomId} 
+          AND seqMember = #{seqMember}
+    </select>
+    
+    <update id="updateSystemMessage" parameterType="map">
+        UPDATE chat_log
+        SET detail = #{finalMsg}
+        WHERE seq = #{msgSeq}
+    </update>
+    
+    <select id="getPostStatusByRoomId" parameterType="int" resultType="string">
+        SELECT tp.status
+        FROM chattingroom cr
+        JOIN travel_post tp ON cr.seqTravelPost = tp.seqTravelPost
+        WHERE cr.seq = #{roomId}
+    </select>
 
 </mapper>

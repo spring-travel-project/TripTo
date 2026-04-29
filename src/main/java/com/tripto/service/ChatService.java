@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dao.ChatDAO;
@@ -548,6 +549,47 @@ public class ChatService {
         chatDAO.insertUserChatIfNotExists(loginMap);
 
         return newRoomId;
+    }
+	
+	// 🌟 승인/거절 처리
+    @Transactional
+    public int updateJoinRequest(Map<String, Object> map) {
+        return chatDAO.updateJoinRequest(map);
+    }
+
+    // 🌟 내 권한(방장 여부) 확인용
+    public int getRoomAuth(int roomId, int seqMember) {
+        java.util.HashMap<String, Object> map = new java.util.HashMap<>();
+        map.put("roomId", roomId);
+        map.put("seqMember", seqMember);
+        return chatDAO.getRoomAuth(map);
+    }
+    
+ // 🌟 1. 글 번호로 이미 만들어진 채팅방 번호 찾기
+    public Integer findTravelRoom(int seqTravelPost) {
+        return chatDAO.findTravelRoom(seqTravelPost);
+    }
+
+    // 🌟 2. 방장인지 확인하기 위해 게시글 정보 가져오기
+    public TravelPostDTO getTravelPostForChat(int seqTravelPost) {
+        return chatDAO.getTravelPostForChat(seqTravelPost);
+    }
+
+    // 🌟 3. 신청자를 대기자(isActive=2) 명단에 넣기
+    public int insertUserChatIfNotExists(Map<String, Integer> map) {
+        return chatDAO.insertUserChatIfNotExists(map);
+    }
+    
+ // 🌟 처리 완료된 시스템 메시지 업데이트
+    public void updateSystemMessage(int msgSeq, String finalMsg) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("msgSeq", msgSeq);
+        map.put("finalMsg", finalMsg);
+        chatDAO.updateSystemMessage(map);
+    }
+    
+    public String getPostStatusByRoomId(int roomId) {
+        return chatDAO.getPostStatusByRoomId(roomId);
     }
     
     

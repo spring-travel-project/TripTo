@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import com.tripto.websocket.ChatWebSocketHandler;
 
 // 🌟 Cloudinary 전용 Import 추가
 import com.cloudinary.Cloudinary;
@@ -27,8 +26,10 @@ import com.tripto.dto.MemberDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.TravelPostDTO;
 import com.tripto.service.ChatService;
 import com.tripto.service.MemberService;
+import com.tripto.websocket.ChatWebSocketHandler;
 
 @Controller
 public class ChatController {
@@ -77,6 +78,9 @@ public class ChatController {
                     break;
                 }
             }
+            
+            int myAuth = chatService.getRoomAuth(selectedRoomId, loginUserId);
+            model.addAttribute("myAuth", myAuth);
         }
 
         model.addAttribute("roomList", roomList);
@@ -118,16 +122,46 @@ public class ChatController {
     
     @PostMapping("/chat/exit")
     @ResponseBody
-    public Map<String, Object> exitRoom(
-            @RequestParam("roomId") int roomId) {
-
+    public Map<String, Object> exitRoom(@RequestParam("roomId") int roomId) {
+        Map<String, Object> response = new HashMap<>();
         MemberDTO loginMember = getLoginMember();
-
+        
+        if (loginMember == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
         int loginUserId = loginMember.getSeqMember();
 
-        boolean result = chatService.exitRoom(roomId, loginUserId);
+        // 1. 권한 확인 (방장 여부)
+        int myAuth = chatService.getRoomAuth(roomId, loginUserId);
+        
+        // 2. 방 정보 가져오기 (카테고리 확인)
+        ChatRoomDTO room = chatService.getRoomById(roomId, loginUserId);
 
-        Map<String, Object> response = new HashMap<>();
+        // 🌟 [디버깅] 콘솔창에서 이 값들을 확인해봐!
+        System.out.println("--- 채팅방 나가기 체크 ---");
+        System.out.println("방번호(roomId): " + roomId);
+        System.out.println("내권한(myAuth): " + myAuth + " (0이면 방장)");
+        
+        // 3. 방장인 경우에만 게시글 상태 체크
+        if (myAuth == 0 && room != null && room.getCategory() == 0) {
+            
+            String postStatus = chatService.getPostStatusByRoomId(roomId);
+            
+            // 🌟 [디버깅] DB에서 가져온 실제 상태값 확인
+            System.out.println("DB에서 가져온 게시글 상태(postStatus): [" + postStatus + "]");
+            
+            if (postStatus != null && postStatus.trim().equalsIgnoreCase("NORMAL")) {
+                response.put("success", false);
+                response.put("message", "모집 게시글이 게시판에 게시 중일 때는 채팅방을 나갈 수 없습니다.\n모집을 취소하려면 게시글을 먼저 삭제해주세요.");
+                return response;
+            }
+        }
+
+        // 4. 조건 통과 시 퇴장 처리
+        boolean result = chatService.exitRoom(roomId, loginUserId);
         response.put("success", result);
 
         return response;
@@ -474,16 +508,143 @@ public class ChatController {
     public String startTravelChat(@RequestParam("seqTravelPost") int seqTravelPost) {
 
         MemberDTO loginMember = getLoginMember();
-
         if (loginMember == null) {
             return "redirect:/member/login.do";
         }
 
-        int roomId = chatService.createOrGetTravelChatRoom(
-            seqTravelPost,
-            loginMember.getSeqMember()
-        );
+        int loginUserId = loginMember.getSeqMember();
 
-        return "redirect:/chat/list?roomId=" + roomId + "&category=0";
+        // 1. 게시글 정보 가져오기 (누가 쓴 글인지 확인하기 위해)
+        TravelPostDTO post = chatService.getTravelPostForChat(seqTravelPost);
+        
+        // 2. 이미 만들어져 있는 채팅방 번호 가져오기
+        Integer roomId = chatService.findTravelRoom(seqTravelPost);
+
+        if (roomId == null) {
+            // 혹시라도 예전에 써서 방이 없는 글이면 에러 처리
+            return "redirect:/travel/list.do?message=" + java.net.URLEncoder.encode("채팅방이 존재하지 않습니다.");
+        }
+
+        // 🌟 3. 내가 방장(글 작성자)이라면? -> 신청 메시지 쏘지 말고 바로 내 채팅방으로 입장!
+        if (post != null && post.getSeqMember() == loginUserId) {
+            return "redirect:/chat/list?roomId=" + roomId + "&category=0";
+        }
+
+        // 🌟 4. 내가 신청자(일반 유저)라면? -> 참여 대기 명단에 넣고 시스템 메시지 쏘기!
+        
+        // DB의 user_chat 테이블에 대기자(isActive=2)로 넣기 (Map 세팅은 Service에 맞게 조절해)
+        Map<String, Integer> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("userId", loginUserId);
+        
+        // 🌟 여기서 서비스의 결과를 받습니다. (1: 첫 신청 성공, 0: 이미 신청함)
+        int insertResult = chatService.insertUserChatIfNotExists(map); 
+
+        if (insertResult == 0) {
+            // DB에 안 들어갔다 = 이미 신청해서 대기 중이거나, 이미 방에 있는 사람이다!
+            // 👉 메시지 안 쏘고 여기서 컷!
+            return "redirect:/chat/list?message=" + java.net.URLEncoder.encode("이미 참여 신청을 했거나 참여 중인 방입니다.");
+        }
+
+        // 👇 여기부터는 insertResult가 1일 때(처음 신청할 때)만 실행됨!
+        String applicantName = loginMember.getNickname();
+        String joinMsg = applicantName + "님이 동행 참여를 신청했습니다. "
+                       + "<span data-applicant-seq='" + loginUserId + "'></span>";
+        
+        chatService.insertMessage(roomId, 0, joinMsg);
+        
+        if(chatWebSocketHandler != null) {
+            chatWebSocketHandler.broadcastSystemMessage(roomId, joinMsg);
+        }
+
+        return "redirect:/chat/list?message=" + java.net.URLEncoder.encode("참여 신청이 완료되었습니다. 방장의 승인을 기다려주세요!");
+    }
+    
+    @PostMapping("/chat/processRequest.do")
+    @ResponseBody 
+    public Map<String, Object> processRequest(
+            @RequestParam("roomId") int roomId, 
+            @RequestParam("applicantSeq") int applicantSeq, 
+            @RequestParam("status") int status,
+            @RequestParam("msgSeq") int msgSeq) { // 🌟 파라미터에 msgSeq 추가!
+        
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
+        
+        map.put("roomId", roomId);
+        map.put("applicantSeq", applicantSeq);
+        map.put("status", status); // 1: 승인, 0: 거절
+        
+        // 1. 유저 상태 변경 (승인/거절)
+        int row = chatService.updateJoinRequest(map);
+        
+        if (row > 0) {
+            // 🌟 2. 상태 변경 성공 시 시스템 메시지도 영구적으로 업데이트!
+            String applicantName = chatService.getNicknameByMemberId(applicantSeq);
+            String action = (status == 1) ? "승인" : "거절";
+            String finalMsg = "✅ " + applicantName + "님의 참여 요청이 " + action + "되었습니다.";
+            
+            chatService.updateSystemMessage(msgSeq, finalMsg); // 시스템 메시지 덮어쓰기 호출
+            
+            result.put("success", true);
+            result.put("msg", action + "되었습니다.");
+        } else {
+            result.put("success", false);
+            result.put("msg", "처리 중 오류가 발생했습니다.");
+        }
+        
+        return result;
+    }
+    
+ // 🌟 동행 참여 신청 (AJAX 전용)
+    @PostMapping("/chat/apply")
+    @ResponseBody
+    public Map<String, Object> applyCompanion(@RequestParam("seqTravelPost") int seqTravelPost) {
+        
+        Map<String, Object> result = new HashMap<>();
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            result.put("success", false);
+            result.put("message", "로그인이 필요합니다.");
+            return result;
+        }
+
+        int loginUserId = loginMember.getSeqMember();
+        Integer roomId = chatService.findTravelRoom(seqTravelPost);
+
+        if (roomId == null) {
+            result.put("success", false);
+            result.put("message", "채팅방이 존재하지 않습니다.");
+            return result;
+        }
+
+        // 대기 명단에 넣기 (0이면 이미 신청했거나 참여 중인 상태)
+        Map<String, Integer> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("userId", loginUserId);
+        
+        int insertResult = chatService.insertUserChatIfNotExists(map); 
+
+        if (insertResult == 0) {
+            result.put("success", false);
+            result.put("message", "이미 참여 신청을 했거나 참여 중인 동행입니다.");
+            return result;
+        }
+
+        // 처음 신청하는 경우 방장에게 시스템 메시지 발송
+        String applicantName = loginMember.getNickname();
+        String joinMsg = applicantName + "님이 동행 참여를 신청했습니다. "
+                       + "<span data-applicant-seq='" + loginUserId + "'></span>";
+        
+        chatService.insertMessage(roomId, 0, joinMsg);
+        
+        if(chatWebSocketHandler != null) {
+            chatWebSocketHandler.broadcastSystemMessage(roomId, joinMsg);
+        }
+
+        result.put("success", true);
+        result.put("message", "참여 신청이 완료되었습니다!\n방장의 승인 후 채팅방에 입장할 수 있습니다.");
+        return result;
     }
 }
