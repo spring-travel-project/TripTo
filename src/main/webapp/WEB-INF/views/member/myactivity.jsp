@@ -27,8 +27,20 @@
         <section class="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-10">
             
                 <div class="flex items-center gap-6 pb-8 mb-8 border-b border-slate-200">
+                    
+                    <%-- 🌟 클라우드 프로필 사진 처리 적용 🌟 --%>
                     <div class="w-20 h-20 rounded-full bg-white border border-slate-200 shadow-sm overflow-hidden shrink-0">
-                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty member.pic ? 'pic.png' : member.pic}" class="w-full h-full object-cover">
+                        <c:choose>
+                            <c:when test="${empty member.pic or member.pic eq 'pic.png'}">
+                                <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover">
+                            </c:when>
+                            <c:when test="${member.pic.startsWith('http')}">
+                                <img src="${member.pic}" class="w-full h-full object-cover">
+                            </c:when>
+                            <c:otherwise>
+                                <img src="${pageContext.request.contextPath}/resources/upload/profile/${member.pic}" class="w-full h-full object-cover">
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     
                     <div class="flex flex-col">
@@ -176,6 +188,7 @@
             
             let thumb = '';
             if(item.thumbnailUrl) {
+                // 백엔드에서 넘겨주는 thumbnailUrl이 클라우드 주소라면 이대로 잘 나옵니다.
                 thumb = `<div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-slate-100 bg-slate-50"><img src="\${item.thumbnailUrl}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"></div>`;
             }
 
