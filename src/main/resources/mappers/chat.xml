@@ -653,5 +653,19 @@
         WHERE rf.seqRoutine = #{routineId}
         ORDER BY rf.seq ASC
     </select>
+    
+    <select id="getRoomById" parameterType="map" resultType="com.tripto.dto.ChatRoomDTO">
+	    SELECT
+	        cr.seq AS roomId,
+	        cr.name AS roomName,
+	        cr.category,
+	        uc.isActive
+	    FROM chattingroom cr
+	        INNER JOIN user_chat uc
+	            ON cr.seq = uc.seqChattingroom
+	    WHERE cr.seq = #{roomId}
+	      AND uc.seqMember = #{seqMember}
+	      AND uc.isActive = 1
+	</select>
 
 </mapper>
