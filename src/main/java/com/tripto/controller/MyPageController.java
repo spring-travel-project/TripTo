@@ -84,7 +84,7 @@ public class MyPageController {
 		// DB에 저장된 진짜 암호화된 비밀번호 가져오기
 		String dbPw = memberService.getCurrentPw(principal.getName());
 
-		// passwordEncoder.matches(입력한 생비번, DB의 암호화된 비번) 로 비교!
+		// passwordEncoder.matches(입력한 암호화 전 비밀번호, DB의 암호화된 비밀번호)로 비교
 		if (passwordEncoder.matches(currentPw, dbPw)) {
 			return "MATCH";
 		}
@@ -151,6 +151,7 @@ public class MyPageController {
 
 		dto.setId(principal.getName());
 
+<<<<<<< Updated upstream
 		if (picFile != null && !picFile.isEmpty()) {
 			try {
 				// 🌟 클라우드 설정 (태훈님 키 입력!)
@@ -166,6 +167,27 @@ public class MyPageController {
 				e.printStackTrace();
 			}
 		}
+=======
+	    if (picFile != null && !picFile.isEmpty()) {
+	        try {
+	            // 클라우드 설정 (키 입력)
+	            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+	            		 "cloud_name", "dh5p4lvo2",
+	                     "api_key", "283127846695383",
+	                     "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
+	                     "secure", true
+	            ));
+
+	            // 업로드 후 URL 받기
+	            Map uploadResult = cloudinary.uploader().upload(picFile.getBytes(), ObjectUtils.emptyMap());
+	            String imageUrl = (String) uploadResult.get("secure_url");
+
+	            dto.setPic(imageUrl); // DB에는 이제 URL 주소가 저장됨
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+>>>>>>> Stashed changes
 
 		memberService.updateMemberInfo(dto);
 		return "redirect:/member/mypage.do";
@@ -177,7 +199,7 @@ public class MyPageController {
 		MemberDTO member = memberService.getMemberById(principal.getName());
 		MatchDTO profile = matchingService.getMyProfile(member.getSeqMember());
 
-		model.addAttribute("profile", profile); // 기존 데이터가 있으면 화면에 뿌려줌
+		model.addAttribute("profile", profile); // 기존 데이터가 있으면 화면에 출력
 		return "member/editProfile";
 	}
 
