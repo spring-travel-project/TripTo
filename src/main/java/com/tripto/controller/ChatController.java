@@ -149,10 +149,13 @@ public class ChatController {
         List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
         List<PollDTO> pollList = chatService.getPollList(roomId);
 
+        ChatRoomDTO selectedRoom = chatService.getRoomById(roomId, loginUserId);
+        
         model.addAttribute("roomId", roomId);
         model.addAttribute("routineList", routineList);
         model.addAttribute("pollList", pollList);
         model.addAttribute("loginUserId", loginUserId);
+        model.addAttribute("selectedRoom", selectedRoom);
 
         return "chat/schedulePoll";
     }

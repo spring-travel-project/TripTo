@@ -11,7 +11,7 @@
         FROM TRAVEL_POST bp
             INNER JOIN MEMBER m
                 ON bp.SEQMEMBER = m.SEQMEMBER
-        WHERE bp.STATUS = 'NORMAL'
+        WHERE bp.STATUS = 'NORMAL' AND m.status != 2
 
         <!-- 검색 -->
         <if test="searchWord != null and searchWord.trim() != ''">
@@ -53,7 +53,7 @@
                 ) f
                     ON bp.SEQTRAVELPOST = f.SEQTRAVELPOST
                    AND f.file_rnum = 1
-            WHERE bp.STATUS = 'NORMAL'
+            WHERE bp.STATUS = 'NORMAL' AND m.status != 2
 
             <!-- 검색 -->
             <if test="searchWord != null and searchWord.trim() != ''">

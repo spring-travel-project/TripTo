@@ -25,7 +25,7 @@
                 ON bp.SEQCATEGORY = bc.SEQCATEGORY
             INNER JOIN MEMBER m
                 ON bp.SEQMEMBER = m.SEQMEMBER
-        WHERE bp.STATUS = 'NORMAL'
+        WHERE bp.STATUS = 'NORMAL' AND m.status != 2
 
         <!-- 카테고리 -->
         <if test="category != null and category.trim() != '' and category != '전체'">
@@ -43,56 +43,55 @@
 
     <!-- 게시글 목록 -->
     <select id="list" parameterType="com.tripto.dto.BoardPostDTO" resultType="com.tripto.dto.BoardPostDTO">
-        SELECT *
-        FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY bp.SEQBOARDPOST DESC) AS rnum,
-                bp.SEQBOARDPOST AS seqBoardPost,
-                bp.SEQCATEGORY AS seqCategory,
-                bp.SEQMEMBER AS seqMember,
-                bp.TITLE AS title,
-                bp.CONTENT AS content,
-                bp.VIEWCOUNT AS viewCount,
-                bp.STATUS AS status,
-                TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD') AS createDate,
-                TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD') AS updateDate,
-                bc.CATEGORYNAME AS categoryName,
-                m.NAME AS writerName,
-                f.SAVEDNAME AS savedName
-            FROM BOARD_POST bp
-                INNER JOIN BOARD_CATEGORY bc
-                    ON bp.SEQCATEGORY = bc.SEQCATEGORY
-                INNER JOIN MEMBER m
-                    ON bp.SEQMEMBER = m.SEQMEMBER
-                LEFT JOIN (
-                    SELECT
-                        SEQBOARDPOST,
-                        SAVEDNAME,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY SEQBOARDPOST
-                            ORDER BY SEQBOARDPOSTFILE ASC
-                        ) AS file_rnum
-                    FROM BOARD_POST_FILE
-                ) f
-                    ON bp.SEQBOARDPOST = f.SEQBOARDPOST
-                   AND f.file_rnum = 1
-            WHERE bp.STATUS = 'NORMAL'
-
-            <!-- 카테고리 -->
-            <if test="category != null and category.trim() != '' and category != '전체'">
-                AND bc.CATEGORYNAME = #{category}
-            </if>
-
-            <!-- 검색 -->
-            <if test="searchWord != null and searchWord.trim() != ''">
-			    AND (
-			        bp.TITLE LIKE '%' || #{searchWord} || '%'
-			        OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
-			    )
-			</if>
-        )
-        WHERE rnum BETWEEN #{begin} AND #{end}
-    </select>
+	    SELECT *
+	    FROM (
+	        SELECT
+	            ROW_NUMBER() OVER (ORDER BY bp.SEQBOARDPOST DESC) AS rnum,
+	            bp.SEQBOARDPOST AS seqBoardPost,
+	            bp.SEQCATEGORY AS seqCategory,
+	            bp.SEQMEMBER AS seqMember,
+	            bp.TITLE AS title,
+	            bp.CONTENT AS content,
+	            bp.VIEWCOUNT AS viewCount,
+	            bp.STATUS AS status,
+	            TO_CHAR(bp.CREATEDATE, 'YYYY-MM-DD') AS createDate,
+	            TO_CHAR(bp.UPDATEDATE, 'YYYY-MM-DD') AS updateDate,
+	            bc.CATEGORYNAME AS categoryName,
+	            m.NAME AS writerName,
+	            f.SAVEDNAME AS savedName
+	        FROM BOARD_POST bp
+	            INNER JOIN BOARD_CATEGORY bc
+	                ON bp.SEQCATEGORY = bc.SEQCATEGORY
+	            INNER JOIN MEMBER m
+	                ON bp.SEQMEMBER = m.SEQMEMBER
+	            LEFT JOIN (
+	                SELECT
+	                    SEQBOARDPOST,
+	                    SAVEDNAME,
+	                    ROW_NUMBER() OVER (
+	                        PARTITION BY SEQBOARDPOST
+	                        ORDER BY SEQBOARDPOSTFILE ASC
+	                    ) AS file_rnum
+	                FROM BOARD_POST_FILE
+	            ) f
+	                ON bp.SEQBOARDPOST = f.SEQBOARDPOST
+	                AND f.file_rnum = 1
+	        
+	        /* 🌟 핵심 필터링 영역 */
+	        WHERE bp.STATUS = 'NORMAL' 
+	          AND m.status != 2  <if test="category != null and category.trim() != '' and category != '전체'">
+	            AND bc.CATEGORYNAME = #{category}
+	        </if>
+	
+	        <if test="searchWord != null and searchWord.trim() != ''">
+	            AND (
+	                bp.TITLE LIKE '%' || #{searchWord} || '%'
+	                OR REGEXP_REPLACE(bp.CONTENT, '&lt;[^&gt;]+&gt;', '') LIKE '%' || #{searchWord} || '%'
+	            )
+	        </if>
+	    )
+	    WHERE rnum BETWEEN #{begin} AND #{end}
+	</select>
 
     <!-- 게시글 등록 -->
     <insert id="add" parameterType="com.tripto.dto.BoardPostDTO">
@@ -120,7 +119,7 @@
             0,
             'NORMAL',
             SYSDATE,
-	        #{thumbnailUrl}
+	        #{thumbnailUrl, jdbcType=VARCHAR}
         )
 
     </insert>
@@ -202,7 +201,7 @@
             TITLE = #{title},
             CONTENT = #{content},
             UPDATEDATE = SYSDATE,
-            THUMBNAILURL = #{thumbnailUrl}
+            THUMBNAILURL = #{thumbnailUrl, jdbcType=VARCHAR}
         WHERE SEQBOARDPOST = #{seqBoardPost}
     </update>
 

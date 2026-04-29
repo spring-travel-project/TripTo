@@ -13,10 +13,17 @@
 	<main class="page-wrap">
 
 		<div class="mb-8 flex items-end justify-between gap-4">
-			<div>
-				<h1 class="section-title">일정/투표</h1>
-				<p class="section-desc">채팅방에서 공유된 여행 일정과 투표를 확인하세요.</p>
-			</div>
+			
+			<c:choose>
+			    <c:when test="${not empty selectedRoom and not empty selectedRoom.roomName}">
+			        <h1 class="section-title">${selectedRoom.roomName}</h1>
+			    </c:when>
+			
+			    <c:otherwise>
+			        <h1 class="section-title">이름없는 채팅방</h1>
+			    </c:otherwise>
+			</c:choose>
+			
 
 			<a href="${pageContext.request.contextPath}/chat/list?roomId=${roomId}"
 			   class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium hover:bg-slate-100 transition">

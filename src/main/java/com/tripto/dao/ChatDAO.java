@@ -177,4 +177,13 @@ public class ChatDAO {
         return template.selectList("chat.getRoutineFileList", routineId);
     }
     
+    public ChatRoomDTO getRoomById(int roomId, int seqMember) {
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("seqMember", seqMember);
+
+        return template.selectOne("chat.getRoomById", map);
+    }
+    
 }
