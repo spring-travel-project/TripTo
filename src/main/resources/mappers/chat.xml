@@ -22,10 +22,7 @@
             partner.nickname AS partnerNickname,
             partner.partnerProfile AS partnerProfile,
             
-            partner.nickname AS partnerNickname, 
-            partner.partnerProfile AS partnerProfile, 
-            
-            last_log.detail AS lastMessage,
+            REGEXP_REPLACE(last_log.detail, <![CDATA['<[^>]*>']]>, '') AS lastMessage,
             last_log.regdate AS regdate,
             CASE
                 WHEN last_log.regdate IS NULL THEN ''
@@ -56,22 +53,17 @@
                 ON cr.seq = last_log.seqChattingroom
                 
             LEFT JOIN (
-                SELECT
-                    uc2.seqChattingroom,
-                    MAX(m.nickname) AS nickname,
-                    MAX(m.pic) AS partnerProfile
-                FROM user_chat uc2
-                    INNER JOIN member m
-                        ON uc2.seqMember = m.seqMember
-                WHERE uc2.seqMember != #{seqMember}
-                GROUP BY uc2.seqChattingroom
-            ) partner
-                ON cr.seq = partner.seqChattingroom
-                    INNER JOIN member m ON uc2.seqMember = m.seqMember
-                WHERE uc2.seqMember != #{seqMember} 
-                GROUP BY uc2.seqChattingroom
-            ) partner
-                ON cr.seq = partner.seqChattingroom
+			    SELECT
+			        uc2.seqChattingroom,
+			        MAX(m.nickname) AS nickname,
+			        MAX(m.pic) AS partnerProfile
+			    FROM user_chat uc2
+			        INNER JOIN member m
+			            ON uc2.seqMember = m.seqMember
+			    WHERE uc2.seqMember != #{seqMember}
+			    GROUP BY uc2.seqChattingroom
+			) partner
+			    ON cr.seq = partner.seqChattingroom
             
         WHERE uc.seqMember = #{seqMember}
           AND uc.isActive = 1
@@ -662,5 +654,65 @@
         WHERE rf.seqRoutine = #{routineId}
         ORDER BY rf.seq ASC
     </select>
+    
+	<select id="findTravelRoom" parameterType="int" resultType="Integer">
+	    SELECT seq
+	    FROM chattingroom
+	    WHERE seqTravelPost = #{seqTravelPost}
+	      AND category = 0
+	</select>
+	
+	<select id="getTravelPostForChat"
+	        parameterType="int"
+	        resultType="com.tripto.dto.TravelPostDTO">
+	    SELECT
+	        seqTravelPost,
+	        seqMember,
+	        title
+	    FROM travel_post
+	    WHERE seqTravelPost = #{seqTravelPost}
+	</select>
+
+	<insert id="createTravelChatRoom"
+	        parameterType="com.tripto.dto.ChatRoomDTO">
+	    <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+	        SELECT seqChattingroom.NEXTVAL FROM dual
+	    </selectKey>
+	
+	    INSERT INTO chattingroom (
+	        seq,
+	        name,
+	        category,
+	        seqTravelPost
+	    ) VALUES (
+	        #{roomId},
+	        #{roomName},
+	        #{category},
+	        #{seqTravelPost, jdbcType=NUMERIC}
+	    )
+	</insert>
+	
+	<insert id="insertUserChatIfNotExists" parameterType="map">
+	    INSERT INTO user_chat (
+	        seq,
+	        seqMember,
+	        seqChattingroom,
+	        auth,
+	        isActive
+	    )
+	    SELECT
+	        seqUserChat.NEXTVAL,
+	        #{userId},
+	        #{roomId},
+	        1,
+	        1
+	    FROM dual
+	    WHERE NOT EXISTS (
+	        SELECT 1
+	        FROM user_chat
+	        WHERE seqChattingroom = #{roomId}
+	          AND seqMember = #{userId}
+	    )
+	</insert>
 
 </mapper>

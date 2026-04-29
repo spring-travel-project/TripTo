@@ -94,4 +94,14 @@ public class ChatRoomDTO {
     public void setActive(int active) {
         this.active = active;
     }
+    
+    private Integer seqTravelPost;
+
+    public Integer getSeqTravelPost() {
+        return seqTravelPost;
+    }
+
+    public void setSeqTravelPost(Integer seqTravelPost) {
+        this.seqTravelPost = seqTravelPost;
+    }
 }

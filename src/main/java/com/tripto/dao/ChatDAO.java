@@ -14,6 +14,7 @@ import com.tripto.dto.FileDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.TravelPostDTO;
 
 @Repository
 public class ChatDAO {
@@ -175,6 +176,22 @@ public class ChatDAO {
 
     public List<FileDTO> getRoutineFileList(int routineId) {
         return template.selectList("chat.getRoutineFileList", routineId);
+    }
+    
+    public Integer findTravelRoom(int seqTravelPost) {
+        return template.selectOne("chat.findTravelRoom", seqTravelPost);
+    }
+
+    public TravelPostDTO getTravelPostForChat(int seqTravelPost) {
+        return template.selectOne("chat.getTravelPostForChat", seqTravelPost);
+    }
+
+    public void createTravelChatRoom(ChatRoomDTO dto) {
+        template.insert("chat.createTravelChatRoom", dto);
+    }
+
+    public void insertUserChatIfNotExists(Map<String, Integer> map) {
+        template.insert("chat.insertUserChatIfNotExists", map);
     }
     
 }
