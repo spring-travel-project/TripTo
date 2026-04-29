@@ -27,6 +27,9 @@ public class RoutineDTO {
     private String dDayDateText;
     private String dDayInput;
     
+    private String filePath;   // 파일 경로
+    private String fileType;
+
     public int getSeq() {
         return seq;
     }
@@ -164,7 +167,6 @@ public class RoutineDTO {
     }
     
 
-
     public int getStatus() {
         return status;
     }
@@ -189,4 +191,19 @@ public class RoutineDTO {
         this.dDayInput = dDayInput;
     }
     
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
 }

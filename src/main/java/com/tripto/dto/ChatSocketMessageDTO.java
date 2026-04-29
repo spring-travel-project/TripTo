@@ -8,12 +8,19 @@ public class ChatSocketMessageDTO {
     private String nickname;
     private String message;
     private String messageTime;
-    
-    
+    private String partnerProfile;
     private int unreadCount;
     
 
-    public int getUnreadCount() {
+    public String getPartnerProfile() {
+		return partnerProfile;
+	}
+
+	public void setPartnerProfile(String partnerProfile) {
+		this.partnerProfile = partnerProfile;
+	}
+
+	public int getUnreadCount() {
 		return unreadCount;
 	}
 
@@ -87,4 +94,5 @@ public class ChatSocketMessageDTO {
     public void setMessageTime(String messageTime) {
         this.messageTime = messageTime;
     }
+
 }

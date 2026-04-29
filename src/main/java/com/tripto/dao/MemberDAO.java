@@ -80,4 +80,8 @@ public class MemberDAO {
 	public List<MyActivityDTO> getMyActivities(Map<String, Object> map) {
 		return sql.selectList("member.getMyActivities", map);
 	}
+
+	public int updateProfilePic(Map<String, Object> map) {
+		return sql.update("member.updateProfilePic", map);
+	}
 }

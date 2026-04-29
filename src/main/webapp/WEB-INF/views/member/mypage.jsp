@@ -27,7 +27,20 @@
         <section class="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden relative">
             
             <div class="h-56 bg-slate-200 relative group">
-                <img src="${pageContext.request.contextPath}${empty profile.coverPic or profile.coverPic eq 'default_cover.png' ? '/resources/img/default_cover.png' : '/resources/upload/cover/' += profile.coverPic}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <c:choose>
+                    <%-- 사진이 없거나 기본 이미지인 경우 --%>
+                    <c:when test="${empty profile.coverPic or profile.coverPic eq 'default_cover.png'}">
+                        <img src="${pageContext.request.contextPath}/resources/img/default_cover.png" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </c:when>
+                    <%-- 클라우드 주소(http)인 경우 --%>
+                    <c:when test="${profile.coverPic.startsWith('http')}">
+                        <img src="${profile.coverPic}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </c:when>
+                    <%-- 로컬 파일명인 경우 --%>
+                    <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/resources/upload/cover/${profile.coverPic}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </c:otherwise>
+                </c:choose>
                 <div class="absolute inset-0 bg-black/10"></div>
                 
                 <div class="absolute top-8 right-12 z-10">
@@ -45,7 +58,20 @@
                 <div class="flex items-end justify-between mb-10 -mt-16 relative z-10">
                     <div class="flex items-end gap-6">
                         <div class="w-36 h-36 rounded-full border-4 border-white bg-slate-100 shadow-lg overflow-hidden">
-                            <img src="${pageContext.request.contextPath}${empty member.pic or member.pic eq 'pic.png' ? '/resources/img/pic.png' : '/resources/upload/profile/' += member.pic}" class="w-full h-full object-cover">
+                            <c:choose>
+                                <%-- 사진이 없거나 기본 이미지인 경우 --%>
+                                <c:when test="${empty member.pic or member.pic eq 'pic.png'}">
+                                    <img src="${pageContext.request.contextPath}/resources/img/pic.png" class="w-full h-full object-cover">
+                                </c:when>
+                                <%-- 클라우드 주소(http)인 경우 --%>
+                                <c:when test="${member.pic.startsWith('http')}">
+                                    <img src="${member.pic}" class="w-full h-full object-cover">
+                                </c:when>
+                                <%-- 로컬 파일명인 경우 --%>
+                                <c:otherwise>
+                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/${member.pic}" class="w-full h-full object-cover">
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                         <div class="pb-3">
                             <h2 class="text-3xl font-black text-slate-900 flex items-center gap-2">
@@ -59,7 +85,6 @@
                     </div>
                     
                     <div class="pb-3">
-                        
                         <button onclick="document.getElementById('accountSettingsModal').showModal()" class="px-5 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-bold text-sm hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-sm self-start mt-1">계정 설정</button>
                     </div>
                 </div>
@@ -129,6 +154,7 @@
         </section>
 
     </main>
+
     <dialog id="accountSettingsModal" class="modal">
         <div class="modal-box">
             <form method="dialog">
@@ -141,7 +167,7 @@
                 <button type="button" onclick="openChangePwModal()" class="btn border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 w-full justify-start text-base h-14">🔒 비밀번호 변경</button>
                 <button type="button" onclick="openDeactivateModal()" class="btn border-slate-200 bg-white text-rose-500 hover:border-rose-500 hover:bg-rose-50 w-full justify-start text-base h-14">🚨 계정 탈퇴</button>
             </div>
-            </div>
+        </div>
     </dialog>
 
     <dialog id="changePwModal" class="modal">
@@ -195,7 +221,6 @@
         const csrfToken = $("input[name='_csrf']").val();
         let isNewPwValid = false;
 
-        // 모달 열기 제어
         function openChangePwModal() {
             document.getElementById('accountSettingsModal').close();
             document.getElementById('changePwModal').showModal();
@@ -206,7 +231,6 @@
             document.getElementById('deactivateModal').showModal();
         }
 
-        // 1. 현재 비밀번호 검증 AJAX
         function verifyCurrentPw() {
             const currentPw = $('#currentPwInput').val();
             if(!currentPw) {
@@ -221,8 +245,8 @@
                 success: function(response) {
                     if(response === "MATCH") {
                         $('#pwCheckAlert').text('비밀번호가 일치합니다.').removeClass('text-error').addClass('text-success');
-                        $('#currentPwInput, #checkPwBtn').prop('disabled', true); // 기존 입력창 잠금
-                        $('#newPwSection').removeClass('hidden'); // 새 비밀번호 창 오픈!
+                        $('#currentPwInput, #checkPwBtn').prop('disabled', true);
+                        $('#newPwSection').removeClass('hidden');
                     } else {
                         $('#pwCheckAlert').text('비밀번호가 일치하지 않습니다.').removeClass('text-success').addClass('text-error');
                     }
@@ -230,7 +254,6 @@
             });
         }
 
-        // 2. 새 비밀번호 실시간 유효성 검사 (정규식)
         $('#newPwInput, #newPwConfirmInput').on('keyup', function() {
             const pw = $('#newPwInput').val();
             const pwConfirm = $('#newPwConfirmInput').val();
@@ -250,7 +273,6 @@
             $('#submitNewPwBtn').prop('disabled', !isNewPwValid);
         });
 
-        // 3. 새 비밀번호 제출
         function submitChangePw() {
             if(isNewPwValid) {
                 alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");

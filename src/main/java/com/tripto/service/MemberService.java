@@ -16,6 +16,8 @@ public class MemberService {
 
 	@Autowired
 	private MemberDAO dao;
+	
+	
 
 	// 회원가입 시 아이디 중복 확인
 	public int checkId(String id) {
@@ -93,4 +95,12 @@ public class MemberService {
 		// DAO도 Map을 받도록 파라미터 수정 필요
 		return dao.getMyActivities(map);
 	}
+	
+	public void updateProfilePic(int seqMember, String imageUrl) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("seqMember", seqMember);
+        map.put("imageUrl", imageUrl);
+        
+        dao.updateProfilePic(map);
+    }
 }

@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -26,8 +27,20 @@
                 <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
                     
                     <div class="w-full aspect-square max-h-[400px] lg:max-h-[500px] bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
-                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${empty target.pic ? 'pic.png' : target.pic}" 
-                             class="w-3/4 h-3/4 object-contain rounded-2xl drop-shadow-sm">
+                        <c:choose>
+                            <c:when test="${empty target.pic}">
+                                <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png"
+                                     class="w-3/4 h-3/4 object-contain rounded-2xl drop-shadow-sm">
+                            </c:when>
+                            <c:when test="${fn:startsWith(target.pic, 'http')}">
+                                <img src="${target.pic}"
+                                     class="w-3/4 h-3/4 object-contain rounded-2xl drop-shadow-sm">
+                            </c:when>
+                            <c:otherwise>
+                                <img src="${pageContext.request.contextPath}/resources/upload/profile/${target.pic}"
+                                     class="w-3/4 h-3/4 object-contain rounded-2xl drop-shadow-sm">
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     
                     <div class="p-6 lg:p-10 text-center">
@@ -160,29 +173,17 @@
     </main>
 
     <script>
-        // 서버에서 넘어온 메시지 알림
         const alertMessage = '${message}';
         if (alertMessage) {
             alert(alertMessage);
         }
 
-        // 신고하기 함수
         function reportUser(seq, nickname) {
-            // 본인 신고 방지용 (시큐리티 로그인 연동 후)
-            /*
-            const mySeq = '${sessionScope.seqMember}'; 
-            if(seq == mySeq) { 
-                alert('본인을 신고할 수 없습니다. 😅'); 
-                return; 
-            }
-            */
-
             if (confirm("[" + nickname + "] 사용자를 부적절한 활동으로 신고하시겠습니까?")) {
                 let form = document.createElement('form');
                 form.action = '${pageContext.request.contextPath}/report/add.do';
                 form.method = 'POST';
                 
-                // 스프링 시큐리티 CSRF 토큰
                 let csrfInput = document.createElement('input');
                 csrfInput.type = 'hidden';
                 csrfInput.name = '${_csrf.parameterName}';

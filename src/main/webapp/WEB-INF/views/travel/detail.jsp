@@ -72,9 +72,15 @@
 
                 <div class="travel-comment-list">
                     <c:if test="${empty commentList}">
-                        <div class="travel-comment-empty">
-                            아직 등록된 댓글이 없습니다.
-                        </div>
+                        <div class="comment-empty">
+						    <div class="comment-empty-icon">💬</div>
+						    <div class="comment-empty-text">
+						        아직 등록된 댓글이 없습니다.
+						    </div>
+						    <div class="comment-empty-sub">
+						        첫 댓글을 남겨보세요 🙂
+						    </div>
+						</div>
                     </c:if>
 
                     <c:forEach items="${commentList}" var="comment">
@@ -161,9 +167,7 @@
                 <div class="travel-detail-actions">
 
                     <div class="travel-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                        <a href="${cp}/travel/list.do" class="btn-travel-outline btn-travel-sm">
-                            목록으로
-                        </a>
+                        <a href="${cp}/travel/list.do" class="btn-travel-outline btn-gray">목록으로</a>
 
                         <c:if test="${isAdmin}">
                             <c:choose>
@@ -203,9 +207,7 @@
                                 <input type="hidden" name="targetType" value="TRAVEL">
                                 <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
 
-                                <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-warning">
-                                    신고
-                                </button>
+                                <button class="btn-travel-outline btn-gray">신고</button>
                             </form>
                         </c:if>
 
@@ -301,9 +303,17 @@
 
             new kakao.maps.Marker({
                 map: map,
-                position: position,
-                title: loc.name
+                position: position
             });
+
+            new kakao.maps.CustomOverlay({
+                map: map,
+                position: position,
+                content: '<div class="map-marker-label">' + loc.name + '</div>',
+                yAnchor: 2.3
+            });
+
+            labelOverlay.setMap(map);
 
             bounds.extend(position);
         });

@@ -62,9 +62,15 @@
 
                 <div class="board-comment-list">
                     <c:if test="${empty commentList}">
-                        <div class="board-comment-empty">
-                            아직 등록된 댓글이 없습니다.
-                        </div>
+                        <div class="comment-empty">
+						    <div class="comment-empty-icon">💬</div>
+						    <div class="comment-empty-text">
+						        아직 등록된 댓글이 없습니다.
+						    </div>
+						    <div class="comment-empty-sub">
+						        첫 댓글을 남겨보세요 🙂
+						    </div>
+						</div>
                     </c:if>
 
                     <c:forEach items="${commentList}" var="comment">
@@ -153,9 +159,7 @@
             <div class="board-detail-actions">
 
                 <div class="board-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                    <a href="${cp}/board/list.do" class="btn-board-outline btn-board-sm">
-                        목록으로
-                    </a>
+                    <a href="${cp}/board/list.do" class="btn-board-outline btn-gray">목록으로</a>
 
                     <c:if test="${isAdmin}">
                         <c:choose>
@@ -197,9 +201,7 @@
                             <input type="hidden" name="targetType" value="BOARD">
                             <input type="hidden" name="seqTarget" value="${dto.seqBoardPost}">
 
-                            <button type="submit" class="btn-board-outline btn-board-sm btn-board-warning">
-                                신고
-                            </button>
+                            <button class="btn-board-outline btn-gray">신고</button>
                         </form>
                     </c:if>
 

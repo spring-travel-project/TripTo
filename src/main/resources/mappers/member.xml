@@ -113,19 +113,19 @@
     </select>
 
     <!-- 내 정보 설정 후 회원 정보 업데이트를 위한 쿼리 -->
-    <update id="updateMemberInfo"
-        parameterType="com.tripto.dto.MemberDTO">
+    <update id="updateMemberInfo" parameterType="com.tripto.dto.MemberDTO">
         UPDATE member
-        SET nickname = #{nickname},
-        intro = #{intro},
-        birth =
-        TO_DATE(#{birth}, 'YYYY-MM-DD'),
-        gender = #{gender},
-        region =
-        #{region}
-        <if test="pic != null and pic != ''">
-            , pic = #{pic}
-        </if>
+        SET 
+            nickname = #{nickname},
+            intro = #{intro},
+            birth = TO_DATE(#{birth}, 'YYYY-MM-DD'),
+            gender = #{gender},
+            region = #{region}
+            
+            <if test="pic != null and pic != ''">
+                , pic = #{pic}
+            </if>
+            
         WHERE id = #{id}
     </update>
 
