@@ -53,7 +53,7 @@
       
       /* 멤버 모달 스크롤바 스타일 */
       #memberModal div::-webkit-scrollbar { width: 6px; }
-      #memberModal div::-webkit-scrollbar-thumb { background: #cbd5f5; border-radius: 999px; }
+      #memberModal div::-webkit-scrollbar-thumb { background: #cbd5f5; border-radius: 9999px; }
    </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -288,7 +288,15 @@
                           <c:forEach items="${memberList}" var="member">
                               <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                                   <div class="w-11 h-11 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                                      <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty member.profile ? member.profile : 'pic.png'}" class="w-full h-full object-cover">
+                                      <%-- 🌟 수정 포인트: 클라우디너리 URL 여부 확인 --%>
+                                      <c:choose>
+                                          <c:when test="${not empty member.profile and member.profile.startsWith('http')}">
+                                              <img src="${member.profile}" class="w-full h-full object-cover">
+                                          </c:when>
+                                          <c:otherwise>
+                                              <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty member.profile ? member.profile : 'pic.png'}" class="w-full h-full object-cover">
+                                          </c:otherwise>
+                                      </c:choose>
                                   </div>
                                   <div class="min-w-0">
                                       <p class="text-sm font-semibold text-slate-800 truncate">${member.nickname}</p>
