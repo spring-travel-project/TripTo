@@ -187,6 +187,8 @@ public class ChatDAO {
         return template.selectOne("chat.getRoomById", map);
     }
     
+    public List<RoutineDTO> getRoutineLocationListByTravelPost(int seqTravelPost) {
+        return template.selectList("chat.getRoutineLocationListByTravelPost", seqTravelPost);
     public Integer findTravelRoom(int seqTravelPost) {
         return template.selectOne("chat.findTravelRoom", seqTravelPost);
     }

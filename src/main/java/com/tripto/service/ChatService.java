@@ -512,6 +512,9 @@ public class ChatService {
         return chatDAO.getRoomById(roomId, seqMember);
     }
     
+    public List<RoutineDTO> getRoutineLocationListByTravelPost(int seqTravelPost) {
+        return chatDAO.getRoutineLocationListByTravelPost(seqTravelPost);
+    }
     public int createOrGetTravelChatRoom(int seqTravelPost, int loginUserId) {
 
         Integer roomId = chatDAO.findTravelRoom(seqTravelPost);

@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -27,9 +28,15 @@ import com.tripto.service.CommentService;
 import com.tripto.service.MainRecommendService;
 import com.tripto.service.MemberService;
 import com.tripto.service.TravelPostService;
+import com.tripto.service.ChatService;
+import com.tripto.dto.RoutineDTO;
 
 @Controller
 public class TravelPostController {
+	
+	@Autowired
+	private ChatService chatService;
+	
 
     // 여행 게시글 관련 비즈니스 로직을 처리하는 서비스
     private final TravelPostService service;
@@ -250,6 +257,17 @@ public class TravelPostController {
         // 관리자 여부 기본값
         boolean isAdmin = false;
 
+        List<RoutineDTO> routineLocationList =
+                chatService.getRoutineLocationListByTravelPost(seqTravelPost);
+        
+        //디버깅용
+        System.out.println("seqTravelPost = " + seqTravelPost);
+        System.out.println("routineLocationList size = "
+                + (routineLocationList == null ? "null" : routineLocationList.size()));
+        System.out.println("routineLocationList = " + routineLocationList);
+        
+        
+        
         // Spring Security 권한 목록 안에 ROLE_ADMIN이 있는지 확인
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             isAdmin = auth.getAuthorities().stream()
@@ -261,6 +279,7 @@ public class TravelPostController {
 
         // 해당 게시글에 연결된 장소 목록 전달
         model.addAttribute("locationList", service.locationListByTravelPost(seqTravelPost));
+        model.addAttribute("routineLocationList", routineLocationList);
 
         // 해당 게시글의 댓글 목록 전달
         model.addAttribute("commentList", commentService.travelList(seqTravelPost));
