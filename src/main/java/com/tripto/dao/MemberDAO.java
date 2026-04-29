@@ -1,5 +1,6 @@
 package com.tripto.dao;
 
+import java.util.List;
 import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.tripto.dto.MemberDTO;
+import com.tripto.dto.MyActivityDTO;
 
 @Repository
 public class MemberDAO {
@@ -63,14 +65,19 @@ public class MemberDAO {
 	public void deactivateMember(String id) {
 		sql.update("member.deactivateMember", id);
 	}
-	
+
 	// 마이페이지 -> 내 정보 설정 -> 닉네임 중복확인
 	public int checkNickname(String nickname) {
 		return sql.selectOne("member.checkNickname", nickname);
 	}
-	
+
 	// 마이페이지 -> 내 정보 설정 -> 회원 정보 업데이트
 	public void updateMemberInfo(MemberDTO dto) {
 		sql.update("member.updateMemberInfo", dto);
+	}
+
+	// 내가 작성한 게시글, 댓글 보기 (무한 스크롤 & 탭 필터링용 Map 매개변수 적용)
+	public List<MyActivityDTO> getMyActivities(Map<String, Object> map) {
+		return sql.selectList("member.getMyActivities", map);
 	}
 }

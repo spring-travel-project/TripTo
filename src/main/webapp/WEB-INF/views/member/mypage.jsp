@@ -16,9 +16,10 @@
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
                 <ul class="menu w-full gap-2 font-bold text-slate-600 text-base">
                     <li><a href="${pageContext.request.contextPath}/member/mypage.do" class="active bg-blue-50 text-blue-600">내 정보 보기</a></li>
-                    <li><a href="#" class="hover:bg-slate-50 transition-colors">내가 작성한 동행 게시글</a></li>
-                    <li><a href="#" class="hover:bg-slate-50 transition-colors">내가 작성한 일반 게시글</a></li>
-                    <li><a href="#" class="hover:bg-slate-50 transition-colors">내가 작성한 댓글</a></li>
+                    
+                    <li><a href="${pageContext.request.contextPath}/member/myactivity.do?tab=TRAVEL" class="hover:bg-slate-50 transition-colors">내가 작성한 동행 게시글</a></li>
+                    <li><a href="${pageContext.request.contextPath}/member/myactivity.do?tab=BOARD" class="hover:bg-slate-50 transition-colors">내가 작성한 일반 게시글</a></li>
+                    <li><a href="${pageContext.request.contextPath}/member/myactivity.do?tab=COMMENT" class="hover:bg-slate-50 transition-colors">내가 작성한 댓글</a></li>
                 </ul>
             </div>
         </aside>

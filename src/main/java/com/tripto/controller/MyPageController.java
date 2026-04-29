@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tripto.dto.MatchDTO;
 import com.tripto.dto.MemberDTO;
+import com.tripto.dto.MyActivityDTO;
 import com.tripto.service.MatchingService;
 import com.tripto.service.MemberService;
 
@@ -136,7 +137,8 @@ public class MyPageController {
 
 	// 5-2. 폼 제출: 내 정보 수정 완료 처리 (POST)
 	@PostMapping("/editInfo.do")
-	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal, HttpServletRequest request) {
+	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal,
+			HttpServletRequest request) {
 
 		// 1) 누구를 수정할지 기준(id) 세팅
 		dto.setId(principal.getName());
@@ -186,7 +188,8 @@ public class MyPageController {
 			@RequestParam(value = "staySeqs", required = false) List<Integer> staySeqs,
 			@RequestParam(value = "languageSeqs", required = false) List<Integer> languageSeqs,
 			@RequestParam(value = "ageGroupSeqs", required = false) List<Integer> ageGroupSeqs,
-			@RequestParam("coverFile") MultipartFile coverFile, Principal principal, javax.servlet.http.HttpServletRequest request) {
+			@RequestParam("coverFile") MultipartFile coverFile, Principal principal,
+			javax.servlet.http.HttpServletRequest request) {
 
 		// 1) 로그인한 유저의 seqMember 가져와서 DTO에 세팅
 		MemberDTO member = memberService.getMemberById(principal.getName());
@@ -217,5 +220,53 @@ public class MyPageController {
 
 		// 4) 작성 완료 후 마이페이지로 이동
 		return "redirect:/member/mypage.do";
+	}
+
+	// 7. '내 활동 내역'(내가 작성한 게시글, 댓글) 전용 페이지 컨트롤러
+	@GetMapping("/myactivity.do")
+	public String myActivity(@RequestParam(value = "tab", defaultValue = "ALL") String tab, Model model,
+			Principal principal) {
+
+		String loginId = principal.getName();
+		MemberDTO member = memberService.getMemberById(loginId);
+
+		// 1) 마이페이지 구현에 썼던 연령대 계산 로직
+		String ageGroup = "비공개";
+		if (member.getBirth() != null && member.getBirth().length() >= 4) {
+			int birthYear = Integer.parseInt(member.getBirth().substring(0, 4));
+			int currentYear = LocalDate.now().getYear();
+			int age = currentYear - birthYear;
+
+			int ageGroupNum = (age / 10) * 10;
+			ageGroup = ageGroupNum + "대";
+		}
+
+		// 2) MBTI 정보를 가져오기 위해 프로필 정보 조회
+		MatchDTO profile = matchingService.getMyProfile(member.getSeqMember());
+
+		// 3) 내 활동 내역 가져오기
+		List<MyActivityDTO> myActivities = memberService.getMyActivities(member.getSeqMember(), tab, 1);
+
+		model.addAttribute("myActivities", myActivities);
+		model.addAttribute("currentTab", tab); // JSP에서 어떤 탭을 열지 알려주기 위함
+
+		// 4) 계산된 내 정보들을 JSP로 전달
+		model.addAttribute("member", member);
+		model.addAttribute("ageGroup", ageGroup);
+		model.addAttribute("profile", profile);
+
+		return "member/myactivity"; // JSP 파일로 연결
+	}
+
+	// 7-1. 무한 스크롤을 위한 API (JSON 데이터만 보내주는 역할)
+	@GetMapping("/api/myactivity/more")
+	@ResponseBody // 화면 이동 없이 데이터만 리턴
+	public List<MyActivityDTO> getMoreActivities(@RequestParam(value = "tab", defaultValue = "ALL") String tab,
+			@RequestParam(value = "page", defaultValue = "1") int page, Principal principal) {
+
+		MemberDTO member = memberService.getMemberById(principal.getName());
+
+		// 요청받은 페이지의 다음 10개 데이터를 DB에서 긁어서 리턴
+		return memberService.getMyActivities(member.getSeqMember(), tab, page);
 	}
 }

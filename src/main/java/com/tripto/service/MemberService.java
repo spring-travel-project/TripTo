@@ -1,5 +1,7 @@
 package com.tripto.service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.tripto.dao.MemberDAO;
 import com.tripto.dto.MemberDTO;
+import com.tripto.dto.MyActivityDTO;
 
 @Service
 public class MemberService {
@@ -64,14 +67,30 @@ public class MemberService {
 
 		dao.deactivateMember(name);
 	}
-	
+
 	// 마이페이지 -> 내 정보 설정 -> 닉네임 중복확인
 	public int checkNickname(String nickname) {
 		return dao.checkNickname(nickname);
 	}
-	
+
 	// 마이페이지 -> 내 정보 설정 -> 회원 정보 업데이트
 	public void updateMemberInfo(MemberDTO dto) {
 		dao.updateMemberInfo(dto);
+	}
+
+	// 내가 작성한 게시글, 댓글 보기
+	public List<MyActivityDTO> getMyActivities(int seqMember, String tab, int page) {
+		int pageSize = 10; // 한 번에 가져올 개수 10개
+		int startRow = (page - 1) * pageSize + 1;
+		int endRow = page * pageSize;
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("seqMember", seqMember);
+		map.put("tab", tab);
+		map.put("startRow", startRow);
+		map.put("endRow", endRow);
+		
+		// DAO도 Map을 받도록 파라미터 수정 필요
+		return dao.getMyActivities(map);
 	}
 }
