@@ -255,6 +255,8 @@
         }
 
         $('#newPwInput, #newPwConfirmInput').on('keyup', function() {
+            // 1. 현재 입력된 '기존 비밀번호'도 가져옴
+            const currentPw = $('#currentPwInput').val(); 
             const pw = $('#newPwInput').val();
             const pwConfirm = $('#newPwConfirmInput').val();
             const $msg = $('#newPwAlert');
@@ -262,6 +264,10 @@
 
             if (!pwRegex.test(pw)) {
                 $msg.text("영문, 숫자, 특수문자를 포함해 8자리 이상이어야 합니다.").removeClass("text-success").addClass("text-error");
+                isNewPwValid = false;
+            // 2. 기존 비밀번호와 새 비밀번호가 똑같으면 차단
+            } else if (currentPw === pw) {
+                $msg.text("현재 사용 중인 비밀번호와 동일하게 변경할 수 없습니다.").removeClass("text-success").addClass("text-error");
                 isNewPwValid = false;
             } else if (pw !== pwConfirm) {
                 $msg.text("비밀번호가 일치하지 않습니다.").removeClass("text-success").addClass("text-error");
