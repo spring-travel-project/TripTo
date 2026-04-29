@@ -35,7 +35,7 @@
                        placeholder="제목 또는 내용으로 검색해보세요."
                        class="travel-search-input">
 
-                <button type="submit" class="btn-travel-outline btn-travel-sm">
+                <button type="submit" class="btn-travel-outline btn-travel-sm btn-search">
 				    검색
 				</button>
             </form>
