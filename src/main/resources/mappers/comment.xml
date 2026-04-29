@@ -20,7 +20,7 @@
             INNER JOIN MEMBER m
                 ON bc.SEQMEMBER = m.SEQMEMBER
         WHERE bc.SEQBOARDPOST = #{seqBoardPost}
-          AND bc.STATUS = 'NORMAL'
+          AND bc.STATUS = 'NORMAL' AND m.status != 2
         ORDER BY bc.SEQBOARDCOMMENT ASC
     </select>
 
@@ -83,7 +83,7 @@
 	        INNER JOIN MEMBER m
 	            ON tc.SEQMEMBER = m.SEQMEMBER
 	    WHERE tc.SEQTRAVELPOST = #{seqTravelPost}
-	      AND tc.STATUS = 'NORMAL'
+	      AND tc.STATUS = 'NORMAL' AND m.status != 2
 	    ORDER BY tc.SEQTRAVELCOMMENT ASC
 	</select>
 	
