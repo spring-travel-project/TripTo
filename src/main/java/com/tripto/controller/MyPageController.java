@@ -93,7 +93,8 @@ public class MyPageController {
 
 	// 2-2. 비밀번호 변경 - 새 비밀번호로 변경
 	@PostMapping("/changePw.do")
-	public String changePw(@RequestParam("newPw") String newPw, Principal principal) {
+	public String changePw(@RequestParam("newPw") String newPw, Principal principal,
+			javax.servlet.http.HttpServletRequest request) { // request 객체 추가
 		String encodedPw = passwordEncoder.encode(newPw);
 
 		Map<String, String> map = new HashMap<>();
@@ -103,8 +104,15 @@ public class MyPageController {
 		// 기존에 만들어둔 비밀번호 업데이트 메서드 재활용
 		memberService.updatePw(map);
 
-		// 비밀번호 변경 후 강제 로그아웃 시키기
-		return "redirect:/logout";
+		// 스프링 시큐리티 문법으로 서버 단에서 강제 로그아웃 시키기
+		try {
+			request.logout();
+		} catch (javax.servlet.ServletException e) {
+			e.printStackTrace();
+		}
+
+		// 로그아웃이 완료되었으니, 로그인 페이지로 돌려보냄
+		return "redirect:/member/login.do";
 	}
 
 	// 3. 계정 탈퇴 (비식별화)
@@ -138,33 +146,29 @@ public class MyPageController {
 	}
 
 	// 5-2. 폼 제출: 내 정보 수정 완료 처리 (POST)
-		@PostMapping("/editInfo.do")
-		public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal) {
+	@PostMapping("/editInfo.do")
+	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal) {
 
-		    dto.setId(principal.getName());
+		dto.setId(principal.getName());
 
-	    if (picFile != null && !picFile.isEmpty()) {
-	        try {
-	            // 🌟 클라우드 설정 (태훈님 키 입력!)
-	            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-	            		 "cloud_name", "dh5p4lvo2",
-	                     "api_key", "283127846695383",
-	                     "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
-	                     "secure", true
-	            ));
+		if (picFile != null && !picFile.isEmpty()) {
+			try {
+				// 🌟 클라우드 설정 (태훈님 키 입력!)
+				Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap("cloud_name", "dh5p4lvo2", "api_key",
+						"283127846695383", "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k", "secure", true));
 
-	            // 🌟 업로드 후 URL 받기
-	            Map uploadResult = cloudinary.uploader().upload(picFile.getBytes(), ObjectUtils.emptyMap());
-	            String imageUrl = (String) uploadResult.get("secure_url");
+				// 🌟 업로드 후 URL 받기
+				Map uploadResult = cloudinary.uploader().upload(picFile.getBytes(), ObjectUtils.emptyMap());
+				String imageUrl = (String) uploadResult.get("secure_url");
 
-	            dto.setPic(imageUrl); // DB에는 이제 URL 주소가 저장됩니다.
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    }
+				dto.setPic(imageUrl); // DB에는 이제 URL 주소가 저장됩니다.
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-	    memberService.updateMemberInfo(dto);
-	    return "redirect:/member/mypage.do";
+		memberService.updateMemberInfo(dto);
+		return "redirect:/member/mypage.do";
 	}
 
 	// 6-1. 프로필 작성/수정 화면 띄우기 (GET)
@@ -190,11 +194,11 @@ public class MyPageController {
 
 		if (coverFile != null && !coverFile.isEmpty()) {
 			try {
-				// 🌟 클라우드 설정
+				// 클라우드 설정
 				Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap("cloud_name", "dh5p4lvo2", "api_key",
 						"283127846695383", "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k", "secure", true));
 
-				// 🌟 업로드 후 URL 받기
+				// 업로드 후 URL 받기
 				Map uploadResult = cloudinary.uploader().upload(coverFile.getBytes(), ObjectUtils.emptyMap());
 				String imageUrl = (String) uploadResult.get("secure_url");
 
