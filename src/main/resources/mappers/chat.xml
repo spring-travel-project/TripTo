@@ -747,5 +747,13 @@
 	          AND seqMember = #{userId}
 	    )
 	</insert>
+	
+	<select id="isRoomMember" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM user_chat
+	    WHERE seqChattingroom = #{roomId}
+	      AND seqMember = #{seqMember}
+	      AND isActive = 1
+	</select>
 
 </mapper>

@@ -55,6 +55,10 @@ public class ChatController {
         int loginUserId = loginMember.getSeqMember();
         
         if (roomId != null && roomId > 0) {
+            if (!canAccessRoom(roomId, loginUserId)) {
+                return "redirect:/chat/list";
+            }
+
             chatService.updateReadStatus(roomId, loginUserId);
         }
 
@@ -69,6 +73,10 @@ public class ChatController {
         ChatRoomDTO selectedRoom = null;
 
         if (selectedRoomId != null && selectedRoomId > 0) {
+            if (!canAccessRoom(selectedRoomId, loginUserId)) {
+                return "redirect:/chat/list";
+            }
+
             messageList = chatService.getMessageList(selectedRoomId, loginUserId);
 
             for (ChatRoomDTO room : roomList) {
@@ -106,7 +114,15 @@ public class ChatController {
         if ((message == null || message.trim().isEmpty())) {
             message = "사진을 보냈습니다."; 
         }
+        
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
 
+        if (message != null && message.length() > 1000) {
+            message = message.substring(0, 1000);
+        }
+        
         chatService.insertMessage(roomId, loginUserId, message);
 
         if (category == null) {
@@ -118,18 +134,29 @@ public class ChatController {
     
     @PostMapping("/chat/exit")
     @ResponseBody
-    public Map<String, Object> exitRoom(
-            @RequestParam("roomId") int roomId) {
+    public Map<String, Object> exitRoom(@RequestParam("roomId") int roomId) {
+
+        Map<String, Object> response = new HashMap<>();
 
         MemberDTO loginMember = getLoginMember();
 
+        if (loginMember == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+
         int loginUserId = loginMember.getSeqMember();
+
+        if (!canAccessRoom(roomId, loginUserId)) {
+            response.put("success", false);
+            response.put("message", "접근 권한이 없습니다.");
+            return response;
+        }
 
         boolean result = chatService.exitRoom(roomId, loginUserId);
 
-        Map<String, Object> response = new HashMap<>();
         response.put("success", result);
-
         return response;
     }
     
@@ -145,6 +172,10 @@ public class ChatController {
         }
 
         int loginUserId = loginMember.getSeqMember();
+        
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
 
         List<RoutineDTO> routineList = chatService.getRoutineList(roomId);
         List<PollDTO> pollList = chatService.getPollList(roomId);
@@ -165,12 +196,23 @@ public class ChatController {
             @RequestParam("roomId") int roomId,
             Model model) {
 
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        int loginUserId = loginMember.getSeqMember();
+
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
+
         model.addAttribute("roomId", roomId);
 
         return "chat/pollWrite";
     }
 
-    // 🌟 투표 작성 완료 시 시스템 메시지 발송 로직 추가 🌟
     @PostMapping("/chat/poll/write")
     public String pollWriteOk(
             PollDTO dto,
@@ -183,24 +225,28 @@ public class ChatController {
         }
 
         int loginUserId = loginMember.getSeqMember();
+
+        int roomId = dto.getSeqChattingroom();
+
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
+
         dto.setSeqMember(loginUserId);
 
-        // 1. 투표 내용 DB 저장
         chatService.insertPoll(dto, pollContents);
 
-        // 2. 시스템 메시지(회원번호: 0) 강제 전송
-        // (주의: MyBatis에서 insert 후 새로 생성된 pollId를 DTO에 담아준다고 가정합니다)
-        // 만약 DTO의 제목 필드명이 title이 아니라면 dto.getTitle()을 dto.get이름()으로 변경하세요.
-        String sysMsg = "<a href='/TripTo/chat/poll/detail?roomId=" + dto.getSeqChattingroom() 
-                      + "&pollId=" + dto.getSeq() + "' "
-                      + "class='text-blue-600 underline font-bold hover:text-blue-800'>"
-                      + "📋 [투표] " + dto.getPollTitle() + "</a><br>새로운 투표가 등록되었습니다!";
-        
-        chatService.insertMessage(dto.getSeqChattingroom(), 0, sysMsg);
-        
-        chatWebSocketHandler.broadcastSystemMessage(dto.getSeqChattingroom(), sysMsg);
+        String safeTitle = escapeHtml(dto.getPollTitle());
 
-        return "redirect:/chat/schedulePoll?roomId=" + dto.getSeqChattingroom();
+        String sysMsg = "<a href='/TripTo/chat/poll/detail?roomId=" + roomId
+                + "&pollId=" + dto.getSeq() + "' "
+                + "class='text-blue-600 underline font-bold hover:text-blue-800'>"
+                + "📋 [투표] " + safeTitle + "</a><br>새로운 투표가 등록되었습니다!";
+
+        chatService.insertMessage(roomId, 0, sysMsg);
+        chatWebSocketHandler.broadcastSystemMessage(roomId, sysMsg);
+
+        return "redirect:/chat/schedulePoll?roomId=" + roomId;
     }
     
     @GetMapping("/chat/poll/detail")
@@ -217,13 +263,21 @@ public class ChatController {
 
         int loginUserId = loginMember.getSeqMember();
 
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
+
         PollDTO poll = chatService.getPollDetail(pollId);
+
+        if (poll == null || poll.getSeqChattingroom() != roomId) {
+            return "redirect:/chat/schedulePoll?roomId=" + roomId;
+        }
+
         List<PollContentDTO> pollContentList = chatService.getPollContentList(pollId);
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("poll", poll);
         model.addAttribute("pollContentList", pollContentList);
-        
         model.addAttribute("loginUserId", loginUserId);
 
         return "chat/pollDetail";
@@ -243,6 +297,16 @@ public class ChatController {
 
         int loginUserId = loginMember.getSeqMember();
 
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+
+        if (poll == null || poll.getSeqChattingroom() != roomId) {
+            return "redirect:/chat/schedulePoll?roomId=" + roomId;
+        }
+
         chatService.votePoll(pollId, pollContentId, loginUserId);
 
         return "redirect:/chat/poll/detail?roomId=" + roomId + "&pollId=" + pollId;
@@ -261,15 +325,33 @@ public class ChatController {
 
         int loginUserId = loginMember.getSeqMember();
 
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
+
+        PollDTO poll = chatService.getPollDetail(pollId);
+
+        if (poll == null || poll.getSeqChattingroom() != roomId) {
+            return "redirect:/chat/schedulePoll?roomId=" + roomId;
+        }
+
         chatService.deletePoll(pollId, loginUserId);
 
         return "redirect:/chat/schedulePoll?roomId=" + roomId;
     }
     
     @GetMapping("/chat/routine/write")
-    public String routineWrite(
-            @RequestParam("roomId") int roomId,
-            Model model) {
+    public String routineWrite(@RequestParam("roomId") int roomId, Model model) {
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        if (!canAccessRoom(roomId, loginMember.getSeqMember())) {
+            return "redirect:/chat/list";
+        }
 
         model.addAttribute("roomId", roomId);
 
@@ -318,6 +400,10 @@ public class ChatController {
         }
 
         int loginUserId = loginMember.getSeqMember();
+        
+        if (!canAccessRoom(roomId, loginUserId)) {
+            return "redirect:/chat/list";
+        }
 
         RoutineDTO routine = chatService.getRoutineDetail(routineId);
         List<FileDTO> fileList = chatService.getRoutineFileList(routineId);
@@ -341,6 +427,10 @@ public class ChatController {
         String loggedInId = auth.getName();
 
         return memberService.getMemberById(loggedInId);
+    }
+    
+    private boolean canAccessRoom(int roomId, int loginUserId) {
+        return chatService.isRoomMember(roomId, loginUserId);
     }
     
  // 🌟 매칭 프로필에서 1:1 채팅 시작하기
@@ -485,5 +575,16 @@ public class ChatController {
         );
 
         return "redirect:/chat/list?roomId=" + roomId + "&category=0";
+    }
+    
+    private String escapeHtml(String str) {
+        if (str == null) return "";
+
+        return str
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

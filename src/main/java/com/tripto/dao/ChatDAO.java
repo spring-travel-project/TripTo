@@ -189,6 +189,7 @@ public class ChatDAO {
     
     public List<RoutineDTO> getRoutineLocationListByTravelPost(int seqTravelPost) {
         return template.selectList("chat.getRoutineLocationListByTravelPost", seqTravelPost);
+    }
     public Integer findTravelRoom(int seqTravelPost) {
         return template.selectOne("chat.findTravelRoom", seqTravelPost);
     }
@@ -203,6 +204,14 @@ public class ChatDAO {
 
     public void insertUserChatIfNotExists(Map<String, Integer> map) {
         template.insert("chat.insertUserChatIfNotExists", map);
+    }
+    
+    public int isRoomMember(int roomId, int seqMember) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("seqMember", seqMember);
+
+        return template.selectOne("chat.isRoomMember", map);
     }
     
 }

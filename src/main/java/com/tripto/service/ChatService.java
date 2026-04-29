@@ -553,5 +553,8 @@ public class ChatService {
         return newRoomId;
     }
     
+    public boolean isRoomMember(int roomId, int seqMember) {
+        return chatDAO.isRoomMember(roomId, seqMember) > 0;
+    }
     
 }
