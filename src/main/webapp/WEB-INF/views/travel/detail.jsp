@@ -167,9 +167,7 @@
                 <div class="travel-detail-actions">
 
                     <div class="travel-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                        <a href="${cp}/travel/list.do" class="btn-travel-outline btn-travel-sm">
-                            목록으로
-                        </a>
+                        <a class="btn-travel-outline btn-gray">목록으로</a>
 
                         <c:if test="${isAdmin}">
                             <c:choose>
@@ -209,9 +207,7 @@
                                 <input type="hidden" name="targetType" value="TRAVEL">
                                 <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
 
-                                <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-warning">
-                                    신고
-                                </button>
+                                <button class="btn-travel-outline btn-gray">신고</button>
                             </form>
                         </c:if>
 

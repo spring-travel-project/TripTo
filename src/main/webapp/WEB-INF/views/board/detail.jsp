@@ -159,9 +159,7 @@
             <div class="board-detail-actions">
 
                 <div class="board-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                    <a href="${cp}/board/list.do" class="btn-board-outline btn-board-sm">
-                        목록으로
-                    </a>
+                    <a class="btn-board-outline btn-gray">목록으로</a>
 
                     <c:if test="${isAdmin}">
                         <c:choose>
@@ -203,9 +201,7 @@
                             <input type="hidden" name="targetType" value="BOARD">
                             <input type="hidden" name="seqTarget" value="${dto.seqBoardPost}">
 
-                            <button type="submit" class="btn-board-outline btn-board-sm btn-board-warning">
-                                신고
-                            </button>
+                            <button class="btn-board-outline btn-gray">신고</button>
                         </form>
                     </c:if>
 
