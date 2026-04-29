@@ -60,6 +60,7 @@
             m.nickname,
             m.pic,
             m.gender,
+            m.intro,
             TRUNC(MONTHS_BETWEEN(SYSDATE, m.birth) / 12) AS age,
             p.mbti,
             p.smoking,
@@ -68,22 +69,22 @@
             p.stepCount,
             p.coverPic,
 
-            /* 🌟 ERD 기반: 선호 숙소 (profile_stay + stay) */
+            
             (SELECT LISTAGG(s.Name, ', ') WITHIN GROUP (ORDER BY s.seqStay)
              FROM profile_stay ps JOIN stay s ON ps.seqStay = s.seqStay
              WHERE ps.seqMember = m.seqMember) AS stayNames,
 
-            /* 🌟 ERD 기반: 사용 가능 언어 (profile_language + language) */
+            
             (SELECT LISTAGG(l.Name, ', ') WITHIN GROUP (ORDER BY l.seqLanguage)
              FROM profile_language pl JOIN language l ON pl.seqLanguage = l.seqLanguage
              WHERE pl.seqMember = m.seqMember) AS languageNames,
 
-            /* 🌟 ERD 기반: 선호 연령대 (profile_age_group + age_group) */
+            
             (SELECT LISTAGG(a.Name, ', ') WITHIN GROUP (ORDER BY a.seqAgeGroup)
              FROM profile_age_group pa JOIN age_group a ON pa.seqAgeGroup = a.seqAgeGroup
              WHERE pa.seqMember = m.seqMember) AS ageGroupNames,
 
-            /* 8가지 성향 일치 개수 계산 (matchCount) */
+            
             (
                 (CASE WHEN p.mbti = my.mbti THEN 1 ELSE 0 END) +
                 (CASE WHEN p.smoking = my.smoking THEN 1 ELSE 0 END) +
