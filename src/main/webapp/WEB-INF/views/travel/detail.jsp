@@ -158,7 +158,7 @@
 				        <button type="button"
 						        class="btn-travel-outline btn-travel-sm btn-chat-hover"
 						        style="width:100%; margin:20px 0;"
-						        onclick="location.href='${cp}/chat/start?targetSeq=${dto.seqMember}'">
+						        onclick="location.href='${cp}/chat/travel?seqTravelPost=${dto.seqTravelPost}'">
 						    채팅 보내기
 						</button>
 				    </div>

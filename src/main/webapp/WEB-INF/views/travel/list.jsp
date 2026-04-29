@@ -83,14 +83,19 @@
 
             <!-- 페이지네이션 -->
             <div class="travel-pagination">
-                <c:forEach begin="1" end="${totalPage}" var="p">
-                    <c:choose>
-                        <c:when test="${p == page}">
-                            <span class="travel-page-btn travel-page-btn-active">${p}</span>
-                        </c:when>
-                    </c:choose>
-                </c:forEach>
-            </div>
+			    <c:forEach begin="1" end="${totalPage}" var="p">
+			        <c:choose>
+			            <c:when test="${p == page}">
+			                <span class="travel-page-btn travel-page-btn-active">${p}</span>
+			            </c:when>
+			            <c:otherwise>
+			                <a href="${cp}/travel/list.do?page=${p}&searchWord=${searchWord}" class="travel-page-btn">
+			                    ${p}
+			                </a>
+			            </c:otherwise>
+			        </c:choose>
+			    </c:forEach>
+			</div>
 
         </div>
     </div>
