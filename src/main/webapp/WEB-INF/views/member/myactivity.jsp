@@ -39,7 +39,7 @@
                         <div class="text-[15px] font-medium text-slate-600 flex items-center gap-3">
                             <span>${ageGroup} · ${member.gender == 0 ? '남성' : '여성'} · ${member.region}</span>
                             <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                            <span class="text-blue-500 font-bold">MBTI: ${empty profile.mbti ? '미입력' : profile.mbti}</span>
+                            <span class="text-blue-500 font-bold">${empty profile.mbti ? '미입력' : profile.mbti}</span>
                         </div>
                     </div>
                 </div>
