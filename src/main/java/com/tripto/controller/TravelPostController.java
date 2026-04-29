@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -27,10 +28,15 @@ import com.tripto.service.CommentService;
 import com.tripto.service.MainRecommendService;
 import com.tripto.service.MemberService;
 import com.tripto.service.TravelPostService;
+import com.tripto.service.ChatService;
+import com.tripto.dto.RoutineDTO;
 
 @Controller
 public class TravelPostController {
-
+	
+	@Autowired
+	private ChatService chatService;
+	
     private final TravelPostService service;
     private final CommentService commentService;
     private final MemberService memberService;
@@ -184,6 +190,17 @@ public class TravelPostController {
         // ⭐ 관리자 판별 (시큐리티 기준)
         boolean isAdmin = false;
 
+        List<RoutineDTO> routineLocationList =
+                chatService.getRoutineLocationListByTravelPost(seqTravelPost);
+        
+        //디버깅용
+        System.out.println("seqTravelPost = " + seqTravelPost);
+        System.out.println("routineLocationList size = "
+                + (routineLocationList == null ? "null" : routineLocationList.size()));
+        System.out.println("routineLocationList = " + routineLocationList);
+        
+        
+        
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             isAdmin = auth.getAuthorities().stream()
                     .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
@@ -191,6 +208,7 @@ public class TravelPostController {
 
         model.addAttribute("dto", dto);
         model.addAttribute("locationList", service.locationListByTravelPost(seqTravelPost));
+        model.addAttribute("routineLocationList", routineLocationList);
         model.addAttribute("commentList", commentService.travelList(seqTravelPost));
 
         model.addAttribute("currentSeqMember", isLogin ? loginMember.getSeqMember() : null);

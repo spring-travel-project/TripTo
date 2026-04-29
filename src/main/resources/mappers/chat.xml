@@ -667,5 +667,25 @@
 	      AND uc.seqMember = #{seqMember}
 	      AND uc.isActive = 1
 	</select>
+	
+	<select id="getRoutineLocationListByTravelPost"
+	        parameterType="int"
+	        resultType="com.tripto.dto.RoutineDTO">
+	    SELECT
+	        r.seq,
+	        r.title,
+	        l.placeName,
+	        l.address,
+	        l.latitude,
+	        l.longitude
+	    FROM routine r
+	        INNER JOIN chattingroom cr
+	            ON r.seqChattingroom = cr.seq
+	        INNER JOIN location l
+	            ON r.seqLocation = l.seqLocation
+	    WHERE cr.seqTravelPost = #{seqTravelPost}
+	      AND r.seqLocation IS NOT NULL
+	    ORDER BY r.dDay ASC NULLS LAST, r.regdate ASC
+	</select>
 
 </mapper>
