@@ -166,7 +166,7 @@
             TITLE = #{title},
             CONTENT = #{content},
             UPDATEDATE = SYSDATE,
-            THUMBNAILURL = #{thumbnailUrl}
+            THUMBNAILURL = #{thumbnailUrl, jdbcType=VARCHAR}
         WHERE SEQTRAVELPOST = #{seqTravelPost}
     </update>
 

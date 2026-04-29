@@ -5,6 +5,22 @@
 	<meta charset="UTF-8">
 	<title>TripTo | 일정 등록</title>
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
+	
+	<style>
+	.file-item {
+	    display: inline-flex;
+	    align-items: center;
+	    gap: 8px;
+	    margin-left: 10px;
+	}
+	
+	.file-remove {
+	    cursor: pointer;
+	    color: #ef4444;
+	    font-weight: bold;
+	}
+	</style>
+
 </head>
 <body class="bg-slate-50 text-slate-800">
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
@@ -18,7 +34,8 @@
 
 		<div class="content-card card-pad">
 			<form method="post"
-			      action="${pageContext.request.contextPath}/chat/routine/write"
+			      action="${pageContext.request.contextPath}/chat/routine/write?${_csrf.parameterName}=${_csrf.token}"
+			      enctype="multipart/form-data"
 			      class="space-y-6">
 				
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
@@ -61,7 +78,7 @@
 						</div>
 				
 						<div class="space-y-3">
-							<div class="flex gap-2">
+							<div class="flex items-center gap-3 mt-2">
 								<input
 									type="text"
 									id="keyword"
@@ -106,11 +123,28 @@
 					</p>
 				</div>
 
-				<div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6">
-					<p class="text-sm font-semibold text-slate-700 mb-2">첨부파일</p>
-					<p class="text-xs text-slate-400">
-						현재 첨부파일 저장 기능은 연결하지 않은 상태입니다.
-					</p>
+				<div class="rounded-2xl bg-slate-50 px-5 py-6">
+				    <p class="text-sm font-semibold text-slate-700 mb-2">첨부파일</p>
+				
+				    <div class="flex items-center gap-3">
+				        <input type="file"
+				               id="fileInput"
+				               name="files"
+				               multiple
+				               style="display:none;"
+				               onchange="showSelectedFiles(this)">
+				
+				        <label for="fileInput"
+				               class="cursor-pointer px-4 py-2 rounded-lg bg-sky-100 text-sky-700 text-sm font-semibold hover:bg-sky-200">
+				            파일 선택
+				        </label>
+				
+				        <div id="fileList" class="flex items-center gap-3 text-sm text-slate-700"></div>
+				    </div>
+				
+				    <p class="mt-2 text-xs text-slate-400">
+				        여러 개 파일 업로드 가능합니다.
+				    </p>
 				</div>
 
 				<div class="flex justify-end gap-3">
@@ -227,6 +261,53 @@
 				.replace(/>/g, '&gt;')
 				.replace(/"/g, '&quot;')
 				.replace(/'/g, '&#39;');
+		}
+		
+		let filesArray = [];
+
+		function showSelectedFiles(input) {
+		    const fileListDiv = document.getElementById('fileList');
+
+		    filesArray = filesArray.concat(Array.from(input.files));
+
+		    const dt = new DataTransfer();
+		    filesArray.forEach(function(file) {
+		        dt.items.add(file);
+		    });
+		    input.files = dt.files;
+
+		    renderFiles();
+		}
+
+		function renderFiles() {
+		    const fileListDiv = document.getElementById('fileList');
+		    fileListDiv.innerHTML = '';
+
+		    filesArray.forEach(function(file, index) {
+		        const item = document.createElement('span');
+		        item.className = 'file-item';
+
+		        item.innerHTML =
+		            '<span>' + file.name + '</span>' +
+		            '<button type="button" class="file-remove" onclick="removeFile(' + index + ')">×</button>';
+
+		        fileListDiv.appendChild(item);
+		    });
+		}
+
+		function removeFile(index) {
+		    const fileInput = document.getElementById('fileInput');
+
+		    filesArray.splice(index, 1);
+
+		    const dt = new DataTransfer();
+		    filesArray.forEach(function(file) {
+		        dt.items.add(file);
+		    });
+
+		    fileInput.files = dt.files;
+
+		    renderFiles();
 		}
 	</script>
 </body>
