@@ -381,6 +381,47 @@
              filePreviewArea.classList.add('hidden');
          }
       });
+      
+      document.getElementById('exitRoomBtn')?.addEventListener('click', function () {
+
+    	    if (!selectedRoomId) {
+    	        alert('선택된 채팅방이 없습니다.');
+    	        return;
+    	    }
+
+    	    if (!confirm('채팅방을 나가시겠습니까?')) {
+    	        return;
+    	    }
+
+    	    fetch(contextPath + '/chat/exit', {
+    	        method: 'POST',
+    	        headers: {
+    	            'Content-Type': 'application/x-www-form-urlencoded',
+    	            [csrfHeader]: csrfToken
+    	        },
+    	        body: 'roomId=' + encodeURIComponent(selectedRoomId)
+    	    })
+    	    .then(function(res) {
+    	        return res.json();
+    	    })
+    	    .then(function(data) {
+    	        if (data.success) {
+    	            if (socket) {
+    	                socket.close();
+    	            }
+
+    	            alert('채팅방에서 나갔습니다.');
+    	            location.href = contextPath + '/chat/list';
+    	        } else {
+    	            alert('채팅방 나가기에 실패했습니다.');
+    	        }
+    	    })
+    	    .catch(function(err) {
+    	        console.error(err);
+    	        alert('채팅방 나가기 중 오류가 발생했습니다.');
+    	    });
+
+    	});
 
       connectSocket();
       scrollToBottom();
