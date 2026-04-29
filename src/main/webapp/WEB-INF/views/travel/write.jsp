@@ -97,8 +97,16 @@
 
     const places = new kakao.maps.services.Places();
     let marker = null;
+    
+    document.getElementById('placeKeyword').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('btnSearchPlace').click();
+        }
+    });
 
     document.getElementById('btnSearchPlace').addEventListener('click', function () {
+    	
         const keyword = document.getElementById('placeKeyword').value.trim();
 
         if (keyword === '') {

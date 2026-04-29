@@ -157,6 +157,13 @@
 	        document.getElementById('selectedPlaceBox').innerText =
 	            '선택된 장소: ' + placeName + ' / ' + address;
 	    }
+	    
+	    document.getElementById('placeKeyword').addEventListener('keydown', function (e) {
+	        if (e.key === 'Enter') {
+	            e.preventDefault();
+	            document.getElementById('btnSearchPlace').click();
+	        }
+	    });
 	
 	    document.getElementById('btnSearchPlace').addEventListener('click', function () {
 	        const keyword = document.getElementById('placeKeyword').value.trim();
@@ -207,7 +214,6 @@
 	        previewStyle: 'vertical',
 	        initialValue: originContent || '',
 
-	        // 🔥 여기 추가
 	        hooks: {
 	            addImageBlobHook: async (blob, callback) => {
 
