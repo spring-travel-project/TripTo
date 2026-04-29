@@ -27,9 +27,9 @@
 
                     <div class="travel-detail-meta">
                         <a href="${cp}/matching/detail?seqMember=${dto.seqMember}"
-						   style="font-weight:600; color:#334155;">
-						    ${dto.writerName}
-						</a>
+                           style="font-weight:600; color:#334155;">
+                            ${dto.writerName}
+                        </a>
                         <span>${dto.createDate}</span>
                         <span>조회 ${dto.viewCount}</span>
                     </div>
@@ -73,14 +73,14 @@
                 <div class="travel-comment-list">
                     <c:if test="${empty commentList}">
                         <div class="comment-empty">
-						    <div class="comment-empty-icon">💬</div>
-						    <div class="comment-empty-text">
-						        아직 등록된 댓글이 없습니다.
-						    </div>
-						    <div class="comment-empty-sub">
-						        첫 댓글을 남겨보세요 🙂
-						    </div>
-						</div>
+                            <div class="comment-empty-icon">💬</div>
+                            <div class="comment-empty-text">
+                                아직 등록된 댓글이 없습니다.
+                            </div>
+                            <div class="comment-empty-sub">
+                                첫 댓글을 남겨보세요 🙂
+                            </div>
+                        </div>
                     </c:if>
 
                     <c:forEach items="${commentList}" var="comment">
@@ -152,17 +152,17 @@
                     </c:forEach>
                 </div>
                 
-                <!-- 🔥 채팅 버튼 추가 -->
-	            <c:if test="${not isWriter}">
-				    <div style="margin:20px 0;">
-				        <button type="button"
-						        class="btn-travel-outline btn-travel-sm btn-chat-hover"
-						        style="width:100%; margin:20px 0;"
-						        onclick="location.href='${cp}/chat/travel?seqTravelPost=${dto.seqTravelPost}'">
-						    채팅 보내기
-						</button>
-				    </div>
-				</c:if>
+                <c:if test="${not isWriter}">
+                    <div style="margin:20px 0;">
+                        <button type="button"
+                                id="btnApplyCompanion"
+                                class="btn-travel-outline btn-travel-sm btn-chat-hover"
+                                style="width:100%; margin:20px 0;"
+                                onclick="applyCompanion(${dto.seqTravelPost})">
+                            동행 참여 신청하기
+                        </button>
+                    </div>
+                </c:if>
 
                 <div class="travel-detail-actions">
 
@@ -177,8 +177,8 @@
                                         <input type="hidden" name="targetType" value="TRAVEL">
                                         <input type="hidden" name="seqTarget" value="${dto.seqTravelPost}">
                                         <button type="submit" class="btn-travel-outline btn-travel-sm btn-travel-danger">
-										    이 게시글 해제하기
-										</button>
+                                            이 게시글 해제하기
+                                        </button>
                                     </form>
                                 </c:when>
 
@@ -351,6 +351,45 @@
             form.style.display = 'none';
             content.style.display = 'block';
         }
+    }
+
+    // 🌟 동행 신청 AJAX 함수 추가
+    function applyCompanion(seqTravelPost) {
+        if (!confirm('이 동행에 참여를 신청하시겠습니까?\n방장의 승인 후 채팅방에 입장할 수 있습니다.')) {
+            return;
+        }
+
+        const csrfToken = '${_csrf.token}';
+        const csrfHeader = '${_csrf.headerName}';
+
+        fetch('${cp}/chat/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                [csrfHeader]: csrfToken
+            },
+            body: 'seqTravelPost=' + seqTravelPost
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            
+            if (data.success) {
+                // 성공 시 버튼 디자인을 "신청 대기 중"으로 변경하고 비활성화
+                const btn = document.getElementById('btnApplyCompanion');
+                if(btn) {
+                    btn.innerText = '신청 대기 중';
+                    btn.disabled = true;
+                    btn.style.cursor = 'not-allowed';
+                    btn.classList.remove('btn-chat-hover');
+                    btn.style.opacity = '0.6';
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('신청 처리 중 오류가 발생했습니다.');
+        });
     }
 </script>
 

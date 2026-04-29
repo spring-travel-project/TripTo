@@ -151,7 +151,7 @@ public class MyPageController {
 
 		dto.setId(principal.getName());
 
-<<<<<<< Updated upstream
+
 		if (picFile != null && !picFile.isEmpty()) {
 			try {
 				// 🌟 클라우드 설정 (태훈님 키 입력!)
@@ -167,7 +167,7 @@ public class MyPageController {
 				e.printStackTrace();
 			}
 		}
-=======
+
 	    if (picFile != null && !picFile.isEmpty()) {
 	        try {
 	            // 클라우드 설정 (키 입력)
@@ -187,7 +187,7 @@ public class MyPageController {
 	            e.printStackTrace();
 	        }
 	    }
->>>>>>> Stashed changes
+
 
 		memberService.updateMemberInfo(dto);
 		return "redirect:/member/mypage.do";

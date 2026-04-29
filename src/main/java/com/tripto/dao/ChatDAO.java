@@ -204,8 +204,27 @@ public class ChatDAO {
         template.insert("chat.createTravelChatRoom", dto);
     }
 
-    public void insertUserChatIfNotExists(Map<String, Integer> map) {
-        template.insert("chat.insertUserChatIfNotExists", map);
+    public int insertUserChatIfNotExists(Map<String, Integer> map) {
+        return template.insert("chat.insertUserChatIfNotExists", map);
+    }
+    
+    // 🌟 참여 신청 승인/거절 처리 (기존 sql -> template으로 수정)
+    public int updateJoinRequest(Map<String, Object> map) {
+        return template.update("chat.updateJoinRequest", map);
+    }
+
+    // 🌟 특정 방에서의 내 권한(방장 여부) 가져오기 (기존 sql -> template으로 수정)
+    public int getRoomAuth(Map<String, Object> map) {
+        return template.selectOne("chat.getRoomAuth", map);
+    }
+    
+ // 🌟 시스템 메시지 업데이트
+    public void updateSystemMessage(Map<String, Object> map) {
+        template.update("chat.updateSystemMessage", map);
+    }
+    
+    public String getPostStatusByRoomId(int roomId) {
+        return template.selectOne("chat.getPostStatusByRoomId", roomId);
     }
     
     public List<ChatMemberDTO> getChatRoomMembers(int roomId) {
