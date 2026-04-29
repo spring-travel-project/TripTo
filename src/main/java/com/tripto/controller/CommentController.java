@@ -185,7 +185,8 @@ public class CommentController {
         }
 
         int currentSeqMember = loginMember.getSeqMember();
-        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
+		/* boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade()); */
+        boolean isAdmin = loginMember.getType() == 1;
 
         int result = service.travelDelete(seqTravelComment, currentSeqMember, isAdmin);
 

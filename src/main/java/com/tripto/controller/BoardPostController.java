@@ -230,7 +230,8 @@ public class BoardPostController {
         }
 
         boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(dto.getSeqMember());
-        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
+		/* boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade()); */
+        boolean isAdmin = loginMember.getType() == 1;
 
         if (!isWriter && !isAdmin) {
             rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
@@ -264,8 +265,9 @@ public class BoardPostController {
         }
 
         boolean isWriter = Integer.valueOf(loginMember.getSeqMember()).equals(originDto.getSeqMember());
-        boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade());
-
+		/* boolean isAdmin = "ROLE_ADMIN".equals(loginMember.getGrade()); */
+        boolean isAdmin = loginMember.getType() == 1;
+        
         if (!isWriter && !isAdmin) {
             rttr.addFlashAttribute("message", "수정 권한이 없습니다.");
             return "redirect:/board/detail.do?seqBoardPost=" + dto.getSeqBoardPost();
