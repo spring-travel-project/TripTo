@@ -159,7 +159,7 @@
             <div class="board-detail-actions">
 
                 <div class="board-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                    <a class="btn-board-outline btn-gray">목록으로</a>
+                    <a href="${cp}/board/list.do" class="btn-board-outline btn-gray">목록으로</a>
 
                     <c:if test="${isAdmin}">
                         <c:choose>
