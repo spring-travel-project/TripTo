@@ -48,15 +48,15 @@
                          <div class="flex gap-3">
                             <div class="w-14 h-14 rounded-full bg-slate-200 overflow-hidden shrink-0">
                                 <c:choose>
-                                    <c:when test="${not empty room.partnerProfile}">
-                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${room.partnerProfile}" class="w-full h-full object-cover">
+                                    <c:when test="${not empty room.partnerProfile and room.partnerProfile.startsWith('http')}">
+                                        <img src="${room.partnerProfile}" class="w-full h-full object-cover">
                                     </c:when>
                                     <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover">
+                                        <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty room.partnerProfile ? room.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
                                     </c:otherwise>
                                 </c:choose>
                             </div>
-
+                            
                             <div class="min-w-0 flex-1">
                                <div class="flex items-start justify-between gap-2 mb-1">
                                   <div class="min-w-0">
@@ -114,11 +114,11 @@
                                     <c:if test="${!msg.mine}">
                                         <div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden">
                                             <c:choose>
-                                                <c:when test="${not empty msg.partnerProfile}">
-                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/${msg.partnerProfile}" class="w-full h-full object-cover">
+                                                <c:when test="${not empty msg.partnerProfile and msg.partnerProfile.startsWith('http')}">
+                                                    <img src="${msg.partnerProfile}" class="w-full h-full object-cover">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover">
+                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty msg.partnerProfile ? msg.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -140,7 +140,14 @@
                                                 </div>
                                                 <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
                                                     <c:if test="${not empty msg.savedName}">
-                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                        <c:choose>
+                                                            <c:when test="${msg.savedName.startsWith('http')}">
+                                                                <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </c:if>
                                                     <c:out value="${msg.detail}" />
                                                 </div>
@@ -149,7 +156,14 @@
                                             <c:if test="${!msg.mine}">
                                                 <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
                                                     <c:if test="${not empty msg.savedName}">
-                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                        <c:choose>
+                                                            <c:when test="${msg.savedName.startsWith('http')}">
+                                                                <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </c:if>
                                                     <c:out value="${msg.detail}" />
                                                 </div>
@@ -259,15 +273,22 @@
       function appendMessage(data, isMine) {
           if (!chatMessageList) return;
 
-          let fileHtml = data.savedName
-              ? `<img src="\${contextPath}/upload/chat/\${data.savedName}" class="rounded-lg max-w-full h-auto mb-2">`
-              : '';
+          let fileHtml = '';
+          if (data.savedName) {
+              const imgSrc = data.savedName.startsWith('http') 
+                           ? data.savedName 
+                           : `\${contextPath}/upload/chat/\${data.savedName}`;
+              
+              fileHtml = `<div class="mb-2"><img src="\${imgSrc}" class="rounded-lg max-w-full h-auto shadow-sm cursor-pointer" onclick="window.open(this.src)"></div>`;
+          }
 
           const unreadBadge = (data.unreadCount > 0)
               ? `<span class="unread-badge unread-count-label">\${data.unreadCount}</span>`
               : '';
 
-          const profileImg = data.partnerProfile ? data.partnerProfile : 'pic.png';
+          const profileImgSrc = (data.partnerProfile && data.partnerProfile.startsWith('http'))
+                              ? data.partnerProfile
+                              : `\${contextPath}/resources/upload/profile/\${data.partnerProfile || 'pic.png'}`;
 
           let contentHtml = isMine ? `
             <div class="flex items-end justify-end gap-2">
@@ -280,7 +301,7 @@
             </div>`;
 
           const html = `<div class="flex \${isMine ? 'justify-end' : 'items-start gap-3'}">
-                \${!isMine ? `<div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden"><img src="\${contextPath}/resources/upload/profile/\${profileImg}" class="w-full h-full object-cover"></div>` : ''}
+                \${!isMine ? `<div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden"><img src="\${profileImgSrc}" class="w-full h-full object-cover"></div>` : ''}
                 <div class="max-w-[75%] \${isMine ? 'text-right' : ''}">
                     \${!isMine ? `<p class="text-xs text-slate-500 mb-1 ml-1">\${data.nickname}</p>` : ''}
                     \${contentHtml}
@@ -384,44 +405,44 @@
       
       document.getElementById('exitRoomBtn')?.addEventListener('click', function () {
 
-    	    if (!selectedRoomId) {
-    	        alert('선택된 채팅방이 없습니다.');
-    	        return;
-    	    }
+          if (!selectedRoomId) {
+              alert('선택된 채팅방이 없습니다.');
+              return;
+          }
 
-    	    if (!confirm('채팅방을 나가시겠습니까?')) {
-    	        return;
-    	    }
+          if (!confirm('채팅방을 나가시겠습니까?')) {
+              return;
+          }
 
-    	    fetch(contextPath + '/chat/exit', {
-    	        method: 'POST',
-    	        headers: {
-    	            'Content-Type': 'application/x-www-form-urlencoded',
-    	            [csrfHeader]: csrfToken
-    	        },
-    	        body: 'roomId=' + encodeURIComponent(selectedRoomId)
-    	    })
-    	    .then(function(res) {
-    	        return res.json();
-    	    })
-    	    .then(function(data) {
-    	        if (data.success) {
-    	            if (socket) {
-    	                socket.close();
-    	            }
+          fetch(contextPath + '/chat/exit', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  [csrfHeader]: csrfToken
+              },
+              body: 'roomId=' + encodeURIComponent(selectedRoomId)
+          })
+          .then(function(res) {
+              return res.json();
+          })
+          .then(function(data) {
+              if (data.success) {
+                  if (socket) {
+                      socket.close();
+                  }
 
-    	            alert('채팅방에서 나갔습니다.');
-    	            location.href = contextPath + '/chat/list';
-    	        } else {
-    	            alert('채팅방 나가기에 실패했습니다.');
-    	        }
-    	    })
-    	    .catch(function(err) {
-    	        console.error(err);
-    	        alert('채팅방 나가기 중 오류가 발생했습니다.');
-    	    });
+                  alert('채팅방에서 나갔습니다.');
+                  location.href = contextPath + '/chat/list';
+              } else {
+                  alert('채팅방 나가기에 실패했습니다.');
+              }
+          })
+          .catch(function(err) {
+              console.error(err);
+              alert('채팅방 나가기 중 오류가 발생했습니다.');
+          });
 
-    	});
+      });
 
       connectSocket();
       scrollToBottom();

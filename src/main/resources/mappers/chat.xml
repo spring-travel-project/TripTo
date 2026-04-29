@@ -6,82 +6,73 @@
 <mapper namespace="chat">
 
     <select id="getRoomList" parameterType="map" resultType="com.tripto.dto.ChatRoomDTO">
-        SELECT
-            cr.seq AS roomId,
-            CASE
-                WHEN cr.name IS NOT NULL THEN cr.name
-                WHEN cr.category = 0 THEN tp.title
-                WHEN cr.category = 1 THEN partner.nickname
-                ELSE '이름 없는 채팅방'
-            END AS roomName,
-            cr.category,
-            CASE
-                WHEN cr.category = 0 THEN '동행'
-                WHEN cr.category = 1 THEN '매칭'
-            END AS displayCategory,
-            partner.nickname AS partnerNickname,
-            partner.partnerProfile AS partnerProfile,
-            
-            partner.nickname AS partnerNickname, 
-            partner.partnerProfile AS partnerProfile, 
-            
-            last_log.detail AS lastMessage,
-            last_log.regdate AS regdate,
-            CASE
-                WHEN last_log.regdate IS NULL THEN ''
-                ELSE TO_CHAR(last_log.regdate, 'MM-DD HH24:MI')
-            END AS roomTime,
-            0 AS active
-        FROM chattingroom cr
-            INNER JOIN user_chat uc
-                ON cr.seq = uc.seqChattingroom
-            LEFT JOIN travel_post tp
-                ON cr.seqTravelPost = tp.seqTravelPost
-            LEFT JOIN (
-                SELECT seqChattingroom, detail, regdate
-                FROM (
-                    SELECT
-                        cl.seqChattingroom,
-                        cl.detail,
-                        cl.regdate,
-                        cl.seq,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY cl.seqChattingroom
-                            ORDER BY cl.regdate DESC, cl.seq DESC
-                        ) AS rn
-                    FROM chat_log cl
-                )
-                WHERE rn = 1
-            ) last_log
-                ON cr.seq = last_log.seqChattingroom
-                
-            LEFT JOIN (
-                SELECT
-                    uc2.seqChattingroom,
-                    MAX(m.nickname) AS nickname,
-                    MAX(m.pic) AS partnerProfile
-                FROM user_chat uc2
-                    INNER JOIN member m
-                        ON uc2.seqMember = m.seqMember
-                WHERE uc2.seqMember != #{seqMember}
-                GROUP BY uc2.seqChattingroom
-            ) partner
-                ON cr.seq = partner.seqChattingroom
-                    INNER JOIN member m ON uc2.seqMember = m.seqMember
-                WHERE uc2.seqMember != #{seqMember} 
-                GROUP BY uc2.seqChattingroom
-            ) partner
-                ON cr.seq = partner.seqChattingroom
-            
-        WHERE uc.seqMember = #{seqMember}
-          AND uc.isActive = 1
-          <if test="category != null">
-            AND cr.category = #{category}
-          </if>
-        ORDER BY
-            last_log.regdate DESC NULLS LAST,
-            cr.seq DESC
-    </select>
+	    SELECT
+	        cr.seq AS roomId,
+	        CASE
+	            WHEN cr.name IS NOT NULL THEN cr.name
+	            WHEN cr.category = 0 THEN tp.title
+	            WHEN cr.category = 1 THEN partner.nickname
+	            ELSE '이름 없는 채팅방'
+	        END AS roomName,
+	        cr.category,
+	        CASE
+	            WHEN cr.category = 0 THEN '동행'
+	            WHEN cr.category = 1 THEN '매칭'
+	        END AS displayCategory,
+	        partner.nickname AS partnerNickname,
+	        partner.partnerProfile AS partnerProfile,
+	        last_log.detail AS lastMessage,
+	        last_log.regdate AS regdate,
+	        CASE
+	            WHEN last_log.regdate IS NULL THEN ''
+	            ELSE TO_CHAR(last_log.regdate, 'MM-DD HH24:MI')
+	        END AS roomTime,
+	        0 AS active
+	    FROM chattingroom cr
+	        INNER JOIN user_chat uc
+	            ON cr.seq = uc.seqChattingroom
+	        LEFT JOIN travel_post tp
+	            ON cr.seqTravelPost = tp.seqTravelPost
+	        LEFT JOIN (
+	            SELECT seqChattingroom, detail, regdate
+	            FROM (
+	                SELECT
+	                    cl.seqChattingroom,
+	                    cl.detail,
+	                    cl.regdate,
+	                    cl.seq,
+	                    ROW_NUMBER() OVER (
+	                        PARTITION BY cl.seqChattingroom
+	                        ORDER BY cl.regdate DESC, cl.seq DESC
+	                    ) AS rn
+	                FROM chat_log cl
+	            )
+	            WHERE rn = 1
+	        ) last_log
+	            ON cr.seq = last_log.seqChattingroom
+	        LEFT JOIN (
+	            SELECT
+	                uc2.seqChattingroom,
+	                MAX(m.nickname) AS nickname,
+	                MAX(m.pic) AS partnerProfile
+	            FROM user_chat uc2
+	                INNER JOIN member m
+	                    ON uc2.seqMember = m.seqMember
+	            WHERE uc2.seqMember != #{seqMember}
+	            GROUP BY uc2.seqChattingroom
+	        ) partner
+	            ON cr.seq = partner.seqChattingroom
+	            
+	    WHERE uc.seqMember = #{seqMember}
+	      AND uc.isActive = 1
+	      <if test="category != null">
+	        AND cr.category = #{category}
+	      </if>
+	      
+	    ORDER BY
+	        last_log.regdate DESC NULLS LAST,
+	        cr.seq DESC
+	</select>
 
     <select id="getMessageList" parameterType="map" resultType="com.tripto.dto.ChatMessageDTO">
         SELECT
