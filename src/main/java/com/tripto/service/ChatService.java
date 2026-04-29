@@ -482,7 +482,10 @@ public class ChatService {
         // 3. 방금 생성된 파일 번호(seqFile) 반환
         return Integer.parseInt(map.get("seqFile").toString());
     }
-
+    
+    public ChatRoomDTO getRoomById(int roomId, int seqMember) {
+        return chatDAO.getRoomById(roomId, seqMember);
+    }
     
     
 }
