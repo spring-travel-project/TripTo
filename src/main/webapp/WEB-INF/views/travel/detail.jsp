@@ -72,9 +72,15 @@
 
                 <div class="travel-comment-list">
                     <c:if test="${empty commentList}">
-                        <div class="travel-comment-empty">
-                            아직 등록된 댓글이 없습니다.
-                        </div>
+                        <div class="comment-empty">
+						    <div class="comment-empty-icon">💬</div>
+						    <div class="comment-empty-text">
+						        아직 등록된 댓글이 없습니다.
+						    </div>
+						    <div class="comment-empty-sub">
+						        첫 댓글을 남겨보세요 🙂
+						    </div>
+						</div>
                     </c:if>
 
                     <c:forEach items="${commentList}" var="comment">

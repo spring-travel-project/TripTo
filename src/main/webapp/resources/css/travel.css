@@ -1306,3 +1306,32 @@ select {
     white-space: nowrap;
     transform: translateY(-8px);
 }
+
+.comment-empty {
+    text-align: center;
+    padding: 40px 20px;
+    margin: 20px 0;
+
+    background: #f8faff;
+    border: 1px dashed #dbe5ff;
+    border-radius: 12px;
+
+    color: #5c6f91;
+}
+
+.comment-empty-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.comment-empty-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e66;
+}
+
+.comment-empty-sub {
+    font-size: 12px;
+    margin-top: 6px;
+    color: #8fa1c3;
+}
