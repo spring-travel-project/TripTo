@@ -17,6 +17,7 @@ import com.tripto.dto.FileDTO;
 import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.TravelPostDTO;
 
 @Service
 public class ChatService {
@@ -181,6 +182,18 @@ public class ChatService {
                 chatDAO.insertPollContent(map);
             }
         }
+        
+        String message =
+        		"<div class='chat-system-msg'>" +
+    		        "<div>🧾 <b>[투표]</b> 새로운 투표가 등록되었습니다.</div>" +
+    		        "<a href='/TripTo/chat/poll/detail?roomId=" 
+    		            + dto.getSeqChattingroom() 
+    		            + "&pollId=" + dto.getSeq() + "'>" +
+    		            dto.getPollTitle() +
+    		        "</a>" +
+    		    "</div>";
+
+        insertMessage(dto.getSeqChattingroom(), dto.getSeqMember(), message);
 
         return true;
     }
@@ -264,8 +277,20 @@ public class ChatService {
         int routineResult = chatDAO.insertRoutine(dto);
 
         if (routineResult != 1) {
-            return false;
+        	return false;
         }
+        
+        String message =
+        		"<div class='chat-system-msg'>" +
+    		        "<div>📅 <b>[일정]</b> 새로운 일정이 등록되었습니다.</div>" +
+    		        "<a href='/TripTo/chat/routine/detail?roomId=" 
+    		            + dto.getSeqChattingroom() 
+    		            + "&routineId=" + dto.getSeq() + "'>" +
+    		            dto.getTitle() +
+    		        "</a>" +
+    		    "</div>";
+
+        insertMessage(dto.getSeqChattingroom(), dto.getSeqMember(), message);
 
         if (files == null || files.isEmpty()) {
             return true;
@@ -485,6 +510,44 @@ public class ChatService {
     
     public ChatRoomDTO getRoomById(int roomId, int seqMember) {
         return chatDAO.getRoomById(roomId, seqMember);
+    }
+    
+    public int createOrGetTravelChatRoom(int seqTravelPost, int loginUserId) {
+
+        Integer roomId = chatDAO.findTravelRoom(seqTravelPost);
+
+        if (roomId != null) {
+            Map<String, Integer> map = new HashMap<>();
+            map.put("roomId", roomId);
+            map.put("userId", loginUserId);
+
+            chatDAO.insertUserChatIfNotExists(map);
+
+            return roomId;
+        }
+
+        TravelPostDTO post = chatDAO.getTravelPostForChat(seqTravelPost);
+
+        ChatRoomDTO room = new ChatRoomDTO();
+        room.setRoomName(post.getTitle());
+        room.setCategory(0);
+        room.setSeqTravelPost(seqTravelPost);
+
+        chatDAO.createTravelChatRoom(room);
+
+        int newRoomId = room.getRoomId();
+
+        Map<String, Integer> writerMap = new HashMap<>();
+        writerMap.put("roomId", newRoomId);
+        writerMap.put("userId", post.getSeqMember());
+        chatDAO.insertUserChatIfNotExists(writerMap);
+
+        Map<String, Integer> loginMap = new HashMap<>();
+        loginMap.put("roomId", newRoomId);
+        loginMap.put("userId", loginUserId);
+        chatDAO.insertUserChatIfNotExists(loginMap);
+
+        return newRoomId;
     }
     
     

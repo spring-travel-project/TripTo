@@ -469,4 +469,21 @@ public class ChatController {
         
         return response;
     }
+    
+    @GetMapping("/chat/travel")
+    public String startTravelChat(@RequestParam("seqTravelPost") int seqTravelPost) {
+
+        MemberDTO loginMember = getLoginMember();
+
+        if (loginMember == null) {
+            return "redirect:/member/login.do";
+        }
+
+        int roomId = chatService.createOrGetTravelChatRoom(
+            seqTravelPost,
+            loginMember.getSeqMember()
+        );
+
+        return "redirect:/chat/list?roomId=" + roomId + "&category=0";
+    }
 }
