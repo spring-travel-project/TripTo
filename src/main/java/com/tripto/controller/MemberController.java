@@ -1,9 +1,7 @@
 package com.tripto.controller;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
@@ -18,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dto.MemberDTO;
 import com.tripto.service.MailService;
 import com.tripto.service.MemberService;
@@ -130,45 +130,40 @@ public class MemberController {
 	@PostMapping("/join.do")
 	public String joinComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile) {
 
-		// 1) 비밀번호 암호화 (사용자가 친 1111 -> $2a$10$ 복잡한 문자열로 변환)
+		// 1) 비밀번호 암호화 로직
 		String encodedPw = passwordEncoder.encode(dto.getPw());
 		dto.setPw(encodedPw);
 
-		// 2) 프로필 사진 파일 업로드 처리
+		// 2) 프로필 사진 클라우드 업로드 처리
 		if (picFile.isEmpty()) {
-			// 파일이 없으면 기본 이미지 세팅
-			dto.setPic("pic.png");
+			dto.setPic("https://res.cloudinary.com/dh5p4lvo2/image/upload/v1777421393/pic_m491jz.png");
 		} else {
 			try {
-				// "C드라이브 절대 경로"에 저장
-				// (이클립스 서버 재시작 시 사진이 날아가는 것을 방지)
-				String path = "C:/tripto_upload/profile/";
-				File dir = new File(path);
-				if (!dir.exists())
-					dir.mkdirs(); // 폴더가 없으면 생성
+				// Cloudinary 객체 직접 생성
+				Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+						"cloud_name", "df2o0mjgj", 
+						"api_key", "154321363337894", 
+						"api_secret", "Z3WzpCWRQ4tBgwXQ-J1lYZc44XU"
+				));
 
-				// 사진 이름이 겹치지 않게 UUID(랜덤문자열)를 붙임
-				String originalName = picFile.getOriginalFilename();
-				String uuid = UUID.randomUUID().toString();
-				String savedName = uuid + "_" + originalName; // 예: 123e4567_홍길동.jpg
+				// 클라우드로 파일 전송
+				Map uploadResult = cloudinary.uploader().upload(picFile.getBytes(),
+						ObjectUtils.asMap("resource_type", "auto"));
 
-				// 실제 지정한 폴더로 파일 복사(저장)
-				File target = new File(path, savedName);
-				picFile.transferTo(target);
+				// 업로드 성공 후 생성된 전체 URL 주소를 가져옴
+				String imageUrl = (String) uploadResult.get("url");
 
-				// DB에 들어갈 파일명 DTO에 세팅
-				dto.setPic(savedName);
+				// DB의 pic 컬럼에 전체 주소 저장
+				dto.setPic(imageUrl);
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				dto.setPic("pic.png"); // 에러 발생 시 기본 이미지로 대체해 출력
+				dto.setPic("https://res.cloudinary.com/dh5p4lvo2/image/upload/v1777421393/pic_m491jz.png");
 			}
 		}
 
-		// 3) 서비스로 넘겨서 DB INSERT 실행
 		memberService.joinMember(dto);
 
-		// 가입이 완료되면 로그인 페이지로 돌려보냄
 		return "redirect:/member/login.do";
 	}
 

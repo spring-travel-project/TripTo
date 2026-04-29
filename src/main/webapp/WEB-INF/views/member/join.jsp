@@ -17,7 +17,7 @@
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
             <!-- 이미지 파일을 서버로 전송하기 위한 -->
             <!-- enctype="multipart/form-data" 태그 추가 -->
-            <form action="${pageContext.request.contextPath}/member/join.do?${_csrf.parameterName}=${_csrf.token}" method="POST" id="joinForm" enctype="multipart/form-data">
+            <form action="${pageContext.request.contextPath}/member/join.do?${_csrf.parameterName}=${_csrf.token}" method="POST" id="joinForm" enctype="multipart/form-data" onkeydown="return event.key != 'Enter';">
                 
                 <div class="form-control mb-4">
                     <label class="label"><span class="label-text font-bold">이름</span></label>
@@ -568,6 +568,16 @@
             $regionSearch.val(''); // 엉뚱한 값 초기화
             $regionSearch.focus();
             return false;
+        }
+    });
+    
+    // 회원가입 정보 입력 다 안했는데 엔터키
+    // 눌러서 폼 제출하는 행위 방지
+    // 모든 input 태그에서 키보드가 눌렸을 때
+    $('input').on('keydown', function(event) {
+        // 눌린 키가 엔터키(13)라면 기본 동작(폼 제출)을 막음
+        if (event.keyCode === 13) {
+            event.preventDefault();
         }
     });
     
