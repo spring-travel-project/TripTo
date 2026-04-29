@@ -23,7 +23,8 @@
     <insert id="joinMember"
         parameterType="com.tripto.dto.MemberDTO">
         INSERT INTO member (
-        seqMember, name, id, pw, pic, nickname, email, gender, birth, region
+        seqMember, name, id, pw, pic,
+        nickname, email, gender, birth, region
         ) VALUES (
         seqmember.nextval, #{name},
         #{id},
@@ -44,7 +45,8 @@
         resultType="String">
         SELECT id
         FROM member
-        WHERE name = #{name} AND email = #{email} AND status != 2
+        WHERE name = #{name} AND email =
+        #{email} AND status != 2
     </select>
 
     <!-- 비밀번호 찾기에 사용될 쿼리 -->
@@ -52,13 +54,15 @@
         resultType="int">
         SELECT COUNT(*)
         FROM member
-        WHERE id = #{id} AND email = #{email} AND status != 2
+        WHERE id = #{id} AND email
+        = #{email} AND status != 2
     </select>
 
     <!-- 비밀번호 재설정에 사용될 쿼리 -->
     <update id="updatePw" parameterType="map">
         UPDATE member
-        SET pw = #{pw}
+        SET pw =
+        #{pw}
         WHERE id = #{id}
     </update>
 
@@ -68,9 +72,11 @@
         SELECT
         seqMember, name, id, pw, pic, nickname, email,
         status, type, failCount,
-        TO_CHAR(regDate, 'YYYY.MM.DD') AS regDate,
+        TO_CHAR(regDate, 'YYYY.MM.DD') AS
+        regDate,
         gender, TO_CHAR(birth, 'YYYY-MM-DD') AS birth,
-        region, intro
+        region,
+        intro
         FROM member
         WHERE id = #{id}
     </select>
@@ -90,38 +96,71 @@
         name = '탈퇴사용자',
         nickname = '알수없음',
         email = 'del_' || seqMember || '@tripto.com',
-        intro = '탈퇴한 사용자의 프로필입니다.',
+        intro = '탈퇴한 사용자의
+        프로필입니다.',
         birth = SYSDATE,
         region = 'None',
         pic = 'pic.png'
-        WHERE id = #{id}
+        WHERE id
+        = #{id}
     </update>
-    
+
     <!-- 내 정보 설정 -> 닉네임 중복확인에 필요한 쿼리 -->
     <select id="checkNickname" parameterType="String"
         resultType="int">
         SELECT COUNT(*) FROM member WHERE nickname =
         #{nickname}
     </select>
-    
+
     <!-- 내 정보 설정 후 회원 정보 업데이트를 위한 쿼리 -->
     <update id="updateMemberInfo" parameterType="com.tripto.dto.MemberDTO">
-	    UPDATE member
-	    SET 
-	        nickname = #{nickname},
-	        intro = #{intro},
-	        birth = TO_DATE(#{birth}, 'YYYY-MM-DD'),
-	        gender = #{gender},
-	        region = #{region}
-	        
-	        
-	        <if test="pic != null and pic != ''">
-	            , pic = #{pic}
-	        </if>
-	        
-	    WHERE id = #{id}
-	</update>
-    
-    
+        UPDATE member
+        SET 
+            nickname = #{nickname},
+            intro = #{intro},
+            birth = TO_DATE(#{birth}, 'YYYY-MM-DD'),
+            gender = #{gender},
+            region = #{region}
+            
+            <if test="pic != null and pic != ''">
+                , pic = #{pic}
+            </if>
+            
+        WHERE id = #{id}
+    </update>
+
+    <select id="getMyActivities" parameterType="map" resultType="com.tripto.dto.MyActivityDTO">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT a.*, ROWNUM AS rnum FROM (
+            SELECT * FROM (
+                /* 1. 동행 게시글 */
+                SELECT 'TRAVEL' AS type, 'TRAVEL' AS postType, SEQTRAVELPOST AS seq, TITLE AS title, TO_CLOB(REGEXP_REPLACE(CONTENT, '<[^>]+>', '')) AS content, THUMBNAILURL AS thumbnailUrl, CREATEDATE AS regDate
+                FROM TRAVEL_POST WHERE SEQMEMBER = #{seqMember} AND STATUS = 'NORMAL'
+                UNION ALL
+                /* 2. 일반 게시글 */
+                SELECT 'BOARD' AS type, 'BOARD' AS postType, SEQBOARDPOST AS seq, TITLE AS title, TO_CLOB(REGEXP_REPLACE(CONTENT, '<[^>]+>', '')) AS content, THUMBNAILURL AS thumbnailUrl, CREATEDATE AS regDate
+                FROM BOARD_POST WHERE SEQMEMBER = #{seqMember} AND STATUS = 'NORMAL'
+                UNION ALL
+                /* 3. 일반 댓글 */
+                SELECT 'COMMENT' AS type, 'BOARD' AS postType, SEQBOARDPOST AS seq, CAST(NULL AS VARCHAR2(255)) AS title, TO_CLOB(CONTENT) AS content, CAST(NULL AS VARCHAR2(2000)) AS thumbnailUrl, CREATEDATE AS regDate
+                FROM BOARD_COMMENT WHERE SEQMEMBER = #{seqMember} AND STATUS = 'NORMAL'
+                UNION ALL
+                /* 4. 동행 댓글 */
+                SELECT 'COMMENT' AS type, 'TRAVEL' AS postType, SEQTRAVELPOST AS seq, CAST(NULL AS VARCHAR2(255)) AS title, TO_CLOB(CONTENT) AS content, CAST(NULL AS VARCHAR2(2000)) AS thumbnailUrl, CREATEDATE AS regDate
+                FROM TRAVEL_COMMENT WHERE SEQMEMBER = #{seqMember} AND STATUS = 'NORMAL'
+            )
+    ]]>
+            <where>
+                <if test="tab != null and tab != 'ALL'">
+                    type = #{tab}
+                </if>
+            </where>
+    <![CDATA[
+            ORDER BY regDate DESC
+        ) a WHERE ROWNUM <= #{endRow}   /* M번째까지 */
+    ) WHERE rnum >= #{startRow}         /* N번째부터 */
+    ]]>
+    </select>
 
 </mapper>

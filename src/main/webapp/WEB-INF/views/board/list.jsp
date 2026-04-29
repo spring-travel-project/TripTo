@@ -51,7 +51,7 @@
                        placeholder="제목 또는 내용으로 검색해보세요."
                        class="board-search-input">
 
-                <button type="submit" class="btn-board-outline btn-board-sm">
+                <button type="submit" class="btn-board-outline btn-board-sm btn-search">
 				    검색
 				</button>
             </form>

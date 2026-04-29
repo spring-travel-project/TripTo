@@ -164,4 +164,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         }
     }
+    
+    public void broadcastSystemMessage(Integer roomId, String messageHtml) {
+        try {
+            ChatSocketMessageDTO response = new ChatSocketMessageDTO();
+            response.setType("TALK");
+            response.setRoomId(roomId);
+            response.setSeqMember(0); // 0번 = 시스템 메시지
+            response.setMessage(messageHtml);
+            response.setMessageTime(new SimpleDateFormat("HH:mm").format(new Date()));
+
+            String json = objectMapper.writeValueAsString(response);
+            broadcastToRoom(roomId, json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

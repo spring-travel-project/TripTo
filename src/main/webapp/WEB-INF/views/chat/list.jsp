@@ -69,7 +69,8 @@
                                   </div>
                                   <span class="text-[10px] text-slate-400 whitespace-nowrap">${room.roomTime}</span>
                                </div>
-                               <p class="text-sm text-slate-600 truncate">
+                               <%-- 🌟 여기에 last-message-preview 클래스를 추가했어! --%>
+                               <p class="text-sm text-slate-600 truncate last-message-preview">
                                   <c:out value="${empty room.lastMessage ? '아직 메시지가 없습니다.' : room.lastMessage}" />
                                </p>
                             </div>
@@ -107,73 +108,85 @@
                      <div id="chatScrollArea" class="chat-scroll flex-1 min-h-0 overflow-y-auto px-6 py-6 bg-indigo-100">
                         <div id="chatMessageList" class="space-y-5">
                             <c:forEach items="${messageList}" var="msg">
-                                <div class="flex ${msg.mine ? 'justify-end' : 'items-start gap-3'}">
-                                    <c:if test="${!msg.mine}">
-                                        <div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden">
-                                            <c:choose>
-                                                <c:when test="${not empty msg.partnerProfile and msg.partnerProfile.startsWith('http')}">
-                                                    <img src="${msg.partnerProfile}" class="w-full h-full object-cover">
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty msg.partnerProfile ? msg.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
-                                                </c:otherwise>
-                                            </c:choose>
+                                <c:choose>
+                                    <c:when test="${msg.seqMember == 0}">
+                                        <div class="flex justify-center my-5 w-full clear-both">
+                                            <div class="bg-slate-200 text-slate-600 px-6 py-2.5 rounded-full text-xs text-center shadow-sm leading-relaxed">
+                                                <c:out value="${msg.detail}" escapeXml="false" />
+                                            </div>
                                         </div>
-                                    </c:if>
+                                    </c:when>
 
-                                    <div class="max-w-[75%] ${msg.mine ? 'text-right' : ''}">
-                                        <c:if test="${!msg.mine}">
-                                            <p class="text-xs text-slate-500 mb-1 ml-1">${msg.nickname}</p>
-                                        </c:if>
-
-                                        <div class="flex items-end ${msg.mine ? 'justify-end' : 'justify-start'} gap-2">
-
-                                            <c:if test="${msg.mine}">
-                                                <div class="flex flex-col items-end min-w-fit">
-                                                    <c:if test="${msg.unreadCount > 0}">
-                                                        <span class="unread-badge unread-count-label">${msg.unreadCount}</span>
-                                                    </c:if>
-                                                    <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
-                                                </div>
-                                                <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
-                                                    <c:if test="${not empty msg.savedName}">
-                                                        <c:choose>
-                                                            <c:when test="${msg.savedName.startsWith('http')}">
-                                                                <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </c:if>
-                                                    <c:out value="${msg.detail}" />
-                                                </div>
-                                            </c:if>
-
+                                    <c:otherwise>
+                                        <div class="flex ${msg.mine ? 'justify-end' : 'items-start gap-3'}">
                                             <c:if test="${!msg.mine}">
-                                                <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
-                                                    <c:if test="${not empty msg.savedName}">
-                                                        <c:choose>
-                                                            <c:when test="${msg.savedName.startsWith('http')}">
-                                                                <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </c:if>
-                                                    <c:out value="${msg.detail}" />
-                                                </div>
-                                                <div class="flex flex-col items-start min-w-fit">
-                                                    <c:if test="${msg.unreadCount > 0}">
-                                                        <span class="unread-badge unread-count-label">${msg.unreadCount}</span>
-                                                    </c:if>
-                                                    <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
+                                                <div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden">
+                                                    <c:choose>
+                                                        <c:when test="${not empty msg.partnerProfile and msg.partnerProfile.startsWith('http')}">
+                                                            <img src="${msg.partnerProfile}" class="w-full h-full object-cover">
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty msg.partnerProfile ? msg.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </c:if>
+
+                                            <div class="max-w-[75%] ${msg.mine ? 'text-right' : ''}">
+                                                <c:if test="${!msg.mine}">
+                                                    <p class="text-xs text-slate-500 mb-1 ml-1">${msg.nickname}</p>
+                                                </c:if>
+
+                                                <div class="flex items-end ${msg.mine ? 'justify-end' : 'justify-start'} gap-2">
+
+                                                    <c:if test="${msg.mine}">
+                                                        <div class="flex flex-col items-end min-w-fit">
+                                                            <c:if test="${msg.unreadCount > 0}">
+                                                                <span class="unread-badge unread-count-label">${msg.unreadCount}</span>
+                                                            </c:if>
+                                                            <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
+                                                        </div>
+                                                        <div class="inline-block px-4 py-3 rounded-2xl rounded-tr-md bg-sky-500 text-white text-sm shadow-sm break-words text-left">
+                                                            <c:if test="${not empty msg.savedName}">
+                                                                <c:choose>
+                                                                    <c:when test="${msg.savedName.startsWith('http')}">
+                                                                        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </c:if>
+                                                            <c:out value="${msg.detail}" />
+                                                        </div>
+                                                    </c:if>
+
+                                                    <c:if test="${!msg.mine}">
+                                                        <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-slate-200 text-slate-700 text-sm shadow-sm break-words text-left">
+                                                            <c:if test="${not empty msg.savedName}">
+                                                                <c:choose>
+                                                                    <c:when test="${msg.savedName.startsWith('http')}">
+                                                                        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2">
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </c:if>
+                                                            <c:out value="${msg.detail}" />
+                                                        </div>
+                                                        <div class="flex flex-col items-start min-w-fit">
+                                                            <c:if test="${msg.unreadCount > 0}">
+                                                                <span class="unread-badge unread-count-label">${msg.unreadCount}</span>
+                                                            </c:if>
+                                                            <p class="text-[10px] text-slate-400">${msg.messageTime}</p>
+                                                        </div>
+                                                    </c:if>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </c:forEach>
                         </div>
                      </div>
@@ -240,6 +253,23 @@
       let socket = null;
       let selectedFile = null;
 
+      // 🌟 추가된 스크립트: 사이드바의 마지막 메시지에서 HTML 태그를 싹 제거해서 텍스트만 보여줍니다.
+      document.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll('.last-message-preview').forEach(el => {
+              let rawText = el.textContent.trim();
+              // 텍스트 안에 HTML 태그(< >)가 섞여 있다면
+              if(rawText.includes('<') && rawText.includes('>')) {
+                  // <br> 태그는 띄어쓰기로 바꿔주고
+                  rawText = rawText.replace(/<br\s*[\/]?>/gi, ' ');
+                  
+                  // 가상의 div를 만들어서 태그는 다 날리고 순수 글자만 뽑아냄!
+                  let temp = document.createElement('div');
+                  temp.innerHTML = rawText;
+                  el.textContent = temp.textContent || temp.innerText || '아직 메시지가 없습니다.';
+              }
+          });
+      });
+
       function escapeHtml(str) {
           return str ? str.replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
@@ -269,6 +299,26 @@
 
       function appendMessage(data, isMine) {
           if (!chatMessageList) return;
+
+          if (data.seqMember == 0) {
+              const sysHtml = `
+              <div class="flex justify-center my-5 w-full clear-both">
+                  <div class="bg-slate-200 text-slate-600 px-6 py-2.5 rounded-full text-xs text-center shadow-sm leading-relaxed">
+                      \${data.message}
+                  </div>
+              </div>`;
+              chatMessageList.insertAdjacentHTML('beforeend', sysHtml);
+              scrollToBottom();
+              
+              // 🌟 실시간으로 사이드바 텍스트도 업데이트 (태그 날리고!)
+              const sidebarPreview = document.querySelector(`a[href*="roomId=\${data.roomId}"] .last-message-preview`);
+              if (sidebarPreview) {
+                  let temp = document.createElement('div');
+                  temp.innerHTML = data.message.replace(/<br\s*[\/]?>/gi, ' ');
+                  sidebarPreview.textContent = temp.textContent || temp.innerText;
+              }
+              return; 
+          }
 
           let fileHtml = '';
           if (data.savedName) {
@@ -307,6 +357,12 @@
 
           chatMessageList.insertAdjacentHTML('beforeend', html);
           scrollToBottom();
+
+          // 🌟 일반 메시지도 실시간으로 사이드바 텍스트 업데이트
+          const sidebarPreview = document.querySelector(`a[href*="roomId=\${data.roomId}"] .last-message-preview`);
+          if (sidebarPreview) {
+              sidebarPreview.textContent = data.message || "사진을 보냈습니다.";
+          }
       }
 
       function connectSocket() {
