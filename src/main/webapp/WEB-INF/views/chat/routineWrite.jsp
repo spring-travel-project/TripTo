@@ -282,7 +282,6 @@
 		    syncFileInput(input);
 		    renderFiles();
 
-		    input.value = '';
 		}
 
 		function renderFiles() {
