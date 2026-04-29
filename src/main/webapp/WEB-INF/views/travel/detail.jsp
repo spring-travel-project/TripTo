@@ -256,24 +256,26 @@
 	
 	<c:forEach items="${locationList}" var="loc">
 	    <c:if test="${not empty loc.latitude and not empty loc.longitude}">
-	        locations.push({
-	            name: "${loc.placeName}",
-	            lat: Number("${loc.latitude}"),
-	            lng: Number("${loc.longitude}"),
-	            type: "post"
-	        });
+		    locations.push({
+		        scheduleName: "게시글 위치",
+		        placeName: "${loc.placeName}",
+		        lat: Number("${loc.latitude}"),
+		        lng: Number("${loc.longitude}"),
+		        type: "post"
+		    });
 	    </c:if>
 	</c:forEach>
 	
 	
 	<c:forEach items="${routineLocationList}" var="loc">
 	    <c:if test="${not empty loc.latitude and not empty loc.longitude}">
-	        locations.push({
-	            name: "${loc.title}",
-	            lat: Number("${loc.latitude}"),
-	            lng: Number("${loc.longitude}"),
-	            type: "routine"
-	        });
+		    locations.push({
+		        scheduleName: "${loc.title}",
+		        placeName: "${loc.placeName}",
+		        lat: Number("${loc.latitude}"),
+		        lng: Number("${loc.longitude}"),
+		        type: "routine"
+		    });
 	    </c:if>
 	</c:forEach>
 	
@@ -315,16 +317,18 @@
 	            content:
 	                '<div style="' +
 	                    'background:white;' +
-	                    'padding:4px 8px;' +
-	                    'border-radius:8px;' +
+	                    'padding:6px 10px;' +
+	                    'border-radius:10px;' +
 	                    'font-size:12px;' +
-	                    'font-weight:600;' +
 	                    'box-shadow:0 2px 6px rgba(0,0,0,0.2);' +
 	                    'white-space:nowrap;' +
+	                    'text-align:center;' +
+	                    'line-height:1.4;' +
 	                '">' +
-	                loc.name +
+	                    '<div style="font-weight:700; color:#0f172a;">' + loc.scheduleName + '</div>' +
+	                    '<div style="font-size:11px; color:#64748b;">' + loc.placeName + '</div>' +
 	                '</div>',
-	            yAnchor: 1.8 //  마커 위로 올리기
+	            yAnchor: 1.9
 	        });
 
 	        bounds.extend(position);
