@@ -231,4 +231,12 @@ public class ChatDAO {
         return template.selectList("chat.getChatRoomMembers", roomId);
     }
     
+    public int deleteRoutineFile(int seqFile) {
+        return template.delete("chat.deleteRoutineFile", seqFile);
+    }
+
+    public int deleteFile(int seqFile) {
+        return template.delete("chat.deleteFile", seqFile);
+    }
+    
 }

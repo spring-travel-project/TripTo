@@ -43,13 +43,14 @@
 		</div>
 
 		<form method="post"
-		      action="${pageContext.request.contextPath}/chat/routine/edit"
+		      action="${pageContext.request.contextPath}/chat/routine/edit?${_csrf.parameterName}=${_csrf.token}"
 		      enctype="multipart/form-data"
 		      class="space-y-6">
 
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 				<input type="hidden" name="seq" value="${routine.seq}">
 				<input type="hidden" name="seqChattingroom" value="${roomId}">
+				<input type="hidden" name="removedFiles" id="removedFiles">
 
 				<div>
 					<label for="title" class="block text-sm font-semibold text-slate-700 mb-2">
@@ -160,7 +161,21 @@
 					        파일 선택
 					    </label>
 					
-					    <div id="fileList" class="flex flex-col gap-2 text-sm text-slate-700"></div>
+					    <!-- 기존 파일 목록 -->
+					    <div id="existingFileList" class="flex flex-col gap-2 text-sm text-slate-700 mt-3">
+					    	<c:if test="${not empty fileList}">
+							    <c:forEach var="file" items="${fileList}">
+							        <div class="file-item">
+							            <span>${file.originalName}</span>
+							            <span class="file-remove"
+							                  onclick="removeExistingFile(this, ${file.seq})">✕</span>
+							        </div>
+							    </c:forEach>
+							</c:if>
+					    </div>
+
+					    <!-- 새로 선택한 파일 목록 -->
+					    <div id="newFileList" class="flex flex-col gap-2 text-sm text-slate-700 mt-2"></div>
 					
 					    <p class="mt-3 text-xs text-slate-400">
 					        여러 개 파일 업로드 가능합니다.
@@ -181,7 +196,6 @@
 					</a>
 				</div>
 			</form>
-		</div>
 
 	</main>
 	
@@ -293,6 +307,7 @@
 		}
 		
 		let selectedFiles = [];
+		let removedFileIds = [];
 
 		function showSelectedFiles(input) {
 		    const newFiles = Array.from(input.files);
@@ -301,19 +316,12 @@
 		        selectedFiles.push(file);
 		    });
 
-		    const dt = new DataTransfer();
-
-		    selectedFiles.forEach(file => {
-		        dt.items.add(file);
-		    });
-
-		    input.files = dt.files;
-
+		    updateFileInput(input);
 		    renderFileList(input);
 		}
 
 		function renderFileList(input) {
-		    const fileList = document.getElementById('fileList');
+		    const fileList = document.getElementById('newFileList');
 		    fileList.innerHTML = '';
 
 		    selectedFiles.forEach((file, index) => {
@@ -329,14 +337,7 @@
 
 		        remove.onclick = () => {
 		            selectedFiles.splice(index, 1);
-
-		            const dt = new DataTransfer();
-
-		            selectedFiles.forEach(file => {
-		                dt.items.add(file);
-		            });
-
-		            input.files = dt.files;
+		            updateFileInput(input);
 		            renderFileList(input);
 		        };
 
@@ -344,8 +345,22 @@
 		        item.appendChild(remove);
 		        fileList.appendChild(item);
 		    });
+		}
 
-		    input.value = '';
+		function updateFileInput(input) {
+		    const dt = new DataTransfer();
+
+		    selectedFiles.forEach(file => {
+		        dt.items.add(file);
+		    });
+
+		    input.files = dt.files;
+		}
+
+		function removeExistingFile(el, fileId) {
+		    removedFileIds.push(fileId);
+		    document.getElementById('removedFiles').value = removedFileIds.join(',');
+		    el.parentElement.remove();
 		}
 	</script>
 	

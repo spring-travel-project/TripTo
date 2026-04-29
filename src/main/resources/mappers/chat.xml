@@ -311,8 +311,13 @@
     </insert>
 
     <update id="updateRoutine" parameterType="com.tripto.dto.RoutineDTO">
-        UPDATE routine SET title = #{title}, detail = #{detail}, seqLocation = #{seqLocation} WHERE seq = #{seq}
-    </update>
+	    UPDATE routine
+	    SET title = #{title},
+	        detail = #{detail},
+	        seqLocation = #{seqLocation},
+	        dDay = #{dDay, jdbcType=DATE}
+	    WHERE seq = #{seq}
+	</update>
 
     <insert id="insertChatFile" parameterType="map">
         <selectKey keyProperty="seqFile" resultType="int" order="BEFORE">
@@ -430,5 +435,15 @@
         INNER JOIN member m ON uc.seqMember = m.seqMember
         WHERE uc.seqChattingroom = #{roomId}
           AND uc.isActive = 1  </select>
+          
+	<delete id="deleteRoutineFile" parameterType="int">
+	    DELETE FROM routine_file
+	    WHERE seqFile = #{seqFile}
+	</delete>
+		
+	<delete id="deleteFile" parameterType="int">
+	    DELETE FROM files
+	    WHERE seq = #{seqFile}
+	</delete>
 
 </mapper>

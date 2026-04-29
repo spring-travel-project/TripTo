@@ -277,7 +277,9 @@ public class ChatController {
     }
 
     @GetMapping("/chat/routine/edit")
-    public String routineEdit(@RequestParam("roomId") int roomId, @RequestParam("routineId") int routineId, Model model) {
+    public String routineEdit(@RequestParam("roomId") int roomId, 
+                              @RequestParam("routineId") int routineId, 
+                              Model model) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
 
@@ -285,19 +287,30 @@ public class ChatController {
         if (routine == null || routine.getSeqMember() != loginMember.getSeqMember()) {
             return "redirect:/chat/schedulePoll?roomId=" + roomId;
         }
+        
+        List<FileDTO> fileList = chatService.getRoutineFileList(routineId);
+        System.out.println("수정 화면 파일 개수 = " + fileList.size());
 
         model.addAttribute("roomId", roomId);
         model.addAttribute("routine", routine);
+        model.addAttribute("fileList", chatService.getRoutineFileList(routineId));
+
         return "chat/routineEdit";
     }
 
     @PostMapping("/chat/routine/edit")
-    public String routineEditOk(RoutineDTO dto) {
+    public String routineEditOk(RoutineDTO dto,
+                                @RequestParam(value = "files", required = false) List<MultipartFile> files,
+                                @RequestParam(value = "removedFiles", required = false) String removedFiles) {
         MemberDTO loginMember = getLoginMember();
         if (loginMember == null) return "redirect:/member/login.do";
 
-        chatService.updateRoutine(dto, loginMember.getSeqMember());
-        return "redirect:/chat/routine/detail?roomId=" + dto.getSeqChattingroom() + "&routineId=" + dto.getSeq();
+        chatService.updateRoutine(dto, loginMember.getSeqMember(), files, removedFiles);
+
+        return "redirect:/chat/routine/detail?roomId=" 
+                + dto.getSeqChattingroom() 
+                + "&routineId=" 
+                + dto.getSeq();
     }
 
     @PostMapping("/chat/uploadFile.do")
