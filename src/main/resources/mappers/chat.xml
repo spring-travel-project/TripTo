@@ -75,30 +75,28 @@
 	</select>
 
     <select id="getMessageList" parameterType="map" resultType="com.tripto.dto.ChatMessageDTO">
-        SELECT
-            cl.seq,
-            cl.detail,
-            cl.seqMember,
-            cl.seqChattingroom,
-            cl.regdate,
-            TO_CHAR(cl.regdate, 'HH24:MI') AS messageTime,
-            m.nickname,
-            m.pic AS partnerProfile,
-            f.savedName,
-            (SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = cl.seqChattingroom)
-            - (SELECT COUNT(*) FROM chat_read_status WHERE seqChatLog = cl.seq) - 1 AS unreadCount,
-            CASE
-                WHEN cl.seqMember = #{loginUserId} THEN 1
-                ELSE 0
-            END AS mine
-        FROM chat_log cl
-            INNER JOIN member m
-                ON cl.seqMember = m.seqMember
-            LEFT JOIN files f
-                ON cl.seqFile = f.seq
-        WHERE cl.seqChattingroom = #{roomId}
-        ORDER BY cl.seq ASC
-    </select>
+	    SELECT
+	        cl.seq,
+	        cl.detail,
+	        cl.seqMember,
+	        cl.seqChattingroom,
+	        cl.regdate,
+	        TO_CHAR(cl.regdate, 'HH24:MI') AS messageTime,
+	        NVL(m.nickname, '시스템') AS nickname, m.pic AS partnerProfile,
+	        f.savedName,
+	        (SELECT COUNT(*) FROM user_chat WHERE seqChattingroom = cl.seqChattingroom)
+	        - (SELECT COUNT(*) FROM chat_read_status WHERE seqChatLog = cl.seq) - 1 AS unreadCount,
+	        CASE
+	            WHEN cl.seqMember = #{loginUserId} THEN 1
+	            ELSE 0
+	        END AS mine
+	    FROM chat_log cl
+	        LEFT JOIN member m ON cl.seqMember = m.seqMember
+	        LEFT JOIN files f
+	            ON cl.seqFile = f.seq
+	    WHERE cl.seqChattingroom = #{roomId}
+	    ORDER BY cl.seq ASC
+	</select>
 
     <select id="getNicknameByMemberId" parameterType="int" resultType="string">
         SELECT nickname
