@@ -52,13 +52,13 @@
 	            </div>
 	
 	            <div class="form-group">
-			        <label class="form-label">글 내용</label>
-			
-			        <div id="editor"></div>
-			        <input type="hidden" name="content" id="content">
-			
-			        <textarea id="originContent" style="display:none;"><c:out value="${dto.content}" /></textarea>
-			    </div>
+				    <label class="form-label">글 내용</label>
+				
+				    <div id="editor"></div>
+				    <input type="hidden" name="content" id="content">
+				
+				    <textarea id="originContent" style="display:none;"><c:out value="${dto.content}" /></textarea>
+				</div>
 			
 			    <div class="board-write-actions">
 			        <button type="submit" class="btn-board-outline btn-board-sm">수정하기</button>
@@ -77,30 +77,31 @@
 	    const csrfParameter = '${_csrf.parameterName}';
 	    const csrfToken = '${_csrf.token}';
 	
+	    const originContent = document.getElementById('originContent').value || '';
+	
 	    const editor = new toastui.Editor({
 	        el: document.querySelector('#editor'),
 	        height: '700px',
 	        initialEditType: 'wysiwyg',
 	        previewStyle: 'vertical',
-	        initialValue: '',
-
-	        // 🔥 여기 추가
+	        initialValue: originContent,
+	
 	        hooks: {
 	            addImageBlobHook: async (blob, callback) => {
-
+	
 	                const formData = new FormData();
 	                formData.append('attach', blob);
-
+	
 	                const response = await fetch('${cp}/board/imageUpload.do', {
 	                    method: 'POST',
 	                    headers: {
-	                        'X-CSRF-TOKEN': '${_csrf.token}'
+	                        'X-CSRF-TOKEN': csrfToken
 	                    },
 	                    body: formData
 	                });
-
+	
 	                const result = await response.json();
-
+	
 	                callback(result.url, '이미지');
 	            }
 	        }

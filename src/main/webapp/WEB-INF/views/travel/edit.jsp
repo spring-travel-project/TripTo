@@ -57,9 +57,11 @@
 					<div id="map"
 					     style="width:100%; height:360px; margin-top:12px; border-radius:14px;"></div>
 					
-	                <div id="selectedPlaceBox" style="margin-top:10px;">
-	                    선택된 장소가 없습니다.
-	                </div>
+	                <div id="selectedPlaceBox" class="selected-place empty">
+				    <div class="place-info">
+				        <div class="place-name">장소를 선택해주세요</div>
+				    </div>
+				</div>
 
 	                <input type="hidden" id="placeName" name="placeName">
 	                <input type="hidden" id="address" name="address">
@@ -70,13 +72,13 @@
 	
 	            <!-- 내용 -->
 	            <div class="form-group">
-			        <label class="form-label">글 내용</label>
-			
-			        <div id="editor"></div>
-			        <input type="hidden" name="content" id="content">
-			
-			        <textarea id="originContent" style="display:none;"><c:out value="${dto.content}" /></textarea>
-			    </div>
+				    <label class="form-label">글 내용</label>
+				
+				    <div id="editor"></div>
+				    <input type="hidden" name="content" id="content">
+				
+				    <textarea id="originContent" style="display:none;"><c:out value="${dto.content}" /></textarea>
+				</div>
 			
 			    <div class="travel-write-actions">
 			        <button type="submit" class="btn-travel-outline btn-travel-sm">수정하기</button>
@@ -139,6 +141,13 @@
 	            map: map,
 	            position: position
 	        });
+
+	        labelOverlay = new kakao.maps.CustomOverlay({
+	            map: map,
+	            position: position,
+	            content: '<div class="map-marker-label">' + placeName + '</div>',
+	            yAnchor: 2.3
+	        });
 	
 	        document.getElementById('placeName').value = placeName;
 	        document.getElementById('address').value = address;
@@ -196,7 +205,7 @@
 	        height: '700px',
 	        initialEditType: 'wysiwyg',
 	        previewStyle: 'vertical',
-	        initialValue: '',
+	        initialValue: originContent || '',
 
 	        // 🔥 여기 추가
 	        hooks: {
