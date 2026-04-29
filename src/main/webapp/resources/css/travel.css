@@ -1336,14 +1336,17 @@ select {
     color: #8fa1c3;
 }
 
-.btn-gray {
+/* 기본 */
+.btn-travel-outline.btn-gray {
     border-color: #c5cbd6 !important;
     color: #7b8798 !important;
     background: #fff !important;
 }
 
-.btn-gray:hover {
+/* hover */
+.btn-travel-outline.btn-gray:hover {
     border-color: #aab2bf !important;
     color: #5f6b7c !important;
     background: #f5f7fa !important;
 }
+

@@ -167,7 +167,7 @@
                 <div class="travel-detail-actions">
 
                     <div class="travel-detail-action-left" style="display:flex; gap:10px; align-items:center;">
-                        <a class="btn-travel-outline btn-gray">목록으로</a>
+                        <a href="${cp}/travel/list.do" class="btn-travel-outline btn-gray">목록으로</a>
 
                         <c:if test="${isAdmin}">
                             <c:choose>
