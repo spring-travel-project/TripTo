@@ -90,7 +90,7 @@
 	        0,
 	        'NORMAL',
 	        SYSDATE,
-	        #{thumbnailUrl}
+	        #{thumbnailUrl, jdbcType=VARCHAR}
 	    )
 
     </insert>
