@@ -1,5 +1,6 @@
 package com.tripto.service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ public class MemberService {
 
 	@Autowired
 	private MemberDAO dao;
+	
+	
 
 	// 회원가입 시 아이디 중복 확인
 	public int checkId(String id) {
@@ -74,4 +77,12 @@ public class MemberService {
 	public void updateMemberInfo(MemberDTO dto) {
 		dao.updateMemberInfo(dto);
 	}
+	
+	public void updateProfilePic(int seqMember, String imageUrl) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("seqMember", seqMember);
+        map.put("imageUrl", imageUrl);
+        
+        dao.updateProfilePic(map);
+    }
 }

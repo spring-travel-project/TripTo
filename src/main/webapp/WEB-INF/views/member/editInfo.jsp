@@ -29,7 +29,11 @@
                 
                 <div class="flex flex-col items-center justify-center mb-8">
     <div class="w-28 h-28 rounded-full border-2 border-slate-200 overflow-hidden mb-3">
-        <img id="profilePreview" src="${pageContext.request.contextPath}${empty member.pic or member.pic eq 'pic.png' ? '/resources/img/pic.png' : '/resources/upload/profile/' += member.pic}" class="w-full h-full object-cover">
+        <img id="profilePreview" 
+     src="${not empty member.pic and not (member.pic eq 'pic.png') 
+          ? (fn:startsWith(member.pic, 'http') ? member.pic : pageContext.request.contextPath.concat('/resources/upload/profile/').concat(member.pic))
+          : pageContext.request.contextPath.concat('/resources/img/pic.png')}"
+     class="w-full h-full object-cover">
     </div>
     <label class="block text-sm font-bold text-slate-500 mb-2">새 프로필 사진 업로드 (선택)</label>
     <input type="file" name="picFile" class="file-input file-input-bordered file-input-sm w-full max-w-xs" accept="image/*" />

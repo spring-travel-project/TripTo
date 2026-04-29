@@ -9,11 +9,8 @@
 	<title>매칭 커뮤니티 - TripTo</title>
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 	<style>
-		/* 가로 스크롤바 숨기기 */
 		.hide-scrollbar::-webkit-scrollbar { display: none; }
 		.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-		
-		/* 카드 호버 시 상단 짤림 방지 */
 		.match-card { transition: box-shadow 0.3s ease; }
 		.match-card:hover { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
 	</style>
@@ -44,8 +41,17 @@
 							<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-slate-200 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 								 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 								<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-									<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" 
-										 class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+									<c:choose>
+										<c:when test="${empty match.pic}">
+											<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+										</c:when>
+										<c:when test="${fn:startsWith(match.pic, 'http')}">
+											<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+										</c:when>
+										<c:otherwise>
+											<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+										</c:otherwise>
+									</c:choose>
 									<div class="absolute top-4 right-4 z-10 bg-blue-600 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-sm">
 										${match.matchCount}개 일치
 									</div>
@@ -80,7 +86,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-indigo-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -104,7 +120,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-orange-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -133,7 +159,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-emerald-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -157,7 +193,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-slate-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -186,7 +232,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-sky-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -210,7 +266,17 @@
 									<div class="match-card min-w-[250px] w-[250px] bg-white rounded-[2.5rem] border-2 border-amber-400 overflow-hidden flex-shrink-0 snap-center cursor-pointer group/card"
 										 onclick="location.href='${pageContext.request.contextPath}/matching/detail?seqMember=${match.seqMember}';">
 										<div class="h-[250px] bg-slate-100 overflow-hidden relative">
-											<img src="${pageContext.request.contextPath}/resources/upload/profile/${empty match.pic ? 'pic.png' : match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+											<c:choose>
+												<c:when test="${empty match.pic}">
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:when test="${fn:startsWith(match.pic, 'http')}">
+													<img src="${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:when>
+												<c:otherwise>
+													<img src="${pageContext.request.contextPath}/resources/upload/profile/${match.pic}" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110">
+												</c:otherwise>
+											</c:choose>
 										</div>
 										<div class="p-6 text-center">
 											<h3 class="font-bold text-xl text-slate-800 mb-3">${match.nickname}</h3>
@@ -230,16 +296,12 @@
 
 	<script>
 		function slideLeft(btn) {
-			// 클릭한 버튼의 부모(relative) 안에서 scroll-container를 찾음
 			const container = btn.parentElement.querySelector('.scroll-container');
-			// 왼쪽으로 300px(카드 1개 반 너비) 이동
 			container.scrollBy({ left: -300, behavior: 'smooth' });
 		}
 
 		function slideRight(btn) {
-			// 클릭한 버튼의 부모(relative) 안에서 scroll-container를 찾음
 			const container = btn.parentElement.querySelector('.scroll-container');
-			// 오른쪽으로 300px 이동
 			container.scrollBy({ left: 300, behavior: 'smooth' });
 		}
 	</script>

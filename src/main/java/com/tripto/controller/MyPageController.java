@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dto.MatchDTO;
 import com.tripto.dto.MemberDTO;
 import com.tripto.service.MatchingService;
@@ -136,38 +138,32 @@ public class MyPageController {
 
 	// 5-2. 폼 제출: 내 정보 수정 완료 처리 (POST)
 	@PostMapping("/editInfo.do")
-	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal, HttpServletRequest request) {
+	public String infoEditComplete(MemberDTO dto, @RequestParam("picFile") MultipartFile picFile, Principal principal) {
 
-		// 1) 누구를 수정할지 기준(id) 세팅
-		dto.setId(principal.getName());
+	    dto.setId(principal.getName());
 
-		// 2) 프로필 사진 파일 업로드 처리 (회원가입 로직 100% 재활용)
-		if (!picFile.isEmpty()) {
-			try {
-				String path = request.getServletContext().getRealPath("/resources/upload/profile/");
-				File dir = new File(path);
-				if (!dir.exists())
-					dir.mkdirs();
+	    if (picFile != null && !picFile.isEmpty()) {
+	        try {
+	            // 🌟 클라우드 설정 (태훈님 키 입력!)
+	            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+	            		 "cloud_name", "dh5p4lvo2",
+	                     "api_key", "283127846695383",
+	                     "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
+	                     "secure", true
+	            ));
 
-				String originalName = picFile.getOriginalFilename();
-				String uuid = UUID.randomUUID().toString();
-				String savedName = uuid + "_" + originalName;
+	            // 🌟 업로드 후 URL 받기
+	            Map uploadResult = cloudinary.uploader().upload(picFile.getBytes(), ObjectUtils.emptyMap());
+	            String imageUrl = (String) uploadResult.get("secure_url");
 
-				File target = new File(path, savedName);
-				picFile.transferTo(target);
+	            dto.setPic(imageUrl); // DB에는 이제 URL 주소가 저장됩니다.
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
 
-				dto.setPic(savedName); // 새로 업로드한 파일명 DTO에 꽂아넣기
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		// (사진을 안 올렸으면 jsp에서 picFile이 비어있으므로 동적 쿼리에 의해 pic 컬럼은 건드리지 않음)
-
-		// 3) DB 업데이트 실행
-		memberService.updateMemberInfo(dto);
-
-		// 4) 수정 완료 후 다시 마이페이지 메인으로 부드럽게 복귀
-		return "redirect:/member/mypage.do";
+	    memberService.updateMemberInfo(dto);
+	    return "redirect:/member/mypage.do";
 	}
 
 	// 6-1. 프로필 작성/수정 화면 띄우기 (GET)
@@ -183,39 +179,35 @@ public class MyPageController {
 	// 6-2. 프로필 저장 완료 처리 (POST)
 	@PostMapping("/editProfile.do")
 	public String editProfileComplete(MatchDTO profileDto,
-			@RequestParam(value = "staySeqs", required = false) List<Integer> staySeqs,
-			@RequestParam(value = "languageSeqs", required = false) List<Integer> languageSeqs,
-			@RequestParam(value = "ageGroupSeqs", required = false) List<Integer> ageGroupSeqs,
-			@RequestParam("coverFile") MultipartFile coverFile, Principal principal, javax.servlet.http.HttpServletRequest request) {
+	        @RequestParam(value = "staySeqs", required = false) List<Integer> staySeqs,
+	        @RequestParam(value = "languageSeqs", required = false) List<Integer> languageSeqs,
+	        @RequestParam(value = "ageGroupSeqs", required = false) List<Integer> ageGroupSeqs,
+	        @RequestParam("coverFile") MultipartFile coverFile, Principal principal) {
 
-		// 1) 로그인한 유저의 seqMember 가져와서 DTO에 세팅
-		MemberDTO member = memberService.getMemberById(principal.getName());
-		profileDto.setSeqMember(member.getSeqMember());
+	    MemberDTO member = memberService.getMemberById(principal.getName());
+	    profileDto.setSeqMember(member.getSeqMember());
 
-		// 2) 배경 사진(Cover) 업로드 처리
-		if (!coverFile.isEmpty()) {
-			try {
-				String path = request.getServletContext().getRealPath("/resources/upload/cover/"); // 배경 사진 전용 폴더
-				File dir = new File(path);
-				if (!dir.exists())
-					dir.mkdirs();
+	    if (coverFile != null && !coverFile.isEmpty()) {
+	        try {
+	            // 🌟 클라우드 설정
+	            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+	            		"cloud_name", "dh5p4lvo2",
+	                     "api_key", "283127846695383",
+	                     "api_secret", "eYnsfyRDN0ssk_wsyCTugTgKl3k",
+	                     "secure", true
+	            ));
 
-				String uuid = UUID.randomUUID().toString();
-				String savedName = uuid + "_" + coverFile.getOriginalFilename();
+	            // 🌟 업로드 후 URL 받기
+	            Map uploadResult = cloudinary.uploader().upload(coverFile.getBytes(), ObjectUtils.emptyMap());
+	            String imageUrl = (String) uploadResult.get("secure_url");
 
-				File target = new File(path, savedName);
-				coverFile.transferTo(target);
+	            profileDto.setCoverPic(imageUrl); // DB에 URL 저장
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
 
-				profileDto.setCoverPic(savedName); // DB에 넣을 파일명 세팅
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		// 3) 서비스 호출 (프로필 + 다중선택 배열 한 번에 넘기기)
-		matchingService.saveMyProfile(profileDto, staySeqs, languageSeqs, ageGroupSeqs);
-
-		// 4) 작성 완료 후 마이페이지로 이동
-		return "redirect:/member/mypage.do";
+	    matchingService.saveMyProfile(profileDto, staySeqs, languageSeqs, ageGroupSeqs);
+	    return "redirect:/member/mypage.do";
 	}
 }

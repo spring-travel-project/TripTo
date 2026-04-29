@@ -33,7 +33,11 @@
                 <div class="mb-12">
                     <label class="block text-lg font-bold text-slate-800 mb-4">📸 마이페이지 배경 사진 (선택)</label>
                     <div class="h-48 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <img id="coverPreview" src="${pageContext.request.contextPath}${empty profile.coverPic or profile.coverPic eq 'default_cover.png' ? '/resources/img/default_cover.png' : '/resources/upload/cover/' += profile.coverPic}" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform group-hover:scale-105">
+                        <img id="coverPreview" 
+					     src="${not empty profile.coverPic and not (profile.coverPic eq 'default_cover.png') 
+					          ? (fn:startsWith(profile.coverPic, 'http') ? profile.coverPic : pageContext.request.contextPath.concat('/resources/upload/cover/').concat(profile.coverPic))
+					          : pageContext.request.contextPath.concat('/resources/img/default_cover.png')}"
+					     class="absolute inset-0 w-full h-full object-cover z-0 transition-transform group-hover:scale-105">
                         <div class="absolute inset-0 bg-black/40 z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <span class="text-white font-bold mb-2">사진 변경하기</span>
                             <input type="file" name="coverFile" class="file-input file-input-bordered file-input-sm w-full max-w-xs" accept="image/*" />

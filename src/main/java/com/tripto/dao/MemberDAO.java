@@ -73,4 +73,8 @@ public class MemberDAO {
 	public void updateMemberInfo(MemberDTO dto) {
 		sql.update("member.updateMemberInfo", dto);
 	}
+
+	public int updateProfilePic(Map<String, Object> map) {
+        return sql.update("member.updateProfilePic", map);
+    }
 }

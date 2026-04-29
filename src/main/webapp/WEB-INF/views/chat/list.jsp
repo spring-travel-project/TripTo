@@ -44,15 +44,15 @@
                       <a href="${roomUrl}" class="block rounded-2xl p-4 shadow-sm transition ${room.active == 1 ? 'border-2 border-sky-500 bg-sky-50' : 'border border-slate-200 bg-white hover:bg-slate-50'}">
                          <div class="flex gap-3">
                             <div class="w-14 h-14 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                                <c:choose>
-								    <c:when test="${msg.savedName.startsWith('http')}">
-								        <img src="${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-								    </c:when>
-								    <c:otherwise>
-								        <img src="${pageContext.request.contextPath}/upload/chat/${msg.savedName}" class="rounded-lg max-w-full h-auto mb-2 cursor-pointer" onclick="window.open(this.src)">
-								    </c:otherwise>
-								</c:choose>
-                            </div>
+							    <c:choose>
+							        <c:when test="${not empty room.partnerProfile and room.partnerProfile.startsWith('http')}">
+							            <img src="${room.partnerProfile}" class="w-full h-full object-cover">
+							        </c:when>
+							        <c:otherwise>
+							            <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty room.partnerProfile ? room.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
+							        </c:otherwise>
+							    </c:choose>
+							</div>
                             
                             <div class="min-w-0 flex-1">
                                <div class="flex items-start justify-between gap-2 mb-1">
@@ -106,13 +106,13 @@
                                     <c:if test="${!msg.mine}">
                                         <div class="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden">
                                             <c:choose>
-                                                <c:when test="${not empty msg.partnerProfile}">
-                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/${msg.partnerProfile}" class="w-full h-full object-cover">
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/resources/upload/profile/pic.png" class="w-full h-full object-cover">
-                                                </c:otherwise>
-                                            </c:choose>
+											    <c:when test="${not empty msg.partnerProfile and msg.partnerProfile.startsWith('http')}">
+											        <img src="${msg.partnerProfile}" class="w-full h-full object-cover">
+											    </c:when>
+											    <c:otherwise>
+											        <img src="${pageContext.request.contextPath}/resources/upload/profile/${not empty msg.partnerProfile ? msg.partnerProfile : 'pic.png'}" class="w-full h-full object-cover">
+											    </c:otherwise>
+											</c:choose>
                                         </div>
                                     </c:if>
 
