@@ -23,13 +23,14 @@ import com.tripto.dto.ChatMessageDTO;
 import com.tripto.dto.ChatRoomDTO;
 import com.tripto.dto.FileDTO;
 import com.tripto.dto.MemberDTO;
-import com.tripto.dto.PollContentDTO;
 import com.tripto.dto.PollDTO;
 import com.tripto.dto.RoutineDTO;
+import com.tripto.dto.RoutineFileDTO;
 import com.tripto.dto.TravelPostDTO;
 import com.tripto.service.ChatService;
 import com.tripto.service.MemberService;
 import com.tripto.websocket.ChatWebSocketHandler;
+
 
 @Controller
 public class ChatController {
@@ -219,6 +220,7 @@ public class ChatController {
         return "redirect:/chat/schedulePoll?roomId=" + roomId;
     }
 
+ // 1. 화면 열기 (그대로 유지)
     @GetMapping("/chat/routine/write")
     public String routineWrite(@RequestParam("roomId") int roomId, Model model) {
         model.addAttribute("roomId", roomId);
