@@ -128,34 +128,53 @@
 	<script>
 	    const slides = document.querySelectorAll('.main-slide');
 	    let currentSlide = 0;
+	    let slideTimer = null; // 타이머를 관리할 변수
 	
-	    if (slides.length > 1) {
-	        setInterval(function () {
-	            slides[currentSlide].classList.remove('active');
-	            currentSlide = (currentSlide + 1) % slides.length;
-	            slides[currentSlide].classList.add('active');
-	        }, 3500);
-	    }
-	    
+	    // 슬라이드를 보여주는 핵심 함수
 	    function showSlide(index) {
+	        // 모든 슬라이드에서 active 클래스 제거
 	        slides.forEach(s => s.classList.remove('active'));
+	        
+	        // 현재 인덱스의 슬라이드에만 active 추가
 	        slides[index].classList.add('active');
+	        currentSlide = index;
 	    }
-
+	
+	    // 다음 슬라이드로 이동 (마지막이면 처음으로)
 	    function nextSlide() {
-	        currentSlide = (currentSlide + 1) % slides.length;
-	        showSlide(currentSlide);
+	        let nextIndex = (currentSlide + 1) % slides.length;
+	        showSlide(nextIndex);
+	        resetTimer(); // 수동 조작 시 타이머 리셋
 	    }
-
+	
+	    // 이전 슬라이드로 이동 (처음이면 마지막으로)
 	    function prevSlide() {
-	        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-	        showSlide(currentSlide);
+	        let prevIndex = (currentSlide - 1 + slides.length) % slides.length;
+	        showSlide(prevIndex);
+	        resetTimer(); // 수동 조작 시 타이머 리셋
 	    }
-
-	    // 자동 슬라이드
-	    if (slides.length > 1) {
-	        setInterval(nextSlide, 3500);
+	
+	    // 자동 슬라이드 시작 함수
+	    function startTimer() {
+	        if (slides.length > 1) {
+	            slideTimer = setInterval(() => {
+	                // 수동으로 누르는 것과 똑같이 다음 슬라이드로 이동
+	                let nextIndex = (currentSlide + 1) % slides.length;
+	                showSlide(nextIndex);
+	            }, 3500); // 3.5초마다 실행
+	        }
 	    }
+	
+	    // 타이머 재설정 (버튼 클릭 시 자동 슬라이드 시간이 꼬이지 않게 함)
+	    function resetTimer() {
+	        clearInterval(slideTimer);
+	        startTimer();
+	    }
+	
+	    // 페이지 로드 시 타이머 시작
+	    document.addEventListener("DOMContentLoaded", () => {
+	        startTimer();
+	    });
 	</script>
 </body>
 </html>
