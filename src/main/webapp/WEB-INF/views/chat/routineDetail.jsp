@@ -90,7 +90,9 @@
 				<div class="file-container mt-4">
 				    <c:forEach items="${fileList}" var="file">
 				        <c:if test="${not empty file.filePath}">
-				            <img src="${pageContext.request.contextPath}${file.filePath}"
+				            <img src="${file.filePath.startsWith('http') 
+				                    ? file.filePath 
+				                    : pageContext.request.contextPath.concat(file.filePath)}"
 				                 class="file-image border border-slate-200 shadow-sm">
 				        </c:if>
 				    </c:forEach>
