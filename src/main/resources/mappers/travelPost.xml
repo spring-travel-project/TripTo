@@ -67,13 +67,13 @@
     </select>
 
     <!-- 게시글 등록 -->
-    <insert id="add" parameterType="com.tripto.dto.TravelPostDTO">
-
-        <selectKey keyProperty="seqTravelPost" resultType="int" order="BEFORE">
-            SELECT SEQTRAVELPOST.NEXTVAL FROM DUAL
-        </selectKey>
-
-        INSERT INTO TRAVEL_POST (
+	<insert id="add" parameterType="com.tripto.dto.TravelPostDTO">
+	
+	    <selectKey keyProperty="seqTravelPost" resultType="int" order="BEFORE">
+	        SELECT SEQTRAVELPOST.NEXTVAL FROM DUAL
+	    </selectKey>
+	
+	    INSERT INTO TRAVEL_POST (
 	        SEQTRAVELPOST,
 	        SEQMEMBER,
 	        TITLE,
@@ -81,7 +81,8 @@
 	        VIEWCOUNT,
 	        STATUS,
 	        CREATEDATE,
-	        THUMBNAILURL
+	        THUMBNAILURL,
+	        SEQLOCATION
 	    ) VALUES (
 	        #{seqTravelPost},
 	        #{seqMember},
@@ -90,10 +91,11 @@
 	        0,
 	        'NORMAL',
 	        SYSDATE,
-	        #{thumbnailUrl, jdbcType=VARCHAR}
+	        #{thumbnailUrl, jdbcType=VARCHAR},
+	        #{seqLocation, jdbcType=NUMERIC}
 	    )
-
-    </insert>
+	
+	</insert>
 
     <!-- 파일 등록 -->
     <insert id="addFile" parameterType="com.tripto.dto.TravelPostFileDTO">
@@ -159,16 +161,16 @@
         WHERE SEQTRAVELPOST = #{seqTravelPost}
     </update>
 
-    <!-- 수정 -->
     <update id="edit" parameterType="com.tripto.dto.TravelPostDTO">
-        UPDATE TRAVEL_POST
-        SET
-            TITLE = #{title},
-            CONTENT = #{content},
-            UPDATEDATE = SYSDATE,
-            THUMBNAILURL = #{thumbnailUrl, jdbcType=VARCHAR}
-        WHERE SEQTRAVELPOST = #{seqTravelPost}
-    </update>
+	    UPDATE TRAVEL_POST
+	    SET
+	        TITLE = #{title},
+	        CONTENT = #{content},
+	        UPDATEDATE = SYSDATE,
+	        THUMBNAILURL = #{thumbnailUrl, jdbcType=VARCHAR},
+	        SEQLOCATION = #{seqLocation, jdbcType=NUMERIC}
+	    WHERE SEQTRAVELPOST = #{seqTravelPost}
+	</update>
 
     <!-- 파일 삭제 -->
     <delete id="deleteFiles" parameterType="int">
@@ -210,20 +212,19 @@
     </select>
 
     <select id="locationListByTravelPost"
-            parameterType="int"
-            resultType="com.tripto.dto.LocationDTO">
-        SELECT
-            l.SEQLOCATION AS seqLocation,
-            l.PLACENAME AS placeName,
-            l.ADDRESS AS address,
-            l.LATITUDE AS latitude,
-            l.LONGITUDE AS longitude,
-            l.MAPPROVIDERID AS mapProviderId
-        FROM ROUTINE r
-            INNER JOIN LOCATION l
-                ON r.SEQLOCATION = l.SEQLOCATION
-        WHERE r.SEQTRAVELPOST = #{seqTravelPost}
-        ORDER BY r.SEQ ASC
-    </select>
+	        parameterType="int"
+	        resultType="com.tripto.dto.LocationDTO">
+	    SELECT
+	        l.SEQLOCATION AS seqLocation,
+	        l.PLACENAME AS placeName,
+	        l.ADDRESS AS address,
+	        l.LATITUDE AS latitude,
+	        l.LONGITUDE AS longitude,
+	        l.MAPPROVIDERID AS mapProviderId
+	    FROM TRAVEL_POST tp
+	        INNER JOIN LOCATION l
+	            ON tp.SEQLOCATION = l.SEQLOCATION
+	    WHERE tp.SEQTRAVELPOST = #{seqTravelPost}
+	</select>
 
 </mapper>
