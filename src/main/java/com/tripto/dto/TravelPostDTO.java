@@ -38,7 +38,7 @@ public class TravelPostDTO {
     private List<TravelPostFileDTO> fileList;
     private String filePath;
     
-    private int seqLocation;
+    private Integer seqLocation;
 
     private String placeName;
     private String address;
