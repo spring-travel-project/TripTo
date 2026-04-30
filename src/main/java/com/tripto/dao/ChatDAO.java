@@ -214,12 +214,18 @@ public class ChatDAO {
         return template.selectList("chat.getChatRoomMembers", roomId);
     }
     
-    // 🌟 방 참여 여부 확인 (권한 체크용)
     public int isRoomMember(int roomId, int seqMember) {
         Map<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("seqMember", seqMember);
-        // XML에서 COUNT(*)를 수행하도록 쿼리가 작성되어 있어야 함
         return template.selectOne("chat.isRoomMember", map);
+    }
+
+    public int deleteRoutineFile(int seqFile) {
+        return template.delete("chat.deleteRoutineFile", seqFile);
+    }
+
+    public int deleteFile(int seqFile) {
+        return template.delete("chat.deleteFile", seqFile);
     }
 }

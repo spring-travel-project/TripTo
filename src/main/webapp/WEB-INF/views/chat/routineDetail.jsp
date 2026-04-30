@@ -6,6 +6,20 @@
 	<meta charset="UTF-8">
 	<title>TripTo | 일정 상세</title>
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
+	<style>
+		.file-container {
+		    display: flex;
+		    flex-wrap: wrap;
+		    gap: 16px;
+		}
+		
+		.file-image {
+		    width: 450px;
+		    height: auto;
+		    object-fit: cover;
+		    border-radius: 16px;
+		}
+	</style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
@@ -73,12 +87,16 @@
 					<c:out value="${routine.detail}" />
 				</p>
 				
-				<c:forEach items="${fileList}" var="file">
-				    <c:if test="${not empty file.filePath}">
-				        <img src="${pageContext.request.contextPath}${file.filePath}"
-				             class="w-40 rounded-2xl border border-slate-200 shadow-sm">
-				    </c:if>
-				</c:forEach>
+				<div class="file-container mt-4">
+				    <c:forEach items="${fileList}" var="file">
+				        <c:if test="${not empty file.filePath}">
+				            <img src="${file.filePath.startsWith('http') 
+				                    ? file.filePath 
+				                    : pageContext.request.contextPath.concat(file.filePath)}"
+				                 class="file-image border border-slate-200 shadow-sm">
+				        </c:if>
+				    </c:forEach>
+				</div>
 				
 				<c:if test="${not empty routine.placeName}">
 					<div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5">

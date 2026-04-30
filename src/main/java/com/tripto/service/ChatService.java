@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.tripto.dao.ChatDAO;
 import com.tripto.dto.ChatMemberDTO;
 import com.tripto.dto.ChatMessageDTO;
@@ -190,26 +192,40 @@ public class ChatService {
             return false;
         }
 
-        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) chatDAO.insertLocation(dto);
+        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
+            chatDAO.insertLocation(dto);
+        }
+
         if (chatDAO.insertRoutine(dto) != 1) return false;
-        
+
         if (files == null || files.isEmpty()) return true;
 
-        String uploadPath = "C:/upload/";
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) uploadDir.mkdirs();
+        try {
+            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+            		"cloud_name", "df2o0mjgj",
+                    "api_key", "154321363337894",
+                    "api_secret", "Z3WzpCWRQ4tBgwXQ-J1lYZc44XU"
+            ));
 
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) continue;
-            try {
+            for (MultipartFile file : files) {
+                if (file == null || file.isEmpty()) continue;
+
                 String originalName = file.getOriginalFilename();
-                String savedName = UUID.randomUUID().toString() + "_" + originalName;
-                file.transferTo(new File(uploadPath + savedName));
+
+                Map uploadResult = cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap(
+                                "folder", "tripto/routine",
+                                "resource_type", "auto"
+                        )
+                );
+
+                String fileUrl = uploadResult.get("secure_url").toString();
 
                 FileDTO fileDTO = new FileDTO();
                 fileDTO.setOriginalName(originalName);
-                fileDTO.setSavedName(savedName);
-                fileDTO.setFilePath("/upload/" + savedName);
+                fileDTO.setSavedName(originalName);
+                fileDTO.setFilePath(fileUrl);
                 fileDTO.setFileSize(file.getSize());
                 fileDTO.setFileType(file.getContentType());
 
@@ -219,11 +235,15 @@ public class ChatService {
                 map.put("seqFile", fileDTO.getSeq());
                 map.put("roomId", dto.getSeqChattingroom());
                 map.put("seqRoutine", dto.getSeq());
+
                 chatDAO.insertRoutineFile(map);
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
+
         return true;
     }
 
@@ -264,8 +284,9 @@ public class ChatService {
         return chatDAO.deleteRoutine(routineId) == 1;
     }
 
-    public boolean updateRoutine(RoutineDTO dto, int loginUserId) {
+    public boolean updateRoutine(RoutineDTO dto, int loginUserId, List<MultipartFile> files, String removedFiles) {
         RoutineDTO origin = chatDAO.getRoutineDetail(dto.getSeq());
+
         if (origin == null || origin.getSeqMember() != loginUserId) return false;
         if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) return false;
         if (dto.getDetail() == null || dto.getDetail().trim().isEmpty()) return false;
@@ -284,10 +305,71 @@ public class ChatService {
             return false;
         }
 
-        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) chatDAO.insertLocation(dto);
-        else dto.setSeqLocation(origin.getSeqLocation());
+        if (dto.getPlaceName() != null && !dto.getPlaceName().trim().isEmpty()) {
+            chatDAO.insertLocation(dto);
+        } else {
+            dto.setSeqLocation(origin.getSeqLocation());
+        }
 
-        return chatDAO.updateRoutine(dto) == 1;
+        if (chatDAO.updateRoutine(dto) != 1) {
+            return false;
+        }
+
+        // 기존 파일 삭제 처리
+        if (removedFiles != null && !removedFiles.trim().isEmpty()) {
+            String[] fileIds = removedFiles.split(",");
+
+            for (String fileId : fileIds) {
+                if (fileId == null || fileId.trim().isEmpty()) continue;
+
+                int seqFile = Integer.parseInt(fileId.trim());
+
+                chatDAO.deleteRoutineFile(seqFile);
+                chatDAO.deleteFile(seqFile);
+            }
+        }
+
+        // 새 파일 추가 처리
+        if (files != null && !files.isEmpty()) {
+            String uploadPath = "C:/upload/";
+            File uploadDir = new File(uploadPath);
+
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            for (MultipartFile file : files) {
+                if (file == null || file.isEmpty()) continue;
+
+                try {
+                    String originalName = file.getOriginalFilename();
+                    String savedName = UUID.randomUUID().toString() + "_" + originalName;
+
+                    file.transferTo(new File(uploadPath + savedName));
+
+                    FileDTO fileDTO = new FileDTO();
+                    fileDTO.setOriginalName(originalName);
+                    fileDTO.setSavedName(savedName);
+                    fileDTO.setFilePath("/upload/" + savedName);
+                    fileDTO.setFileSize(file.getSize());
+                    fileDTO.setFileType(file.getContentType());
+
+                    chatDAO.insertFile(fileDTO);
+
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("seqFile", fileDTO.getSeq());
+                    map.put("roomId", dto.getSeqChattingroom());
+                    map.put("seqRoutine", dto.getSeq());
+
+                    chatDAO.insertRoutineFile(map);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return true;
     }
 
     public int uploadCloudinaryFile(String originalName, String imageUrl, int memberSeq, int roomId) {

@@ -89,7 +89,9 @@
 										<div class="w-20 h-20 rounded-xl bg-slate-200 shrink-0 overflow-hidden flex items-center justify-center text-xs text-slate-500">
 										    <c:choose>
 										        <c:when test="${not empty routine.filePath}">
-										            <img src="${pageContext.request.contextPath}${routine.filePath}"
+										            <img src="${fn:startsWith(routine.filePath, 'http') 
+													    ? routine.filePath 
+													    : pageContext.request.contextPath.concat(routine.filePath)}"
 										                 class="w-full h-full object-cover">
 										        </c:when>
 										        <c:otherwise>

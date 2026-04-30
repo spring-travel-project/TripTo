@@ -7,7 +7,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>게시글 수정</title>
+    <title>동행</title>
 
     <%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 

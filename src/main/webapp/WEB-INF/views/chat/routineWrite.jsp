@@ -46,9 +46,9 @@
 			      action="${pageContext.request.contextPath}/chat/routine/write?${_csrf.parameterName}=${_csrf.token}"
 			      enctype="multipart/form-data"
 			      class="space-y-6">
-				
-				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-				<input type="hidden" name="seqChattingroom" value="${roomId}">
+			
+			    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+			    <input type="hidden" name="seqChattingroom" value="${roomId}">
 
 				<div>
 					<label for="title" class="block text-sm font-semibold text-slate-700 mb-2">
@@ -282,7 +282,6 @@
 		    syncFileInput(input);
 		    renderFiles();
 
-		    input.value = '';
 		}
 
 		function renderFiles() {
