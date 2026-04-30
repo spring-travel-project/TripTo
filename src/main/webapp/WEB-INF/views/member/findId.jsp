@@ -45,8 +45,8 @@
             </form>
 
             <div class="flex justify-between text-sm text-slate-500 mt-6 px-2">
-                <a href="/member/findPw.do" class="hover:text-primary font-bold hover:underline">비밀번호 찾기</a>
-                <a href="/member/join.do" class="hover:text-primary font-bold hover:underline">회원가입</a>
+                <a href="${pageContext.request.contextPath}/member/findPw.do" class="hover:text-primary font-bold hover:underline">비밀번호 찾기</a>
+                <a href="${pageContext.request.contextPath}/member/join.do" class="hover:text-primary font-bold hover:underline">회원가입</a>
             </div>
         </div>
     </main>

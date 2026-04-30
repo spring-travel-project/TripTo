@@ -219,6 +219,9 @@ public class MyPageController {
 	}
 
 	// 7-1. 무한 스크롤 API
+	// @ResponseBody를 사용해 화면(JSP)은 빼고 
+	// 순수한 데이터(JSON)만 던져주는 
+	// 전용 주소(/api/myactivity/more)를 사용
 	@GetMapping("/api/myactivity/more")
 	@ResponseBody 
 	public List<MyActivityDTO> getMoreActivities(
